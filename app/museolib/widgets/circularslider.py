@@ -1,5 +1,6 @@
-from kivy.uix.widget import Widget
-from kivy.properties import NumericProperty, ReferenceListProperty
+from kivy.uix.floatlayout import FloatLayout
+from kivy.properties import NumericProperty, ReferenceListProperty, \
+        StringProperty
 from kivy.vector import Vector
 from kivy.lang import Builder
 
@@ -8,10 +9,6 @@ Builder.load_string('''
 <CircularSlider>:
     angle_min: self.value_min * 180
     angle_max: self.value_max * 180
-    x_min: math.sin(math.radians(self.angle_min)) * self.outer_radius
-    y_min: -math.cos(math.radians(self.angle_min)) * self.outer_radius
-    x_max: math.sin(math.radians(self.angle_max)) * self.outer_radius
-    y_max: -math.cos(math.radians(self.angle_max)) * self.outer_radius
 
     canvas:
         Color:
@@ -20,12 +17,7 @@ Builder.load_string('''
             pos: self.right - self.outer_radius, self.center_y - self.outer_radius
             size: self.outer_radius * 2, self.outer_radius * 2
             angle_start: (root.angle_min + 180) % 360
-            angle_end: (root.angle_max + 180) % 360
-        Color:
-            rgb: 0.5333, 0.5411, 0.5450
-        Ellipse:
-            pos: self.right - self.inner_radius, self.center_y - self.inner_radius
-            size: self.inner_radius * 2, self.inner_radius * 2
+            angle_end: ((root.angle_max + 180 - 0.00001) % 360)
         Color:
             rgb: 0, 0, 0
         Ellipse:
@@ -33,36 +25,55 @@ Builder.load_string('''
             size: (self.inner_radius - 50) * 2, (self.inner_radius - 50) * 2
         Color:
             rgb: 1, 1, 1
-        Line:
-            points: (self.right, self.center_y, self.right - self.x_min, self.center_y + self.y_min)
+        Rectangle:
+            source: 'widgets/timeline.png'
+            pos: self.pos
+            size: self.size
         Color:
-            rgb: 1, 0, 0
+            rgba: 0.5490, 1, 1, .2
         Line:
-            points: (self.right, self.center_y, self.right - self.x_max, self.center_y + self.y_max)
-    AnchorLayout:
-        BoxLayout:
-            size_hint: None, None
-            size: (100, 100)
-            orientation: 'vertical'
-            Label:
-                text: '%d' % root.angle_min
-            Label:
-                text: '%d' % root.angle_max
+            points: (self.right - math.sin(math.radians(self.angle_min)) * self.outer_radius, self.center_y -math.cos(math.radians(self.angle_min)) * self.outer_radius, self.right - math.sin(math.radians(self.angle_min)) * (self.inner_radius - 50), self.center_y -math.cos(math.radians(self.angle_min)) * (self.inner_radius - 50))
+        Line:
+            points: (self.right - math.sin(math.radians(self.angle_max)) * self.outer_radius, self.center_y -math.cos(math.radians(self.angle_max)) * self.outer_radius, self.right - math.sin(math.radians(self.angle_max)) * (self.inner_radius - 50), self.center_y -math.cos(math.radians(self.angle_max)) * (self.inner_radius - 50))
+
+    BoxLayout:
+        size_hint: None, None
+        size: (150, 80)
+        pos_hint: {'center_x': 0.5, 'center_y': 0.38}
+        orientation: 'vertical'
+        canvas.before:
+            PushMatrix
+            Translate:
+                xy: root.center_x, root.center_y
+            Rotate:
+                angle: 90
+                axis: 0., 0., 1.
+            Translate:
+                xy: -root.center_x, -root.center_y
+        canvas.after:
+            PopMatrix
+
+        Label:
+            font_size: 16
+            color: (0.5490, 1, 1, 1)
+            text: root.text_min
+        Label:
+            font_size: 16
+            color: (0.5490, 1, 1, 1)
+            text: root.text_max
 ''')
 
 
-class CircularSlider(Widget):
-    value_min = NumericProperty(0.1)
-    value_max = NumericProperty(0.9)
-    inner_radius = NumericProperty(200)
-    outer_radius = NumericProperty(220)
+class CircularSlider(FloatLayout):
+    value_min = NumericProperty(0.0)
+    value_max = NumericProperty(1.0)
+    inner_radius = NumericProperty(210)
+    outer_radius = NumericProperty(230)
     angle_min = NumericProperty(0.)
     angle_max = NumericProperty(180.)
-    x_min = NumericProperty(0)
-    y_min = NumericProperty(0)
-    x_max = NumericProperty(0)
-    y_max = NumericProperty(0)
     value_range = ReferenceListProperty(value_min, value_max)
+    text_min = StringProperty('')
+    text_max = StringProperty('')
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
