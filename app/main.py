@@ -3,7 +3,7 @@ kivy.require('1.0.7-dev')
 
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
-from widgets.circularslider import CircularSlider
+from museolib.widgets.circularslider import CircularSlider
 
 
 class MuseotouchApp(App):
