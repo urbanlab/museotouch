@@ -1,6 +1,7 @@
 import kivy
 kivy.require('1.0.7-dev')
 
+from glob import glob
 from os.path import join, dirname
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -8,6 +9,7 @@ from kivy.logger import Logger
 from kivy.resources import resource_add_path
 from museolib.utils import format_date
 from museolib.widgets.circularslider import CircularSlider
+from museolib.widgets.imagemap import ImageMap
 from museolib.backend.backendxml import BackendXML
 
 
@@ -41,6 +43,8 @@ class MuseotouchApp(App):
         Logger.info('Museotouch: loaded %d items' % len(db.items))
 
         # construct the app.
+        # at one moment, this could be moved to a "generic" app.xml file
+        # that can be used to load another scenario
         root = FloatLayout()
         slider = CircularSlider(
                 pos_hint={'right': 1, 'center_y': 0.5},
@@ -51,6 +55,18 @@ class MuseotouchApp(App):
         # update the initial slider values to show date.
         slider.bind(value_range=self.update_date_range)
         self.update_date_range(slider, slider.value_range)
+
+
+        # search image for map (exclude _bleu) files
+        sources = glob(join(data_dir, 'widgets', 'map', '*.png'))
+        sources = [x for x in sources if '_bleu' not in x]
+        imagemap = ImageMap(
+                pos_hint={'center_x': 0.5, 'y': 0},
+                size_hint=(None, None),
+                size=(500, 268),
+                sources=sources,
+                suffix='_bleu')
+        root.add_widget(imagemap)
 
         return root
 
