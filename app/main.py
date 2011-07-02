@@ -32,12 +32,12 @@ class MuseotouchApp(App):
 
     def build(self):
         # add data directory as a resource path
-        curdir = dirname(__file__)
-        resource_add_path(join(curdir, 'data'))
+        data_dir = join(dirname(__file__), 'data')
+        resource_add_path(data_dir)
 
         # link with the db. later, we need to change it to real one.
         self.db = db = BackendXML(filename=join(
-            curdir, 'data', 'xml', 'objects.xml'))
+            data_dir, 'xml', 'objects.xml'))
         Logger.info('Museotouch: loaded %d items' % len(db.items))
 
         # construct the app.
