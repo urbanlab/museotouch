@@ -1,5 +1,5 @@
 from kivy.uix.widget import Widget
-from kivy.properties import NumericProperty
+from kivy.properties import NumericProperty, ReferenceListProperty
 from kivy.vector import Vector
 from kivy.lang import Builder
 
@@ -8,19 +8,29 @@ Builder.load_string('''
 <CircularSlider>:
     angle_min: self.value_min * 180
     angle_max: self.value_max * 180
-    x_min: math.sin(math.radians(self.angle_min)) * self.inner_radius
-    y_min: -math.cos(math.radians(self.angle_min)) * self.inner_radius
-    x_max: math.sin(math.radians(self.angle_max)) * self.inner_radius
-    y_max: -math.cos(math.radians(self.angle_max)) * self.inner_radius
+    x_min: math.sin(math.radians(self.angle_min)) * self.outer_radius
+    y_min: -math.cos(math.radians(self.angle_min)) * self.outer_radius
+    x_max: math.sin(math.radians(self.angle_max)) * self.outer_radius
+    y_max: -math.cos(math.radians(self.angle_max)) * self.outer_radius
 
     canvas:
         Color:
-            rgba: 1, 1, 1, .5
+            rgb: 0.5490, 1, 1
+        Ellipse:
+            pos: self.right - self.outer_radius, self.center_y - self.outer_radius
+            size: self.outer_radius * 2, self.outer_radius * 2
+            angle_start: (root.angle_min + 180) % 360
+            angle_end: (root.angle_max + 180) % 360
+        Color:
+            rgb: 0.5333, 0.5411, 0.5450
         Ellipse:
             pos: self.right - self.inner_radius, self.center_y - self.inner_radius
             size: self.inner_radius * 2, self.inner_radius * 2
-            angle_start: (root.angle_min + 180) % 360
-            angle_end: (root.angle_max + 180) % 360
+        Color:
+            rgb: 0, 0, 0
+        Ellipse:
+            pos: self.right - self.inner_radius + 50, self.center_y - self.inner_radius + 50
+            size: (self.inner_radius - 50) * 2, (self.inner_radius - 50) * 2
         Color:
             rgb: 1, 1, 1
         Line:
@@ -29,8 +39,15 @@ Builder.load_string('''
             rgb: 1, 0, 0
         Line:
             points: (self.right, self.center_y, self.right - self.x_max, self.center_y + self.y_max)
-    Label:
-        text: str(root.angle_min)
+    AnchorLayout:
+        BoxLayout:
+            size_hint: None, None
+            size: (100, 100)
+            orientation: 'vertical'
+            Label:
+                text: '%d' % root.angle_min
+            Label:
+                text: '%d' % root.angle_max
 ''')
 
 
@@ -38,12 +55,14 @@ class CircularSlider(Widget):
     value_min = NumericProperty(0.1)
     value_max = NumericProperty(0.9)
     inner_radius = NumericProperty(200)
+    outer_radius = NumericProperty(220)
     angle_min = NumericProperty(0.)
     angle_max = NumericProperty(180.)
     x_min = NumericProperty(0)
     y_min = NumericProperty(0)
     x_max = NumericProperty(0)
     y_max = NumericProperty(0)
+    value_range = ReferenceListProperty(value_min, value_max)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
