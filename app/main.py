@@ -31,23 +31,26 @@ class MuseotouchApp(App):
 
 
     def build(self):
-
+        # add data directory as a resource path
         curdir = dirname(__file__)
         resource_add_path(join(curdir, 'data'))
 
+        # link with the db. later, we need to change it to real one.
         self.db = db = BackendXML(filename=join(
             curdir, 'data', 'xml', 'objects.xml'))
         Logger.info('Museotouch: loaded %d items' % len(db.items))
 
+        # construct the app.
         root = FloatLayout()
         slider = CircularSlider(
                 pos_hint={'right': 1, 'center_y': 0.5},
                 size_hint=(None, None),
                 size=(250, 500))
         root.add_widget(slider)
+
+        # update the initial slider values to show date.
         slider.bind(value_range=self.update_date_range)
         self.update_date_range(slider, slider.value_range)
-
 
         return root
 
