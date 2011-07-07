@@ -1,3 +1,4 @@
+from museolib.utils import convert_to_key
 
 class BackendItem(dict):
     @property
@@ -7,6 +8,14 @@ class BackendItem(dict):
     @property
     def id(self):
         return int(self['id'])
+
+    @property
+    def origin(self):
+        return self['orig_geo']
+
+    @property
+    def origin_key(self):
+        return convert_to_key(self.origin)
 
 class Backend(object):
     def __init__(self, **options):
