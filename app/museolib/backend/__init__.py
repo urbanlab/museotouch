@@ -4,6 +4,10 @@ class BackendItem(dict):
     def date(self):
         return int(self['date_crea'])
 
+    @property
+    def id(self):
+        return int(self['id'])
+
 class Backend(object):
     def __init__(self, **options):
         self.items = []
