@@ -1,12 +1,18 @@
 #:kivy 1.0
 
 <ImageItem>:
+	border: 5
 	size_hint: None, None
-	size: 512, 512
+	size: 128, 128
 	container: container
 	canvas:
 		Color:
-			rgb: 1, 0, 0
+			rgb: 1, 1, 1
+		Rectangle:
+			pos: 0, -self.border
+			size: self.width, self.height + self.border * 2
+		Color:
+			rgb: 0, 0, 0
 		Rectangle:
 			size: self.size
 	FloatLayout:

@@ -1,5 +1,5 @@
 from kivy.clock import Clock
-from kivy.properties import StringProperty, ObjectProperty
+from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from kivy.uix.scatter import Scatter
 from kivy.uix.image import Image
 
@@ -7,6 +7,7 @@ class ImageItem(Scatter):
     
     source = StringProperty(None)
     container = ObjectProperty(None)
+    border = NumericProperty(5)
 
     def __init__(self, **kwargs):
         self._trigger_container = Clock.create_trigger(
