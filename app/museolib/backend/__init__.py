@@ -17,6 +17,26 @@ class BackendItem(dict):
     def origin_key(self):
         return convert_to_key(self.origin)
 
+    @property
+    def title(self):
+        return self['nom']
+
+    @property
+    def description(self):
+        return self['cartel']
+
+    @property
+    def datation(self):
+        return self['datation']
+
+    @property
+    def date_crea(self):
+        return self['date_crea']
+
+    @property
+    def origin_ex(self):
+        return self['orig_geo_prec']
+
 class Backend(object):
     def __init__(self, **options):
         self.items = []
