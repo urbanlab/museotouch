@@ -2,66 +2,6 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import NumericProperty, ReferenceListProperty, \
         StringProperty
 from kivy.vector import Vector
-from kivy.lang import Builder
-
-Builder.load_string('''
-#:import math math
-<CircularSlider>:
-    angle_min: self.value_min * 180
-    angle_max: self.value_max * 180
-
-    canvas:
-        Color:
-            rgb: 0.5490, 1, 1
-        Ellipse:
-            pos: self.right - self.outer_radius, self.center_y - self.outer_radius
-            size: self.outer_radius * 2, self.outer_radius * 2
-            angle_start: (root.angle_min + 180) % 360
-            angle_end: ((root.angle_max + 180 - 0.00001) % 360)
-        Color:
-            rgb: 0, 0, 0
-        Ellipse:
-            pos: self.right - self.inner_radius + 50, self.center_y - self.inner_radius + 50
-            size: (self.inner_radius - 50) * 2, (self.inner_radius - 50) * 2
-        Color:
-            rgb: 1, 1, 1
-        Rectangle:
-            source: 'widgets/timeline.png'
-            pos: self.pos
-            size: self.size
-        Color:
-            rgba: 0.5490, 1, 1, .2
-        Line:
-            points: (self.right - math.sin(math.radians(self.angle_min)) * self.outer_radius, self.center_y -math.cos(math.radians(self.angle_min)) * self.outer_radius, self.right - math.sin(math.radians(self.angle_min)) * (self.inner_radius - 50), self.center_y -math.cos(math.radians(self.angle_min)) * (self.inner_radius - 50))
-        Line:
-            points: (self.right - math.sin(math.radians(self.angle_max)) * self.outer_radius, self.center_y -math.cos(math.radians(self.angle_max)) * self.outer_radius, self.right - math.sin(math.radians(self.angle_max)) * (self.inner_radius - 50), self.center_y -math.cos(math.radians(self.angle_max)) * (self.inner_radius - 50))
-
-    BoxLayout:
-        size_hint: None, None
-        size: (150, 80)
-        pos_hint: {'center_x': 0.5, 'center_y': 0.38}
-        orientation: 'vertical'
-        canvas.before:
-            PushMatrix
-            Translate:
-                xy: root.center_x, root.center_y
-            Rotate:
-                angle: 90
-                axis: 0., 0., 1.
-            Translate:
-                xy: -root.center_x, -root.center_y
-        canvas.after:
-            PopMatrix
-
-        Label:
-            font_size: 16
-            color: (0.5490, 1, 1, 1)
-            text: root.text_min
-        Label:
-            font_size: 16
-            color: (0.5490, 1, 1, 1)
-            text: root.text_max
-''')
 
 
 class CircularSlider(FloatLayout):

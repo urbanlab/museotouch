@@ -6,38 +6,50 @@ from glob import glob
 from os.path import join, dirname, exists
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.button import Button
 from kivy.logger import Logger
 from kivy.resources import resource_add_path
 from kivy.lang import Builder
 from kivy.clock import Clock
+from kivy.animation import Animation
 from museolib.utils import format_date
 from museolib.widgets.circularslider import CircularSlider
 from museolib.widgets.imagemap import ImageMap
 from museolib.widgets.imageitem import ImageItem
-from museolib.backend.backendxml import BackendXML
+#from museolib.backend.backendxml import BackendXML
+from museolib.backend.backendjson import BackendJSON
+from math import cos, sin, radians
 
 class MuseotouchApp(App):
 
-    def get_filenames_from_objects(self, objects):
-        data_dir = self.data_dir
-        directory = ext = 'dds'
-        for item in objects:
-            filename = join(data_dir, 'images', directory, '%d.%s' % (item.id, ext))
-            if not exists(filename):
-                Logger.error('Museolib: Unable to found image %s' % filename)
-                continue
-            yield filename, item
+    def do_panic(self, *largs):
+        children = self.root_images.children
+        cx, cy = self.root_images.center
+        step = 360. / len(children)
+        dist = 100
+        for i, item in enumerate(children):
+            r = radians(step * i)
+            ix = cx + dist * cos(r)
+            iy = cy + dist * sin(r)
+            item.flip_front = True
+            '''
+            item.scale = 0.25
+            item.center = ix, iy
+            item.rotation = step * i
+            '''
+
+            Animation(scale=0.30, center=(ix, iy),
+                    rotation=step*i, t='out_quad', d=.25).start(item)
 
     def show_objects(self, objects):
         images_displayed = [x.source for x in self.root_images.children]
-
-        filenames = list(self.get_filenames_from_objects(objects))
         root = self.root
         add = self.root_images.add_widget
         randint = random.randint
-        for filename, item in filenames:
 
+        for item in objects:
             # is the current filename is already showed ?
+            filename = item.filename
             if filename in images_displayed:
                 images_displayed.remove(filename)
                 continue
@@ -46,7 +58,8 @@ class MuseotouchApp(App):
             y = randint(root.y + 300, root.top - 100)
             angle = randint(0, 360)
 
-            image = ImageItem(source=filename, rotation=angle + 90, center=(x, y))
+            image = ImageItem(source=filename, rotation=angle + 90,
+                    center=(x, y), item=item)
             add(image)
 
         # remove all the previous images
@@ -66,6 +79,9 @@ class MuseotouchApp(App):
 
         # adjust item selection
         items = self.db.items[item_min:item_max]
+        if len(items) == 0:
+            self.show_objects(items)
+            return
         item1 = items[0]
         item2 = items[-1]
 
@@ -93,9 +109,27 @@ class MuseotouchApp(App):
             self.update_objects_from_filter, 0)
 
         # link with the db. later, we need to change it to real one.
+        '''
         self.db = db = BackendXML(filename=join(
             data_dir, 'xml', 'objects.xml'))
+        '''
+        self.db = db = BackendJSON(filename=join(
+            data_dir, 'json', 'objects.json'))
         Logger.info('Museotouch: loaded %d items' % len(db.items))
+
+        # resolving filename for all item
+        items = db.items[:]
+        for item in items[:]:
+            directory = ext = 'dds'
+            filename = join(data_dir, 'images', directory, '%d.%s' % (item.id, ext))
+            if not exists(filename):
+                Logger.error('Museolib: Unable to found image %s' % filename)
+                items.remove(item)
+                continue
+            item.filename = filename
+
+        db.items = items
+        Logger.info('Museotouch: %d items usable' % len(db.items))
 
         # construct the app.
         # at one moment, this could be moved to a "generic" app.xml file
@@ -121,6 +155,12 @@ class MuseotouchApp(App):
         # add root layer for putting image
         self.root_images = FloatLayout()
         self.root.add_widget(self.root_images)
+
+        # panic button
+        self.panic_button = Button(text='Panic!', size_hint=(None, None),
+                size=(50, 50))
+        self.panic_button.bind(on_release=self.do_panic)
+        self.root.add_widget(self.panic_button)
 
         # update the initial slider values to show date.
         slider.bind(value_range=self.trigger_objects_filtering)
