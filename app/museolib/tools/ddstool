@@ -78,6 +78,8 @@ if __name__ == '__main__':
 
     fn = args[0]
 
+    pygame.display.init()
+
     if command == 'compress':
 
         if output is None:
@@ -100,7 +102,9 @@ if __name__ == '__main__':
         if iwidth != width or iheight != height:
             print 'upgrade from', (width, height), 'to', (iwidth, iheight)
             surf = pygame.Surface((iwidth, iheight), depth=32)
-            surf.blit(img, (0, 0))
+            cx = iwidth / 2 - width / 2
+            cy = iheight / 2 - height / 2
+            surf.blit(img, (cx, cy))
             img = surf
             width = iwidth
             height = iheight
@@ -112,18 +116,22 @@ if __name__ == '__main__':
             trace(' %d(%d,%d)' % (level, width, height))
             assert(img.get_bytesize() == 4)
             data = pygame.image.tostring(img, 'RGBA', True)
-            data = squish.compressImage(data, width, height, squish.DXT1)
+            data = squish.compressImage(data, width, height,
+                    squish.DXT1 | squish.COLOR_ITERATIVE_CLUSTER_FIT |
+                    squish.WEIGHT_COLOR_BY_ALPHA)
             dds.add_image(level, 32, 'dxt1', width, height, data)
             if width == 1 or height == 1:
                 break
+
             # next iteration
             width = width // 2
             height = height // 2
             level += 1
+
             # reduce image
             img = pygame.transform.smoothscale(img, (width, height))
             assert(img.get_size() == (width, height))
-            break
+
         dds.save(output)
         trace('Done !\n')
 
