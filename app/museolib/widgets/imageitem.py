@@ -45,7 +45,13 @@ class ImageItem(Scatter):
     def on_flip_front(self, instance, value):
         # do animation ?
         alpha = 1. if value else 0.
-        Animation(flip_alpha=alpha, t='out_quad', d=0.3).start(self)
+        if not self.flip_front:
+            scale = max(1., self.scale)
+        else:
+            scale = min(.30, self.scale)
+        rotation = 0
+        Animation(flip_alpha=alpha, scale=scale, rotation=rotation,
+                t='out_quad', d=0.3).start(self)
 
     def ensure_content(self):
         if self.content is not None:

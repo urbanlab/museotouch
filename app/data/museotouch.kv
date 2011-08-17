@@ -2,7 +2,7 @@
 #:import math math
 
 <ImageItem>:
-	border: 2
+	border: 2 / self.scale
 	size_hint: None, None
 	size: 512, 512
 	scale: 0.30
@@ -63,6 +63,8 @@
 			size_hint_y: None
 			height: self.texture_size[1] + 10
 			font_size: 12
+		Label:
+			text: str(root.item.id)
 
 	GridLayout:
 		cols: 1

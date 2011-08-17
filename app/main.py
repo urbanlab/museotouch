@@ -1,9 +1,10 @@
 import kivy
-kivy.require('1.0.7-dev')
+kivy.require('1.0.8-dev')
 
 import random
 from glob import glob
 from os.path import join, dirname, exists
+from os import mkdir
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.button import Button
@@ -16,15 +17,43 @@ from museolib.utils import format_date
 from museolib.widgets.circularslider import CircularSlider
 from museolib.widgets.imagemap import ImageMap
 from museolib.widgets.imageitem import ImageItem
+from museolib.widgets.exposelector import ExpoSelector
 #from museolib.backend.backendxml import BackendXML
 from museolib.backend.backendjson import BackendJSON
+from museolib.backend.backendweb import BackendWeb
 from math import cos, sin, radians
+from kivy.uix.label import Label
+from kivy.animation import Animation
 
 class MuseotouchApp(App):
 
     def do_panic(self, *largs):
         children = self.root_images.children
         cx, cy = self.root_images.center
+
+        # seperate the table in 2
+        imgs = 512 * 0.3
+        width = self.root_images.width - 300
+        height = self.root_images.height - 300
+        x = 50
+        y = self.root_images.top - imgs - 50
+        dx = 1
+        dy = -1
+
+        mx = 1 + width // imgs
+        my = 1 + height // imgs
+
+        for i, item in enumerate(reversed(children)):
+            mi = i % (mx * my)
+            ix = x + (mi % mx) * imgs * dx
+            iy = y + (mi // mx) * imgs * dy
+            item.flip_front=True
+            (Animation(d=0.1 + i / 30.) + Animation(scale=0.30, pos=(ix, iy),
+                    rotation=0., t='out_quad',
+                    d=.25)).start(item)
+
+        return
+        # angle disposition test
         step = 360. / len(children)
         dist = 100
         for i, item in enumerate(children):
@@ -96,32 +125,63 @@ class MuseotouchApp(App):
         # show only the first 10 objects
         self.show_objects(items)
 
+    def build_config(self, config):
+        config.setdefaults('museotouch', {
+            'expo': '',
+        })
+
     def build(self):
         # add data directory as a resource path
         self.data_dir = data_dir = join(dirname(__file__), 'data')
         resource_add_path(data_dir)
 
         # add kv file
-        Builder.load_file(join(data_dir, 'museotouch.kv'))
+        Builder.load_file(join(data_dir, 'global.kv'))
 
         # create trigger for updating objects
         self.trigger_objects_filtering = Clock.create_trigger(
             self.update_objects_from_filter, 0)
 
+        # web backend
+        self.backend = BackendWeb(url='http://museotouch.erasme.org/prive/api/')
+
+        # if we are on android, always start on selector
+        # otherwise, check configuration
+        try:
+            import android
+            return self.build_selector()
+        except ImportError:
+            return self.build_for_table()
+
+
+    def build_for_table(self):
+        # check which exposition we must use from the configuration
+        expo = self.config.get('museotouch', 'expo').strip()
+        if expo == '':
+            # no exposition set in the configuration file.
+            # show the selector
+            return self.build_selector()
+
+    def build_selector(self):
+        return ExpoSelector(app=self)
+
+    def build_app(self):
         # link with the db. later, we need to change it to real one.
+        Builder.load_file(join(self.data_dir, 'museotouch.kv'))
         '''
         self.db = db = BackendXML(filename=join(
             data_dir, 'xml', 'objects.xml'))
         '''
         self.db = db = BackendJSON(filename=join(
-            data_dir, 'json', 'objects.json'))
+            self.data_dir, 'json', 'objects.json'))
         Logger.info('Museotouch: loaded %d items' % len(db.items))
 
         # resolving filename for all item
         items = db.items[:]
         for item in items[:]:
             directory = ext = 'dds'
-            filename = join(data_dir, 'images', directory, '%d.%s' % (item.id, ext))
+            #directory, ext = 'original', 'png'
+            filename = join(self.data_dir, 'images', directory, '%d.%s' % (item.id, ext))
             if not exists(filename):
                 Logger.error('Museolib: Unable to found image %s' % filename)
                 items.remove(item)
@@ -142,7 +202,7 @@ class MuseotouchApp(App):
         root.add_widget(slider)
 
         # search image for map (exclude _active) files
-        sources = glob(join(data_dir, 'widgets', 'map', '*.png'))
+        sources = glob(join(self.data_dir, 'widgets', 'map', '*.png'))
         sources = [x for x in sources if '_active' not in x]
         self.imagemap = imagemap = ImageMap(
                 pos_hint={'center_x': 0.5, 'y': 0},
@@ -169,6 +229,67 @@ class MuseotouchApp(App):
 
         return root
 
+    def show_expo(self, expo, popup=None):
+        # check if expo is available on the disk
+        self.expo_dir = expo_dir = self.get_expo_dir(expo['id'])
+        if not exists(expo_dir):
+            # do the sync first.
+            self.sync_expo(expo, popup)
+        return
+
+
+    #
+    # Synchronisation of an exhibition
+    # this part is seperated in multiple step.
+    #
+
+    def get_expo_dir(self, expo_id):
+        return join(dirname(__file__), 'expos', expo_id)
+
+    def sync_expo(self, expo, popup=None):
+        print 'SYNC EXPO!!!', expo
+        self.expo_dir = expo_dir = self.get_expo_dir(expo['id'])
+        # adjust the popup 
+        popup.title = 'Synchronisation en cours...'
+        popup.content = Label(text='Synchronisation de la base...',
+                halign='center')
+        Animation(size=(300, 200), d=.2, t='out_quad').start(popup)
+        self._sync_popup = popup
+        # create expo
+        mkdir(expo_dir)
+        # get the initial json
+        self.backend.set_expo(expo['id'])
+        self.backend.get_objects(on_success=self._sync_expo_2, on_error=self._sync_error)
+
+    def _sync_expo_2(self, req, result):
+        self._sync_result = result['items']
+        self._sync_index = 0
+        self._sync_missing = []
+        self._sync_download()
+
+    def _sync_download(self):
+        uid = self._sync_result[self._sync_index]['id']
+        self._sync_popup.content.text = \
+            'Synchronisation de %d/%d\n(%d non disponible)' % (
+            self._sync_index + 1, len(self._sync_result),
+            len(self._sync_missing))
+        self.backend.download_object(uid, self._sync_download_ok,
+                self._sync_error)
+
+    def _sync_download_ok(self, req, result):
+        print 'get', self._sync_index, result
+        if req.resp_status < 200 or req.resp_status >= 300:
+            # look like invalid ? ok.
+            self._sync_missing.append(self._sync_index)
+        self._sync_index += 1
+        if self._sync_index >= len(self._sync_result):
+            self._sync_popup.content.text = 'Fini !'
+            return
+        self._sync_download()
+
+    def _sync_error(self, req, result):
+        self._sync_popup.content.text = 'Erreur lors de la synchro'
+        
 
 if __name__ in ('__main__', '__android__'):
     MuseotouchApp().run()

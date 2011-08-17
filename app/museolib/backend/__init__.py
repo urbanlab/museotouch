@@ -53,3 +53,7 @@ class Backend(object):
     @property
     def length(self):
         return len(self.items)
+
+    # database request
+    def get_expos(self, on_success=None, on_error=None):
+        pass

@@ -1,0 +1,43 @@
+#:kivy 1.0
+
+[ExpoItem@BoxLayout]:
+	size_hint_y: None
+	height: 100
+	orientation: 'horizontal'
+
+	on_touch_down: ctx.selector.select_expo(ctx) if self.collide_point(*args[1].pos) else None
+
+	AsyncImage:
+		source: ctx.get('data', '')[0]
+		size_hint_x: .3
+
+	Label:
+		text: ctx.get('name', '')
+		size_hint_x: .7
+		text_size: self.width - 10, None
+		halign: 'center'
+
+<ExpoPopupChoice>:
+	list_expos: list_expos
+	orientation: 'horizontal'
+
+	BoxLayout:
+		id: list_expos
+		orientation: 'vertical'
+
+	AnchorLayout:
+		StackLayout:
+			size_hint: None, None
+			orientation: 'lr-tb'
+			width: 150
+
+			Label:
+				text: 'Code exposition'
+				height: self.texture_size[1] + 10
+
+			TextInput:
+				size_hint_y: None
+				multiline: False
+				height: 30
+
+		
