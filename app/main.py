@@ -22,10 +22,15 @@ from museolib.widgets.exposelector import ExpoSelector
 from museolib.backend.backendjson import BackendJSON
 from museolib.backend.backendweb import BackendWeb
 from math import cos, sin, radians
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
+from kivy.uix.progressbar import ProgressBar
 from kivy.animation import Animation
+from kivy.utils import format_bytes_to_human
 
 class MuseotouchApp(App):
+
+    imgtype = 'raw'
 
     def do_panic(self, *largs):
         children = self.root_images.children
@@ -143,7 +148,9 @@ class MuseotouchApp(App):
             self.update_objects_from_filter, 0)
 
         # web backend
-        self.backend = BackendWeb(url='http://museotouch.erasme.org/prive/api/')
+        self.backend = BackendWeb(
+                url='http://museotouch.erasme.org/prive/api/',
+                data_url='http://museotouch.erasme.org/prive/uploads/')
 
         # if we are on android, always start on selector
         # otherwise, check configuration
@@ -227,15 +234,16 @@ class MuseotouchApp(App):
         imagemap.bind(active_ids=self.trigger_objects_filtering)
         self.trigger_objects_filtering()
 
+        parent = self.root.parent
+        parent.remove_widget(self.root)
+        self.root = root
+        parent.add_widget(self.root)
         return root
 
     def show_expo(self, expo, popup=None):
         # check if expo is available on the disk
-        self.expo_dir = expo_dir = self.get_expo_dir(expo['id'])
-        if not exists(expo_dir):
-            # do the sync first.
-            self.sync_expo(expo, popup)
-        return
+        self.expo_dir = self.get_expo_dir(expo['id'])
+        self.sync_expo(expo, popup)
 
 
     #
@@ -247,7 +255,6 @@ class MuseotouchApp(App):
         return join(dirname(__file__), 'expos', expo_id)
 
     def sync_expo(self, expo, popup=None):
-        print 'SYNC EXPO!!!', expo
         self.expo_dir = expo_dir = self.get_expo_dir(expo['id'])
         # adjust the popup 
         popup.title = 'Synchronisation en cours...'
@@ -256,7 +263,14 @@ class MuseotouchApp(App):
         Animation(size=(300, 200), d=.2, t='out_quad').start(popup)
         self._sync_popup = popup
         # create expo
-        mkdir(expo_dir)
+        for directory in (
+                expo_dir,
+                join(expo_dir, self.imgtype)):
+            try:
+                mkdir(directory)
+            except OSError:
+                pass
+
         # get the initial json
         self.backend.set_expo(expo['id'])
         self.backend.get_objects(on_success=self._sync_expo_2, on_error=self._sync_error)
@@ -265,27 +279,71 @@ class MuseotouchApp(App):
         self._sync_result = result['items']
         self._sync_index = 0
         self._sync_missing = []
+
+        layout = BoxLayout(orientation='vertical')
+        layout.add_widget(Label(halign='center'))
+        layout.add_widget(Label(halign='center'))
+        layout.add_widget(ProgressBar())
+        self._sync_popup.content = layout
+
         self._sync_download()
+
+    def _sync_get_filename(self, fn):
+        return join(self.expo_dir, self.imgtype, fn)
 
     def _sync_download(self):
         uid = self._sync_result[self._sync_index]['id']
-        self._sync_popup.content.text = \
-            'Synchronisation de %d/%d\n(%d non disponible)' % (
-            self._sync_index + 1, len(self._sync_result),
-            len(self._sync_missing))
-        self.backend.download_object(uid, self._sync_download_ok,
-                self._sync_error)
+        filename = self._sync_result[self._sync_index]['fichier'].split('/')[-1]
+        # split to have only the extension part
+        ext = filename.split('.')[-1]
+
+        text = 'Synchronisation de %d/%d' % (
+                self._sync_index + 1, len(self._sync_result))
+        if len(self._sync_missing):
+            text += '\n(%d non disponible)' % len(self._sync_missing)
+        self._sync_popup.content.children[-1].text = text
+        self._sync_popup.content.children[-2].text = filename
+
+        # check if the file already exist on the disk
+        filename = self._sync_get_filename(filename)
+        if exists(filename):
+            Clock.schedule_once(self._sync_download_next, -1)
+        else:
+            self.backend.download_object(uid, ext, True,
+                self._sync_download_ok, self._sync_error, self._sync_progress)
 
     def _sync_download_ok(self, req, result):
-        print 'get', self._sync_index, result
         if req.resp_status < 200 or req.resp_status >= 300:
             # look like invalid ? ok.
             self._sync_missing.append(self._sync_index)
+        else:
+            # save on disk
+            filename = req.url.split('/')[-1]
+            filename = self._sync_get_filename(filename)
+            with open(filename, 'wb') as fd:
+                fd.write(result)
+        Clock.schedule_once(self._sync_download_next)
+
+    def _sync_download_next(self, *largs):
         self._sync_index += 1
         if self._sync_index >= len(self._sync_result):
-            self._sync_popup.content.text = 'Fini !'
+            self._sync_end()
             return
         self._sync_download()
+
+    def _sync_end(self):
+        self._sync_popup.dismiss()
+        self.build_app()
+
+    def _sync_progress(self, req, current, total):
+        self._sync_popup.content.children[0].max = total
+        self._sync_popup.content.children[0].value = current
+        text = self._sync_popup.content.children[-2].text
+        filename = text.split(' ')[0]
+        text = '%s - %s/%s' % (filename,
+                format_bytes_to_human(current),
+                format_bytes_to_human(total))
+        self._sync_popup.content.children[-2].text = text
 
     def _sync_error(self, req, result):
         self._sync_popup.content.text = 'Erreur lors de la synchro'

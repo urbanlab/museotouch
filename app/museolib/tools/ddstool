@@ -99,6 +99,7 @@ if __name__ == '__main__':
         #
         iwidth = _nearest_pow2(width)
         iheight = _nearest_pow2(height)
+        iwidth = iheight = max(iwidth, iheight)
         if iwidth != width or iheight != height:
             print 'upgrade from', (width, height), 'to', (iwidth, iheight)
             surf = pygame.Surface((iwidth, iheight), depth=32)

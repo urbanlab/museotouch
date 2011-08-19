@@ -9,12 +9,16 @@ class BackendWeb(Backend):
         super(BackendWeb, self).__init__(**kwargs)
         self.expo = None
         self.url = kwargs.get('url')
+        self.data_url = kwargs.get('data_url')
 
     def set_expo(self, uid):
         self.expo = uid
 
     def build_url(self, path):
         return self.url + path
+
+    def build_data_url(self, path):
+        return self.data_url + path
 
     def unquote_json(self, on_success, req, json):
         on_success(req, self._unquote(json))
@@ -30,6 +34,7 @@ class BackendWeb(Backend):
             json = unquote_plus(json)
             try:
                 json = json.encode('latin1')
+                json = json.decode('utf8')
             except:
                 pass
         return json
@@ -49,12 +54,15 @@ class BackendWeb(Backend):
     def get_objects(self, on_success=None, on_error=None):
         assert(self.expo is not None)
         url = self.build_url('?act=expo&id=%s' % self.expo)
+        on_success = partial(self.unquote_json, on_success)
         self.req = UrlRequest(url, on_success, on_error)
 
-    def download_object(self, uid, on_success=None, on_error=None):
-        gtype = 'dds'
-        url = self.build_url('uploads/expos/%s/%s/%s.%s' % (
-            self.expo, gtype, uid, gtype
+    def download_object(self, uid, ext, is_raw, on_success=None, on_error=None,
+            on_progress=None):
+        raw = 'raw' if is_raw else 'compressed'
+        url = self.build_data_url('objets/%s/%s.%s' % (
+            raw, uid, ext
         ))
-        self.req = UrlRequest(url, on_success, on_error)
+        self.req = UrlRequest(url, on_success, on_error, on_progress,
+                chunk_size=32768)
 

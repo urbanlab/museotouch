@@ -35,9 +35,9 @@ class ExpoSelector(FloatLayout):
             layout.add_expo(item)
         self.popup(content=layout, title='Liste des expositions',
                 size=(600, 400))
+
     def build_selector(self):
         return ExpoSelector(app=self)
-
 
     def on_error(self, req, result):
         content = Label(text='Erreur lors du chargement\n' + str(result))
