@@ -90,6 +90,8 @@ class MuseotouchApp(App):
         add = self.root_images.add_widget
         randint = random.randint
 
+        print 'show_objects()', objects
+
         for item in objects:
             # is the current filename is already showed ?
             filename = item.filename
@@ -171,11 +173,13 @@ class MuseotouchApp(App):
 
     def build_for_table(self):
         # check which exposition we must use from the configuration
-        expo = self.config.get('museotouch', 'expo').strip()
+        expo = self.config.get('museotouch', 'expo')
         if expo == '':
             # no exposition set in the configuration file.
             # show the selector
             return self.build_selector()
+        self.show_expo(expo)
+        return FloatLayout()
 
     def build_selector(self):
         return ExpoSelector(app=self)
@@ -191,7 +195,7 @@ class MuseotouchApp(App):
         items = db.items[:]
         for item in items[:]:
             directory, ext = self.imgtype, 'png'
-            filename = join(self.expo_dir,  directory, '%d.%s' % (item.id, ext))
+            filename = join(self.expo_img_dir,  directory, '%d.%s' % (item.id, ext))
             if not exists(filename):
                 Logger.error('Museolib: Unable to found image %s' % filename)
                 items.remove(item)
@@ -247,13 +251,26 @@ class MuseotouchApp(App):
         parent.add_widget(self.root)
         return root
 
-    def show_expo(self, expo, popup=None):
+    def show_expo(self, expo_id, popup=None):
         # check if expo is available on the disk
-        self.expo_dir = self.get_expo_dir(expo['id'])
+        self.expo_dir = self.get_expo_dir(expo_id)
         self.expo_data_dir = join(self.expo_dir, 'data')
         self.expo_img_dir = join(self.expo_dir, 'images')
         resource_add_path(self.expo_data_dir)
-        self.sync_expo(expo, popup)
+
+        # be able to run offline too.
+        force_sync = True
+        if force_sync:
+            # create popup
+            if popup is None:
+                from kivy.uix.popup import Popup
+                popup = Popup(title='Chargement...', size_hint=(None, None),
+                        size=(300, 300))
+                popup.open()
+            # synchronize it !
+            self.sync_expo(expo_id, popup)
+        else:
+            self.build_app()
 
 
     #
@@ -267,8 +284,8 @@ class MuseotouchApp(App):
     def get_expo_dir(self, expo_id):
         return join(dirname(__file__), 'expos', expo_id)
 
-    def sync_expo(self, expo, popup=None):
-        self.expo_dir = expo_dir = self.get_expo_dir(expo['id'])
+    def sync_expo(self, expo_id, popup=None):
+        self.expo_dir = expo_dir = self.get_expo_dir(expo_id)
         # adjust the popup 
         popup.title = 'Synchronisation en cours...'
         popup.content = Label(text='Synchronisation de la base...',
@@ -286,7 +303,7 @@ class MuseotouchApp(App):
                 pass
 
         # get the initial json
-        self.backend.set_expo(expo['id'])
+        self.backend.set_expo(expo_id)
         self.backend.get_objects(on_success=self._sync_expo_2, on_error=self._sync_error)
 
     def _sync_expo_2(self, req, result):
@@ -324,7 +341,9 @@ class MuseotouchApp(App):
         # check if the file already exist on the disk
         filename = self._sync_get_filename(filename)
         if exists(filename):
-            Clock.schedule_once(self._sync_download_next, -1)
+            # speedup a little bit. but we can't use always -1.
+            Clock.schedule_once(self._sync_download_next,
+                    -1 if self._sync_index % 10 < 8 else 0)
         else:
             self.backend.download_object(uid, ext, True,
                 self._sync_download_ok, self._sync_error, self._sync_progress)
