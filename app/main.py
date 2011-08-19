@@ -13,6 +13,8 @@ from kivy.resources import resource_add_path
 from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.animation import Animation
+
+import museolib
 from museolib.utils import format_date
 from museolib.widgets.circularslider import CircularSlider
 from museolib.widgets.imagemap import ImageMap
@@ -27,6 +29,13 @@ from kivy.uix.label import Label
 from kivy.uix.progressbar import ProgressBar
 from kivy.animation import Animation
 from kivy.utils import format_bytes_to_human
+import json
+
+try:
+    mode = 'mobile'
+    import android
+except ImportError:
+    mode = 'table'
 
 class MuseotouchApp(App):
 
@@ -137,7 +146,7 @@ class MuseotouchApp(App):
 
     def build(self):
         # add data directory as a resource path
-        self.data_dir = data_dir = join(dirname(__file__), 'data')
+        self.data_dir = data_dir = join(dirname(museolib.__file__), 'data')
         resource_add_path(data_dir)
 
         # add kv file
@@ -154,11 +163,10 @@ class MuseotouchApp(App):
 
         # if we are on android, always start on selector
         # otherwise, check configuration
-        try:
-            import android
-            return self.build_selector()
-        except ImportError:
-            return self.build_for_table()
+        if mode == 'table':
+            self.build_for_table()
+        else:
+            self.build_selector()
 
 
     def build_for_table(self):
@@ -174,21 +182,16 @@ class MuseotouchApp(App):
 
     def build_app(self):
         # link with the db. later, we need to change it to real one.
-        Builder.load_file(join(self.data_dir, 'museotouch.kv'))
-        '''
-        self.db = db = BackendXML(filename=join(
-            data_dir, 'xml', 'objects.xml'))
-        '''
+        Builder.load_file(join(self.expo_data_dir, 'museotouch.kv'))
         self.db = db = BackendJSON(filename=join(
-            self.data_dir, 'json', 'objects.json'))
+            self.expo_dir, 'objects.json'))
         Logger.info('Museotouch: loaded %d items' % len(db.items))
 
         # resolving filename for all item
         items = db.items[:]
         for item in items[:]:
-            directory = ext = 'dds'
-            #directory, ext = 'original', 'png'
-            filename = join(self.data_dir, 'images', directory, '%d.%s' % (item.id, ext))
+            directory, ext = self.imgtype, 'png'
+            filename = join(self.expo_dir,  directory, '%d.%s' % (item.id, ext))
             if not exists(filename):
                 Logger.error('Museolib: Unable to found image %s' % filename)
                 items.remove(item)
@@ -209,7 +212,7 @@ class MuseotouchApp(App):
         root.add_widget(slider)
 
         # search image for map (exclude _active) files
-        sources = glob(join(self.data_dir, 'widgets', 'map', '*.png'))
+        sources = glob(join(self.expo_data_dir, 'widgets', 'map', '*.png'))
         sources = [x for x in sources if '_active' not in x]
         self.imagemap = imagemap = ImageMap(
                 pos_hint={'center_x': 0.5, 'y': 0},
@@ -235,7 +238,11 @@ class MuseotouchApp(App):
         self.trigger_objects_filtering()
 
         parent = self.root.parent
-        parent.remove_widget(self.root)
+        if parent:
+            parent.remove_widget(self.root)
+        else:
+            from kivy.core.window import Window
+            parent = Window
         self.root = root
         parent.add_widget(self.root)
         return root
@@ -243,12 +250,18 @@ class MuseotouchApp(App):
     def show_expo(self, expo, popup=None):
         # check if expo is available on the disk
         self.expo_dir = self.get_expo_dir(expo['id'])
+        self.expo_data_dir = join(self.expo_dir, 'data')
+        self.expo_img_dir = join(self.expo_dir, 'images')
+        resource_add_path(self.expo_data_dir)
         self.sync_expo(expo, popup)
 
 
     #
     # Synchronisation of an exhibition
-    # this part is seperated in multiple step.
+    # this part is seperated in multiple step:
+    # 1. create directory layout for an exhibition if not exists
+    # 2. update the objects list of an exhibition
+    # 3. fetch missing objects
     #
 
     def get_expo_dir(self, expo_id):
@@ -262,7 +275,8 @@ class MuseotouchApp(App):
                 halign='center')
         Animation(size=(300, 200), d=.2, t='out_quad').start(popup)
         self._sync_popup = popup
-        # create expo
+
+        # create layout for exhibition
         for directory in (
                 expo_dir,
                 join(expo_dir, self.imgtype)):
@@ -276,6 +290,9 @@ class MuseotouchApp(App):
         self.backend.get_objects(on_success=self._sync_expo_2, on_error=self._sync_error)
 
     def _sync_expo_2(self, req, result):
+        filename = join(self.expo_dir, 'objects.json')
+        with open(filename, 'wb') as fd:
+            json.dump(result, fd)
         self._sync_result = result['items']
         self._sync_index = 0
         self._sync_missing = []
@@ -289,7 +306,7 @@ class MuseotouchApp(App):
         self._sync_download()
 
     def _sync_get_filename(self, fn):
-        return join(self.expo_dir, self.imgtype, fn)
+        return join(self.expo_img_dir, self.imgtype, fn)
 
     def _sync_download(self):
         uid = self._sync_result[self._sync_index]['id']
@@ -346,7 +363,7 @@ class MuseotouchApp(App):
         self._sync_popup.content.children[-2].text = text
 
     def _sync_error(self, req, result):
-        self._sync_popup.content.text = 'Erreur lors de la synchro'
+        self._sync_popup.content.children[-2].text = 'Erreur lors de la synchro'
         
 
 if __name__ in ('__main__', '__android__'):

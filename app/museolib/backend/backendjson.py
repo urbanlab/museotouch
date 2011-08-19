@@ -8,5 +8,5 @@ class BackendJSON(Backend):
         with open(filename, 'r') as fd:
             data = json.loads(fd.read())
         assert(filename is not None)
-        for item in data:
+        for item in data['items']:
             yield BackendItem(item)
