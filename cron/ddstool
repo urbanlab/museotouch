@@ -17,7 +17,7 @@ Note: Decompression will always output an png image
 Note: Compression accept PNG, JPEG, GIF, TGA...
 '''
 
-from kivy.lib.ddsfile import DDSFile
+import sys
 from sys import exit, argv, stdout
 import getopt
 import pygame
@@ -51,6 +51,8 @@ if __name__ == '__main__':
         print str(err)
         usage()
         exit(1)
+
+    sys.argv = sys.argv[:1]
 
     command = None
     output = None
@@ -93,6 +95,7 @@ if __name__ == '__main__':
             img = img.convert(32)
 
         # create container
+        from kivy.lib.ddsfile import DDSFile
         dds = DDSFile()
 
         # first image, ensure width/height are pot
