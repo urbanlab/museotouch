@@ -10,6 +10,9 @@ class ImageItemContent(FloatLayout):
     flip_alpha = NumericProperty(1.)
 
 class ImageItem(Scatter):
+
+    #: Reference of the application
+    app = ObjectProperty(None)
     
     #: Backend item reference
     item = ObjectProperty(None)
@@ -49,9 +52,11 @@ class ImageItem(Scatter):
             scale = max(1., self.scale)
         else:
             scale = min(.30, self.scale)
-        rotation = 0
-        Animation(flip_alpha=alpha, scale=scale, rotation=rotation,
-                t='out_quad', d=0.3).start(self)
+        k = {}
+        if self.app.mode == 'mobile':
+            k['rotation'] = 0
+        Animation(flip_alpha=alpha, scale=scale,
+                t='out_quad', d=0.3, **k).start(self)
 
     def ensure_content(self):
         if self.content is not None:

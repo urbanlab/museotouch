@@ -59,9 +59,15 @@ class BackendWeb(Backend):
 
     def download_object(self, uid, ext, is_raw, on_success=None, on_error=None,
             on_progress=None):
+        # 2 cases to handle
+        # raw images are in objets/raw/*.png
+        # compressed images are dispatched in multiple folder like
+        # - objets/compressed/dds/*.dds
+        # - ...
         raw = 'raw' if is_raw else 'compressed'
-        url = self.build_data_url('objets/%s/%s.%s' % (
-            raw, uid, ext
+        subfolder = '%s/' % ext if not is_raw else ''
+        url = self.build_data_url('objets/%s/%s%s.%s' % (
+            raw, subfolder, uid, ext
         ))
         self.req = UrlRequest(url, on_success, on_error, on_progress,
                 chunk_size=32768)

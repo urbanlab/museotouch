@@ -39,7 +39,11 @@ except ImportError:
 
 class MuseotouchApp(App):
 
-    imgtype = 'raw'
+    imgtype = 'dds'
+
+    @property
+    def mode(self):
+        return mode
 
     def do_panic(self, *largs):
         children = self.root_images.children
@@ -104,7 +108,7 @@ class MuseotouchApp(App):
             angle = randint(0, 360)
 
             image = ImageItem(source=filename, rotation=angle + 90,
-                    center=(x, y), item=item)
+                    center=(x, y), item=item, app=self)
             add(image)
 
         # remove all the previous images
@@ -193,8 +197,12 @@ class MuseotouchApp(App):
 
         # resolving filename for all item
         items = db.items[:]
+        imgtype = self.imgtype
         for item in items[:]:
-            directory, ext = self.imgtype, 'png'
+            if imgtype == 'raw':
+                directory, ext = imgtype, 'png'
+            else:
+                directory, ext = imgtype, imgtype
             filename = join(self.expo_img_dir,  directory, '%d.%s' % (item.id, ext))
             if not exists(filename):
                 Logger.error('Museolib: Unable to found image %s' % filename)
@@ -285,7 +293,6 @@ class MuseotouchApp(App):
         return join(dirname(__file__), 'expos', expo_id)
 
     def sync_expo(self, expo_id, popup=None):
-        self.expo_dir = expo_dir = self.get_expo_dir(expo_id)
         # adjust the popup 
         popup.title = 'Synchronisation en cours...'
         popup.content = Label(text='Synchronisation de la base...',
@@ -295,8 +302,10 @@ class MuseotouchApp(App):
 
         # create layout for exhibition
         for directory in (
-                expo_dir,
-                join(expo_dir, self.imgtype)):
+                self.expo_dir,
+                self.expo_data_dir,
+                self.expo_img_dir,
+                join(self.expo_img_dir, self.imgtype)):
             try:
                 mkdir(directory)
             except OSError:
@@ -329,7 +338,12 @@ class MuseotouchApp(App):
         uid = self._sync_result[self._sync_index]['id']
         filename = self._sync_result[self._sync_index]['fichier'].split('/')[-1]
         # split to have only the extension part
-        ext = filename.split('.')[-1]
+        is_raw = self.imgtype == 'raw'
+        if is_raw:
+            ext = filename.split('.')[-1]
+        else:
+            ext = self.imgtype
+            filename = filename.rsplit('.', 1)[0] + '.' + ext
 
         text = 'Synchronisation de %d/%d' % (
                 self._sync_index + 1, len(self._sync_result))
@@ -345,7 +359,7 @@ class MuseotouchApp(App):
             Clock.schedule_once(self._sync_download_next,
                     -1 if self._sync_index % 10 < 8 else 0)
         else:
-            self.backend.download_object(uid, ext, True,
+            self.backend.download_object(uid, ext, is_raw,
                 self._sync_download_ok, self._sync_error, self._sync_progress)
 
     def _sync_download_ok(self, req, result):

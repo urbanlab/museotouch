@@ -62,4 +62,4 @@ class ExpoSelector(FloatLayout):
         return popup
 
     def select_expo(self, expo):
-        self.app.show_expo(expo, self._popup)
+        self.app.show_expo(expo['id'], self._popup)

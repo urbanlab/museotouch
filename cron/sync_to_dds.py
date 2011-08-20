@@ -64,6 +64,7 @@ ftp.voidcmd('TYPE I')
 
 # Check each raw files
 fn_to_convert = []
+log('Checking %d files to synchronize' % len(files))
 for raw_filename in files:
     uid = basename(raw_filename).rsplit('.', 1)[0]
     dds_filename = join(path, 'compressed', 'dds', '%s.dds' % uid)
@@ -150,3 +151,4 @@ for raw_remote_fn, dds_remote_fn in fn_to_convert:
         try_unlink(raw_local_md5)
         try_unlink(dds_local_fn)
 
+log('Finished.')
