@@ -33,13 +33,36 @@ class ImageItem(Scatter):
     flip_alpha = NumericProperty(1.)
     flip_front = BooleanProperty(True)
 
+    #: Button animation
+    alpha_button = NumericProperty(0.)
+
+    #: Touch counter
+    counter = NumericProperty(0)
+
     def on_touch_down(self, touch):
-        ret  = super(ImageItem, self).on_touch_down(touch)
+        ret = super(ImageItem, self).on_touch_down(touch)
         if not ret:
             return
-        if touch.is_double_tap:
-            self.flip()
+        if self.counter == 0:
+            Animation(alpha_button=1., t='out_quad', d=0.3).start(self)
+        uid = '%s_counter' % self.uid
+        touch.ud[uid] = True
+        self.counter += 1
         return True
+
+    def on_touch_up(self, touch):
+        ret = super(ImageItem, self).on_touch_up(touch)
+
+        # whatever is happening, if this touch was a touch used for counter,
+        # remove it.
+        uid = '%s_counter' % self.uid
+        if uid in touch.ud:
+            del touch.ud[uid]
+            self.counter = max(0, self.counter - 1)
+            if self.counter == 0:
+                Animation(alpha_button=0., t='out_quad', d=0.3).start(self)
+
+        return ret
 
     def flip(self):
         self.flip_front = not self.flip_front
@@ -48,15 +71,20 @@ class ImageItem(Scatter):
     def on_flip_front(self, instance, value):
         # do animation ?
         alpha = 1. if value else 0.
-        if not self.flip_front:
-            scale = max(1., self.scale)
-        else:
-            scale = min(.30, self.scale)
         k = {}
         if self.app.mode == 'mobile':
             k['rotation'] = 0
-        Animation(flip_alpha=alpha, scale=scale,
-                t='out_quad', d=0.3, **k).start(self)
+            if not self.flip_front:
+                scale = max(1., self.scale)
+            else:
+                scale = min(.30, self.scale)
+            k['scale'] = scale
+        else:
+            if not self.flip_front:
+                scale = max(1., self.scale)
+                k['scale'] = scale
+        Animation(flip_alpha=alpha,
+            t='out_quad', d=0.3, **k).start(self)
 
     def ensure_content(self):
         if self.content is not None:
@@ -75,3 +103,27 @@ class ImageItem(Scatter):
         elif content not in self.container.children:
             self.container.add_widget(content)
         content.flip_alpha = value
+
+    def on_btn_close(self, *largs):
+        # called when close button have been released
+        if self.alpha_button < 0.8:
+            return
+
+    def on_btn_moreinfo(self, *largs):
+        # called when moreinfo button have been released
+        if self.alpha_button < 0.8:
+            return
+        self.flip()
+
+    def collide_point(self, x, y):
+        # custom collision. some button are outside widget, so check if
+        # collision can happen on them too.
+        x, y = self.to_local(x, y)
+        ret = 0 <= x <= self.width and 0 <= y <= self.height
+        if ret:
+            return ret
+        for child in self.children:
+            ret = child.collide_point(x, y)
+            if ret:
+                return ret
+        return False

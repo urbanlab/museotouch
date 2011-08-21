@@ -29,6 +29,22 @@
 			size_hint: (1 * (0.3 + 0.7 * root.flip_alpha), 1 * (0.3 + 0.7 * root.flip_alpha))
 			pos_hint: {'top': 1}
 
+	Button:
+		background_color: (1, 1, 1, root.alpha_button)
+		size: (64, 64)
+		background_down: 'widgets/btn_close_down.png'
+		background_normal: 'widgets/btn_close.png'
+		pos: 512 - 32, 512 - 64
+		on_release: root.on_btn_close()
+
+	Button:
+		background_color: (1, 1, 1, root.alpha_button)
+		size: (64, 64)
+		pos: 512 - 32, 512 - 128
+		background_down: 'widgets/btn_moreinfo_down.png'
+		background_normal: 'widgets/btn_moreinfo.png'
+		on_release: root.on_btn_moreinfo()
+
 
 
 <ImageItemContent>:
