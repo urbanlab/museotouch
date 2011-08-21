@@ -108,6 +108,7 @@ class ImageItem(Scatter):
         # called when close button have been released
         if self.alpha_button < 0.8:
             return
+        self.parent.remove_widget(self)
 
     def on_btn_moreinfo(self, *largs):
         # called when moreinfo button have been released
