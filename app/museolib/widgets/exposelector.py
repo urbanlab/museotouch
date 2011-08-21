@@ -1,6 +1,7 @@
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.uix.image import Image
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.lang import Builder
@@ -25,7 +26,7 @@ class ExpoSelector(FloatLayout):
         self.load()
 
     def load(self, *largs):
-        content = Label(text='Chargement...')
+        content = Image(source='loader.gif', anim_delay=.1)
         self.popup(content=content, title='Liste des expositions')
 
     def on_success(self, req, result):

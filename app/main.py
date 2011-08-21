@@ -28,6 +28,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.progressbar import ProgressBar
 from kivy.animation import Animation
+from kivy.uix.image import Image
 from kivy.utils import format_bytes_to_human
 import json
 
@@ -93,8 +94,6 @@ class MuseotouchApp(App):
         root = self.root
         add = self.root_images.add_widget
         randint = random.randint
-
-        print 'show_objects()', objects
 
         for item in objects:
             # is the current filename is already showed ?
@@ -295,8 +294,7 @@ class MuseotouchApp(App):
     def sync_expo(self, expo_id, popup=None):
         # adjust the popup 
         popup.title = 'Synchronisation en cours...'
-        popup.content = Label(text='Synchronisation de la base...',
-                halign='center')
+        popup.content = Image(source='loader.gif', anim_delay=.1)
         Animation(size=(300, 200), d=.2, t='out_quad').start(popup)
         self._sync_popup = popup
 
@@ -359,7 +357,6 @@ class MuseotouchApp(App):
     def _sync_convert_filename(self, filename):
         # from the original filename given by json
         # convert to the filename we want.
-        print 'filename', filename, basename(filename)
         filename = basename(filename)
         if self.imgtype != 'raw':
             filename = filename.rsplit('.', 1)[0] + '.' + self.imgtype
@@ -371,7 +368,6 @@ class MuseotouchApp(App):
         uid = self._sync_result[self._sync_index]['id']
         filename, ext = self._sync_convert_filename(
             self._sync_result[self._sync_index]['fichier'])
-        print 'SYNCHRO', filename, '|', ext
 
         text = 'Synchronisation de %d/%d' % (
                 self._sync_index + 1, len(self._sync_result))
