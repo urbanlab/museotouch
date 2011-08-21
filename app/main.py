@@ -3,7 +3,7 @@ kivy.require('1.0.8-dev')
 
 import random
 from glob import glob
-from os.path import join, dirname, exists
+from os.path import join, dirname, exists, basename
 from os import mkdir
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -319,31 +319,59 @@ class MuseotouchApp(App):
         filename = join(self.expo_dir, 'objects.json')
         with open(filename, 'wb') as fd:
             json.dump(result, fd)
-        self._sync_result = result['items']
+
+        # on the result, remove all the object already synced
+        items = result['items'][:]
+        for item in result['items']:
+            fichier = item['fichier']
+            if not fichier:
+                items.remove(item)
+                continue
+            filename, ext = self._sync_convert_filename(item['fichier'])
+            local_filename = self._sync_get_local_filename(filename)
+            if not exists(local_filename):
+                continue
+            items.remove(item)
+
+        self._sync_result = items
         self._sync_index = 0
         self._sync_missing = []
 
-        layout = BoxLayout(orientation='vertical')
-        layout.add_widget(Label(halign='center'))
-        layout.add_widget(Label(halign='center'))
-        layout.add_widget(ProgressBar())
-        self._sync_popup.content = layout
+        if len(items):
 
-        self._sync_download()
+            # prepare for synchronization
+            layout = BoxLayout(orientation='vertical')
+            layout.add_widget(Label(halign='center'))
+            layout.add_widget(Label(halign='center'))
+            layout.add_widget(ProgressBar())
+            self._sync_popup.content = layout
 
-    def _sync_get_filename(self, fn):
+            self._sync_download()
+
+        else:
+            # no item to synchronize, all done !
+            self._sync_popup.dismiss()
+            self.build_app()
+
+    def _sync_get_local_filename(self, fn):
         return join(self.expo_img_dir, self.imgtype, fn)
+
+    def _sync_convert_filename(self, filename):
+        # from the original filename given by json
+        # convert to the filename we want.
+        print 'filename', filename, basename(filename)
+        filename = basename(filename)
+        if self.imgtype != 'raw':
+            filename = filename.rsplit('.', 1)[0] + '.' + self.imgtype
+        # get ext
+        ext = filename.rsplit('.', 1)[-1]
+        return filename, ext
 
     def _sync_download(self):
         uid = self._sync_result[self._sync_index]['id']
-        filename = self._sync_result[self._sync_index]['fichier'].split('/')[-1]
-        # split to have only the extension part
-        is_raw = self.imgtype == 'raw'
-        if is_raw:
-            ext = filename.split('.')[-1]
-        else:
-            ext = self.imgtype
-            filename = filename.rsplit('.', 1)[0] + '.' + ext
+        filename, ext = self._sync_convert_filename(
+            self._sync_result[self._sync_index]['fichier'])
+        print 'SYNCHRO', filename, '|', ext
 
         text = 'Synchronisation de %d/%d' % (
                 self._sync_index + 1, len(self._sync_result))
@@ -353,13 +381,13 @@ class MuseotouchApp(App):
         self._sync_popup.content.children[-2].text = filename
 
         # check if the file already exist on the disk
-        filename = self._sync_get_filename(filename)
+        filename = self._sync_get_local_filename(filename)
         if exists(filename):
             # speedup a little bit. but we can't use always -1.
             Clock.schedule_once(self._sync_download_next,
                     -1 if self._sync_index % 10 < 8 else 0)
         else:
-            self.backend.download_object(uid, ext, is_raw,
+            self.backend.download_object(uid, ext, self.imgtype == 'raw',
                 self._sync_download_ok, self._sync_error, self._sync_progress)
 
     def _sync_download_ok(self, req, result):
@@ -368,8 +396,8 @@ class MuseotouchApp(App):
             self._sync_missing.append(self._sync_index)
         else:
             # save on disk
-            filename = req.url.split('/')[-1]
-            filename = self._sync_get_filename(filename)
+            filename = self._sync_convert_filename(req.url)
+            filename = self._sync_get_local_filename(filename)
             with open(filename, 'wb') as fd:
                 fd.write(result)
         Clock.schedule_once(self._sync_download_next)
