@@ -9,7 +9,7 @@ from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.button import Button
 from kivy.logger import Logger
-from kivy.resources import resource_add_path
+from kivy.resources import resource_add_path, resource_remove_path
 from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.animation import Animation
@@ -28,6 +28,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.progressbar import ProgressBar
 from kivy.animation import Animation
+from kivy.uix.popup import Popup
+from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.utils import format_bytes_to_human
 import json
@@ -37,6 +39,16 @@ try:
     import android
 except ImportError:
     mode = 'table'
+
+def delayed_work(func, items, delay=0):
+    if not items:
+        return
+    def _delayed_work(*l):
+        item = items.pop()
+        if func(item) is False or not len(items):
+            return False
+        Clock.schedule_once(_delayed_work, delay)
+    Clock.schedule_once(_delayed_work, delay)
 
 class MuseotouchApp(App):
 
@@ -89,30 +101,40 @@ class MuseotouchApp(App):
             Animation(scale=0.30, center=(ix, iy),
                     rotation=step*i, t='out_quad', d=.25).start(item)
 
+    def show_object(self, defs):
+        if defs['source'] not in self.images_displayed:
+            return
+        self.root_images.add_widget(ImageItem(**defs), -1)
+
     def show_objects(self, objects):
-        images_displayed = [x.source for x in self.root_images.children]
+        images = [x.source for x in self.root_images.children]
         root = self.root
-        add = self.root_images.add_widget
         randint = random.randint
 
+        images_to_add = []
+        images_displayed = []
         for item in objects:
             # is the current filename is already showed ?
             filename = item.filename
-            if filename in images_displayed:
-                images_displayed.remove(filename)
+            if filename in images:
+                images.remove(filename)
                 continue
 
             x = randint(root.x + 200, root.right - 200)
             y = randint(root.y + 300, root.top - 100)
             angle = randint(0, 360)
 
-            image = ImageItem(source=filename, rotation=angle + 90,
+            image = dict(source=filename, rotation=angle + 90,
                     center=(x, y), item=item, app=self)
-            add(image)
+            images_to_add.append(image)
+            images_displayed.append(filename)
+
+        self.images_displayed = images_displayed
+        delayed_work(self.show_object, images_to_add)
 
         # remove all the previous images
         for child in self.root_images.children[:]:
-            for filename in images_displayed:
+            for filename in images:
                 if filename == child.source:
                     self.root_images.remove_widget(child)
 
@@ -150,6 +172,9 @@ class MuseotouchApp(App):
         })
 
     def build(self):
+        # list of removed objects
+        self.images_displayed = []
+
         # add data directory as a resource path
         self.data_dir = data_dir = join(dirname(museolib.__file__), 'data')
         resource_add_path(data_dir)
@@ -184,10 +209,16 @@ class MuseotouchApp(App):
         self.show_expo(expo)
         return FloatLayout()
 
-    def build_selector(self):
+    def build_selector(self, *l):
         return ExpoSelector(app=self)
 
     def build_app(self):
+        try:
+            self._build_app()
+        except Exception, e:
+            self.error(e)
+
+    def _build_app(self):
         # link with the db. later, we need to change it to real one.
         Builder.load_file(join(self.expo_data_dir, 'museotouch.kv'))
         self.db = db = BackendJSON(filename=join(
@@ -421,6 +452,33 @@ class MuseotouchApp(App):
 
     def _sync_error(self, req, result):
         self._sync_popup.content.children[-2].text = 'Erreur lors de la synchro'
+
+    def error(self, error):
+        content = BoxLayout(orientation='vertical')
+        label = Label(text=str(error), valign='middle')
+        label.bind(size=label.setter('text_size'))
+        content.add_widget(label)
+        btn = Button(text='Fermer', size_hint_y=None, height=50)
+        content.add_widget(btn)
+        btn.bind(on_release=self.reset)
+        popup = Popup(title='Erreur', content=content, allow_dismiss=False,
+                size_hint=(.5, .5))
+        popup.open()
+
+    def reset(self, *l):
+        # reset the whole app, restart from scratch.
+        from kivy.core.window import Window
+        for child in Window.children[:]:
+            Window.remove_widget(child)
+
+        # remove everything from the current expo
+        if hasattr(self, 'expo_data_dir'):
+            resource_remove_path(self.expo_data_dir)
+            Builder.unload_file(join(self.expo_data_dir, 'museotouch.kv'))
+            self.expo_dir = self.expo_data_dir = self.expo_img_dir = None
+
+        # restart with selector.
+        Window.add_widget(self.build_selector())
         
 
 if __name__ in ('__main__', '__android__'):

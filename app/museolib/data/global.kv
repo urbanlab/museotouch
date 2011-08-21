@@ -21,9 +21,13 @@
 	list_expos: list_expos
 	orientation: 'horizontal'
 
-	BoxLayout:
-		id: list_expos
-		orientation: 'vertical'
+	ScrollView:
+		BoxLayout:
+			id: list_expos
+			orientation: 'vertical'
+			size_hint_y: None
+			spacing: 10
+			padding: 10
 
 	AnchorLayout:
 		StackLayout:
