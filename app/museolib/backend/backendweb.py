@@ -57,18 +57,17 @@ class BackendWeb(Backend):
         on_success = partial(self.unquote_json, on_success)
         self.req = UrlRequest(url, on_success, on_error)
 
-    def download_object(self, uid, ext, is_raw, on_success=None, on_error=None,
+    def download_object(self, uid, directory, extension, on_success=None, on_error=None,
             on_progress=None):
         # 2 cases to handle
         # raw images are in objets/raw/*.png
         # compressed images are dispatched in multiple folder like
         # - objets/compressed/dds/*.dds
         # - ...
-        raw = 'raw' if is_raw else 'compressed'
-        subfolder = '%s/' % ext if not is_raw else ''
-        url = self.build_data_url('objets/%s/%s%s.%s' % (
-            raw, subfolder, uid, ext
-        ))
+        if directory != 'raw':
+            directory = 'compressed/%s' % directory
+        url = self.build_data_url('objets/%s/%s.%s' % (
+            directory, uid, extension))
         self.req = UrlRequest(url, on_success, on_error, on_progress,
                 chunk_size=32768)
 
