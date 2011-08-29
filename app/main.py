@@ -4,7 +4,6 @@ kivy.require('1.0.8-dev')
 from kivy.config import Config
 Config.set('kivy', 'log_level', 'debug')
 
-import types
 import random
 from glob import glob
 from os.path import join, dirname, exists, basename
@@ -17,6 +16,12 @@ from kivy.resources import resource_add_path, resource_remove_path
 from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.animation import Animation
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.progressbar import ProgressBar
+from kivy.uix.popup import Popup
+from kivy.uix.image import Image
+from kivy.utils import format_bytes_to_human
 
 import museolib
 from museolib.utils import format_date
@@ -28,14 +33,6 @@ from museolib.widgets.exposelector import ExpoSelector
 from museolib.backend.backendjson import BackendJSON
 from museolib.backend.backendweb import BackendWeb
 from math import cos, sin, radians
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
-from kivy.uix.progressbar import ProgressBar
-from kivy.animation import Animation
-from kivy.uix.popup import Popup
-from kivy.uix.button import Button
-from kivy.uix.image import Image
-from kivy.utils import format_bytes_to_human
 import json
 
 try:
@@ -60,8 +57,25 @@ class MuseotouchApp(App):
     def mode(self):
         return mode
 
-    def do_panic(self, *largs):
+    def do_ordering_origin(self, *largs):
         children = self.root_images.children
+        origs = list(set([x.item.origin_key for x in children]))
+
+        m = 300
+        x = 150
+        y = self.root_images.height / 2 - 75
+
+        for i, item in enumerate(reversed(children)):
+            ix = x + origs.index(item.item.origin_key) * m
+            iy = y
+            item.flip_front=True
+            (Animation(d=0.1 + i / 30.) + Animation(scale=0.30, pos=(ix, iy),
+                    rotation=0 + random.random() * 20 - 10, t='out_quad',
+                    d=.25)).start(item)
+
+    def do_ordering_datation(self, *largs):
+        children = self.root_images.children[:]
+        children.sort(key=lambda x: x.item.date)
         cx, cy = self.root_images.center
 
         # seperate the table in 2
@@ -76,7 +90,7 @@ class MuseotouchApp(App):
         mx = 1 + width // imgs
         my = 1 + height // imgs
 
-        for i, item in enumerate(reversed(children)):
+        for i, item in enumerate(children):
             mi = i % (mx * my)
             ix = x + (mi % mx) * imgs * dx
             iy = y + (mi // mx) * imgs * dy
@@ -281,10 +295,16 @@ class MuseotouchApp(App):
         self.root.add_widget(self.root_images)
 
         # panic button
-        self.panic_button = Button(text='Panic!', size_hint=(None, None),
-                size=(50, 50))
-        self.panic_button.bind(on_release=self.do_panic)
-        self.root.add_widget(self.panic_button)
+        self.ordering_origin = Button(text='Continent', size_hint=(None, None),
+                size=(80, 50), pos=(0, 30))
+        self.ordering_origin.bind(on_release=self.do_ordering_origin)
+        self.root.add_widget(self.ordering_origin)
+
+        # panic button
+        self.ordering_datation = Button(text='Datation', size_hint=(None, None),
+                size=(80, 50), pos=(110, 30))
+        self.ordering_datation.bind(on_release=self.do_ordering_datation)
+        self.root.add_widget(self.ordering_datation)
 
         # update the initial slider values to show date.
         slider.bind(value_range=self.trigger_objects_filtering)
@@ -313,9 +333,8 @@ class MuseotouchApp(App):
         if force_sync:
             # create popup
             if popup is None:
-                from kivy.uix.popup import Popup
                 popup = Popup(title='Chargement...', size_hint=(None, None),
-                        size=(300, 300))
+                        size=(300, 300), allow_dismiss=False)
                 popup.open()
             # synchronize it !
             self.sync_expo(expo_id, popup)
@@ -354,7 +373,8 @@ class MuseotouchApp(App):
 
         # get the initial json
         self.backend.set_expo(expo_id)
-        self.backend.get_objects(on_success=self._sync_expo_2, on_error=self._sync_error)
+        self.backend.get_objects(on_success=self._sync_expo_2,
+                                 on_error=self._sync_error_but_continue)
 
     def _sync_expo_2(self, req, result):
         filename = join(self.expo_dir, 'objects.json')
@@ -465,7 +485,11 @@ class MuseotouchApp(App):
         self._sync_popup.content.children[-2].text = text
 
     def _sync_error(self, req, result):
-        self._sync_popup.content.children[-2].text = 'Erreur lors de la synchro'
+        self.error('Erreur lors de la synchro')
+
+    def _sync_error_but_continue(self, req, result):
+        self._sync_popup.dismiss()
+        self.build_app()
 
     def error(self, error):
         content = BoxLayout(orientation='vertical')
