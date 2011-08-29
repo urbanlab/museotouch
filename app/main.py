@@ -1,6 +1,10 @@
 import kivy
 kivy.require('1.0.8-dev')
 
+from kivy.config import Config
+Config.set('kivy', 'log_level', 'debug')
+
+import types
 import random
 from glob import glob
 from os.path import join, dirname, exists, basename
@@ -51,8 +55,6 @@ def delayed_work(func, items, delay=0):
     Clock.schedule_once(_delayed_work, delay)
 
 class MuseotouchApp(App):
-
-    imgtype = 'dds'
 
     @property
     def mode(self):
@@ -172,6 +174,16 @@ class MuseotouchApp(App):
         })
 
     def build(self):
+        # set the image type from mode
+        self.imgtype = 'dds'
+        if mode == 'table':
+            # full resolution
+            self.imgdir = 'dds'
+        else:
+            # reduced resolution
+            self.imgdir = 'dds512'
+
+
         # list of removed objects
         self.images_displayed = []
 
@@ -230,9 +242,9 @@ class MuseotouchApp(App):
         imgtype = self.imgtype
         for item in items[:]:
             if imgtype == 'raw':
-                directory, ext = imgtype, 'png'
+                directory, ext = 'raw', 'png'
             else:
-                directory, ext = imgtype, imgtype
+                directory, ext = self.imgdir, imgtype
             filename = join(self.expo_img_dir,  directory, '%d.%s' % (item.id, ext))
             if not exists(filename):
                 Logger.error('Museolib: Unable to found image %s' % filename)
@@ -334,7 +346,7 @@ class MuseotouchApp(App):
                 self.expo_dir,
                 self.expo_data_dir,
                 self.expo_img_dir,
-                join(self.expo_img_dir, self.imgtype)):
+                join(self.expo_img_dir, self.imgdir)):
             try:
                 mkdir(directory)
             except OSError:
@@ -383,7 +395,9 @@ class MuseotouchApp(App):
             self.build_app()
 
     def _sync_get_local_filename(self, fn):
-        return join(self.expo_img_dir, self.imgtype, fn)
+        if type(fn) in (list, tuple):
+            fn = fn[0]
+        return join(self.expo_img_dir, self.imgdir, fn)
 
     def _sync_convert_filename(self, filename):
         # from the original filename given by json
@@ -414,7 +428,7 @@ class MuseotouchApp(App):
             Clock.schedule_once(self._sync_download_next,
                     -1 if self._sync_index % 10 < 8 else 0)
         else:
-            self.backend.download_object(uid, ext, self.imgtype == 'raw',
+            self.backend.download_object(uid, self.imgdir, self.imgtype,
                 self._sync_download_ok, self._sync_error, self._sync_progress)
 
     def _sync_download_ok(self, req, result):
@@ -423,7 +437,7 @@ class MuseotouchApp(App):
             self._sync_missing.append(self._sync_index)
         else:
             # save on disk
-            filename = self._sync_convert_filename(req.url)
+            filename, ext = self._sync_convert_filename(req.url)
             filename = self._sync_get_local_filename(filename)
             with open(filename, 'wb') as fd:
                 fd.write(result)
@@ -482,4 +496,5 @@ class MuseotouchApp(App):
         
 
 if __name__ in ('__main__', '__android__'):
+
     MuseotouchApp().run()

@@ -67,7 +67,7 @@ fn_to_convert = []
 log('Checking %d files to synchronize' % len(files))
 for raw_filename in files:
     uid = basename(raw_filename).rsplit('.', 1)[0]
-    dds_filename = join(path, 'compressed', 'dds', '%s.dds' % uid)
+    dds_filename = join(path, 'compressed', 'dds512', '%s.dds' % uid)
     dds_filename_md5 = '%s.md5sum' % dds_filename
 
     # Check if it already have been converted

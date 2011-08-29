@@ -32,6 +32,8 @@ class ExpoSelector(FloatLayout):
     def on_success(self, req, result):
         layout = ExpoPopupChoice()
         for expo in result:
+            # convert to string key, python 2.6.
+            expo = dict([(str(x), y) for x, y in expo.iteritems()])
             item = Builder.template('ExpoItem', selector=self, **expo)
             layout.add_expo(item)
         self.popup(content=layout, title='Liste des expositions',
