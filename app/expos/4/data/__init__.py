@@ -2,6 +2,7 @@ from os.path import join
 from glob import glob
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
 from museolib.widgets.circularslider import CircularSlider
 from museolib.widgets.imagemap import ImageMap
 
@@ -35,18 +36,38 @@ def build(app):
     root.add_widget(imagemap)
 
     # -------------------------------------------------------------------------
+    # Create a layout for buttons
+    toolbar_layout = BoxLayout(size_hint=(None, None),
+        pos=(32, 32), spacing=32)
+    kwargs = {'size_hint': (None, None), 'size': (64, 64)}
+    root.add_widget(toolbar_layout)
+
+    # -------------------------------------------------------------------------
+    # Create a button to replace randomly elements on screen
+    ordering_origin = Button(
+            background_normal='widgets/filter_reload.png',
+            background_down='widgets/filter_reload_down.png',
+            **kwargs)
+    ordering_origin.bind(on_release=app.do_reset_item_position)
+    toolbar_layout.add_widget(ordering_origin)
+
+    # -------------------------------------------------------------------------
     # Create a button to order by continent
-    ordering_origin = Button(text='Continent', size_hint=(None, None),
-            size=(80, 50), pos=(0, 30))
+    ordering_origin = Button(
+            background_normal='widgets/filter_origin.png',
+            background_down='widgets/filter_origin_down.png',
+            **kwargs)
     ordering_origin.bind(on_release=app.do_ordering_origin)
-    root.add_widget(ordering_origin)
+    toolbar_layout.add_widget(ordering_origin)
 
     # -------------------------------------------------------------------------
     # Create a button to order by datation
-    ordering_datation = Button(text='Datation', size_hint=(None, None),
-            size=(80, 50), pos=(110, 30))
+    ordering_datation = Button(
+            background_normal='widgets/filter_date.png',
+            background_down='widgets/filter_date_down.png',
+            **kwargs)
     ordering_datation.bind(on_release=app.do_ordering_datation)
-    root.add_widget(ordering_datation)
+    toolbar_layout.add_widget(ordering_datation)
 
     return root
 

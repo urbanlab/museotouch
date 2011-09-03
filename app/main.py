@@ -4,7 +4,7 @@ kivy.require('1.0.8-dev')
 from kivy.config import Config
 Config.set('kivy', 'log_level', 'debug')
 
-import random
+from random import random, randint
 from os.path import join, dirname, exists, basename
 from os import mkdir
 from zipfile import ZipFile
@@ -30,7 +30,6 @@ from museolib.widgets.exposelector import ExpoSelector
 #from museolib.backend.backendxml import BackendXML
 from museolib.backend.backendjson import BackendJSON
 from museolib.backend.backendweb import BackendWeb
-from math import cos, sin, radians
 import json
 import imp
 
@@ -56,6 +55,17 @@ class MuseotouchApp(App):
     def mode(self):
         return mode
 
+    def do_reset_item_position(self, *largs):
+        self.images_pos = {}
+        root = self.root_images
+        for i, item in enumerate(reversed(root.children)):
+            x = randint(root.x + 200, root.right - 200)
+            y = randint(root.y + 300, root.top - 100)
+            rotation = randint(0, 360)
+            item.flip_front = True
+            (Animation(d=0.1 + i / 30.) + Animation(scale=0.30, center=(x, y),
+                    rotation=rotation, t='out_quad', d=.25)).start(item)
+
     def do_ordering_origin(self, *largs):
         children = self.root_images.children
         origs = list(set([x.item.origin_key for x in children]))
@@ -68,9 +78,9 @@ class MuseotouchApp(App):
             ix = x + origs.index(item.item.origin_key) * m
             iy = y
             item.flip_front=True
-            (Animation(d=0.1 + i / 30.) + Animation(scale=0.30, pos=(ix, iy),
-                    rotation=0 + random.random() * 20 - 10, t='out_quad',
-                    d=.25)).start(item)
+            (Animation(d=0.05 + i / 30.) + Animation(scale=0.30, pos=(ix, iy),
+                    rotation=0 + random() * 20 - 10, t='out_quad',
+                    d=.20)).start(item)
 
     def do_ordering_datation(self, *largs):
         children = self.root_images.children[:]
@@ -101,14 +111,30 @@ class MuseotouchApp(App):
         return
 
     def show_object(self, defs):
-        if defs['source'] not in self.images_displayed:
+        source = defs['source']
+        if source not in self.images_displayed:
             return
-        self.root_images.add_widget(ImageItem(**defs), -1)
+
+        images_pos = self.images_pos
+        if source in images_pos:
+            p = images_pos[source]
+            defs.pop('center', None)
+            defs['center'] = p['center']
+            defs['rotation'] = p['rotation']
+
+        center = defs.pop('center')
+        rotation = defs.pop('rotation')
+        item = ImageItem(**defs)
+        self.root_images.add_widget(item, -1)
+        item.rotation = rotation
+        item.center = center
+        images_pos[source] = {
+            'center': item.center,
+            'rotation': item.rotation}
 
     def show_objects(self, objects):
         images = [x.source for x in self.root_images.children]
         root = self.root
-        randint = random.randint
 
         images_to_add = []
         images_displayed = []
@@ -135,6 +161,9 @@ class MuseotouchApp(App):
         for child in self.root_images.children[:]:
             for filename in images:
                 if filename == child.source:
+                    self.images_pos[filename] = {
+                        'center': child.center,
+                        'rotation': child.rotation }
                     self.root_images.remove_widget(child)
 
     def update_objects_from_filter(self, *largs):
@@ -223,6 +252,7 @@ class MuseotouchApp(App):
 
         # list of removed objects
         self.images_displayed = []
+        self.images_pos = {}
 
         # add data directory as a resource path
         self.data_dir = data_dir = join(dirname(museolib.__file__), 'data')
@@ -250,7 +280,7 @@ class MuseotouchApp(App):
 
     def build_for_table(self):
         # check which exposition we must use from the configuration
-        expo = self.config.getint('museotouch', 'expo')
+        expo = str(self.config.getint('museotouch', 'expo'))
         if expo is None or expo <= 0:
             # no exposition set in the configuration file.
             # show the selector
