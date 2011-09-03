@@ -1,36 +1,52 @@
-                                                                     
-                                                                     
-                                                                     
-                                             
-Exemples de données sorties de l'api :
-Tous les champs sont encodés à l'aide de la fonction PHP urlencode (http://fr.php.net/urlencode)
+API Web
+=======
 
-Liste des expositions publiques : api/index.php[?search=RECHERCHE]
-[{"id":"4","name":"Test","private":"0","data":["http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fexpos%2F4%2Fraw%2F5dcd0ffb5720e4ef51b48820a747a39d.jpg"]},{"id":"8","name":"tructest","private":"0","data":["http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fexpos%2F8%2Fraw%2Fe5f587d1c1b7c12ff15cbdb52df1dd3d.jpg","http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fexpos%2F8%2Fraw%2Ff5f587d1c1b7c12ff15cbdb52df1dd3d.jpg"]}]
+.. note::
 
-Liste des expositions privées : api/index.php?priv=1[&search=RECHERCHE]
-[{"id":"7","name":"Trucmuche","private":"1","data":[]},{"id":"9","name":"Expo+priv%C3%A9e+2","private":"1","data":[]}]
+	Tous les champs sont encodés à l'aide de la fonction PHP urlencode
+	(http://fr.php.net/urlencode)
 
-Liste des objets (tous les champs) d'une exposition : api/index.php?act=expo&id=ID_EXPO[&key=CLEF_EXPO_PRIV]
-{"id":"4","name":"Test","private":"0","data":["http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fexpos%2F4%2Fraw%2F5dcd0ffb5720e4ef51b48820a747a39d.jpg"],"items":[{"id":"5","nom":"Truc","date_acqui":"2005","date_crea":"2006","datation":"2007","orig_geo":"Am%E9rique+du+Nord","orig_geo_prec":"Antigua-et-Barbuda","taille":"200","cartel":"10","fichier":""},{"id":"1","nom":"Klick","date_acqui":"2004","date_crea":"2005","datation":"19999","orig_geo":"Asie","orig_geo_prec":"Japon","taille":"10","cartel":"test+de+texte","fichier":"http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fobjets%2Fraw%2F01.jpg"}]}
+Liste des expositions publiques::
 
-Créer un panier et récupérer son ID et sa clef URL : api/index.php?act=cart
-{"id":"5","code_url":"34532ade69395add3aad3f27bedfdce6"}
+	URL: api/index.php[?search=RECHERCHE]
+	Result: [{"id":"4","name":"Test","private":"0","data":["http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fexpos%2F4%2Fraw%2F5dcd0ffb5720e4ef51b48820a747a39d.jpg"]},{"id":"8","name":"tructest","private":"0","data":["http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fexpos%2F8%2Fraw%2Fe5f587d1c1b7c12ff15cbdb52df1dd3d.jpg","http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fexpos%2F8%2Fraw%2Ff5f587d1c1b7c12ff15cbdb52df1dd3d.jpg"]}]
 
-Ajout d'un objet au panier : api/index.php?act=acart&item=ID_OBJET&cart=ID_PANIER
-OK
+Liste des expositions privées::
 
-Suppression d'un objet du panier : api/index.php?act=dcart&item=ID_OBJET&cart=ID_PANIER
-OK
+	URL: api/index.php?priv=1[&search=RECHERCHE]
+	Result: [{"id":"7","name":"Trucmuche","private":"1","data":[]},{"id":"9","name":"Expo+priv%C3%A9e+2","private":"1","data":[]}]
 
-Informations sur un objet : api/index.php?act=item&id=ID_OBJET
-{"id":"1","nom":"Klick","date_acqui":"2004","date_crea":"2005","datation":"19999","orig_geo":"Asie","orig_geo_prec":"Japon","taille":"10","cartel":"test+de+texte","fichier":"http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fobjets%2Fraw%2F01.jpg"}
+Liste des objets (tous les champs) d'une exposition::
 
-Scénario : api/index.php?act=scenarios&id=RFID
-Reboot : [0]
-RFID "image" : ["1",["http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fscenarios%2F2%2Fe5f587d1c1b7c12ff15cbdb52df1dd3d.jpg","http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fscenarios%2F2%2Ff5f587d1c1b7c12ff15cbdb52df1dd3d.jpg"]]
+	URL: api/index.php?act=expo&id=ID_EXPO[&key=CLEF_EXPO_PRIV]
+	Result: {"id":"4","name":"Test","private":"0","data":["http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fexpos%2F4%2Fraw%2F5dcd0ffb5720e4ef51b48820a747a39d.jpg"],"items":[{"id":"5","nom":"Truc","date_acqui":"2005","date_crea":"2006","datation":"2007","orig_geo":"Am%E9rique+du+Nord","orig_geo_prec":"Antigua-et-Barbuda","taille":"200","cartel":"10","fichier":""},{"id":"1","nom":"Klick","date_acqui":"2004","date_crea":"2005","datation":"19999","orig_geo":"Asie","orig_geo_prec":"Japon","taille":"10","cartel":"test+de+texte","fichier":"http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fobjets%2Fraw%2F01.jpg"}]}
 
+Créer un panier et récupérer son ID et sa clef URL::
 
+	URL: api/index.php?act=cart
+	Result: {"id":"5","code_url":"34532ade69395add3aad3f27bedfdce6"}
 
-En cas d'erreur, affichage TXT de type :
-"Erreur : MESSAGE"
+Ajout d'un objet au panier::
+
+	URL: api/index.php?act=acart&item=ID_OBJET&cart=ID_PANIER
+	Result: OK
+
+Suppression d'un objet du panier::
+
+	URL: api/index.php?act=dcart&item=ID_OBJET&cart=ID_PANIER
+	Result: OK
+
+Informations sur un objet::
+
+	URL: api/index.php?act=item&id=ID_OBJET
+	Result: {"id":"1","nom":"Klick","date_acqui":"2004","date_crea":"2005","datation":"19999","orig_geo":"Asie","orig_geo_prec":"Japon","taille":"10","cartel":"test+de+texte","fichier":"http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fobjets%2Fraw%2F01.jpg"}
+
+Scénario::
+
+	URL: api/index.php?act=scenarios&id=RFID
+	Reboot : [0]
+	RFID "image" : ["1",["http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fscenarios%2F2%2Fe5f587d1c1b7c12ff15cbdb52df1dd3d.jpg","http%3A%2F%2F127.0.0.1%2Ferasme%2Fuploads%2Fscenarios%2F2%2Ff5f587d1c1b7c12ff15cbdb52df1dd3d.jpg"]]
+
+En cas d'erreur, affichage TXT de type:
+
+	"Erreur : MESSAGE"
