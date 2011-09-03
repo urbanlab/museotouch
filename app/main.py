@@ -100,22 +100,6 @@ class MuseotouchApp(App):
                     d=.25)).start(item)
 
         return
-        # angle disposition test
-        step = 360. / len(children)
-        dist = 100
-        for i, item in enumerate(children):
-            r = radians(step * i)
-            ix = cx + dist * cos(r)
-            iy = cy + dist * sin(r)
-            item.flip_front = True
-            '''
-            item.scale = 0.25
-            item.center = ix, iy
-            item.rotation = step * i
-            '''
-
-            Animation(scale=0.30, center=(ix, iy),
-                    rotation=step*i, t='out_quad', d=.25).start(item)
 
     def show_object(self, defs):
         if defs['source'] not in self.images_displayed:
