@@ -7,6 +7,7 @@ Config.set('kivy', 'log_level', 'debug')
 import random
 from os.path import join, dirname, exists, basename
 from os import mkdir
+from zipfile import ZipFile
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.button import Button
@@ -374,10 +375,66 @@ class MuseotouchApp(App):
 
         # get the initial json
         self.backend.set_expo(expo_id)
-        self.backend.get_objects(on_success=self._sync_expo_2,
-                                 on_error=self._sync_error_but_continue)
+
+        # get the initial zipfile
+        self.backend.get_expos(
+                uid=expo_id,
+                on_success=self._sync_expo_1,
+                on_error=self._sync_error_but_continue)
+
+    def _sync_expo_1(self, req, result):
+        # check result files to found a zip files
+        zipfiles = [x['fichier'] for x in result['data'] if
+                x['fichier'].rsplit('.', 1)[-1] == 'zip']
+        if len(zipfiles) != 1:
+            raise Exception('One zip file must be attached '
+                    'to the expo (found %d)' % len(zipfiles))
+
+        # if we already downloaded the data, we might have a checksum if
+        # everything is ok.
+        zipchecksum = join(self.expo_dir, 'data.checksum')
+        checksum = ''
+        if exists(zipchecksum):
+            with open(zipchecksum, 'r') as fd:
+                checksum = fd.read()
+
+        if checksum == zipfiles[0]:
+            Logger.info('Museolib: expo data dir already downloaded, continue.')
+            # avoid downloading the zip, already got it.
+            self._sync_expo_3()
+            return
+
+        # download the zip
+        self.backend.get_file(
+            zipfiles[0],
+            on_success=self._sync_expo_2,
+            on_error=self._sync_error_but_continue)
+
 
     def _sync_expo_2(self, req, result):
+        # write result to data.zip
+        zipfilename = join(self.expo_dir, 'data.zip')
+        with open(zipfilename, 'w') as fd:
+            fd.write(result)
+
+        # uncompress in current directory
+        zp = ZipFile(zipfilename)
+        zp.extractall(self.expo_data_dir)
+
+        # all ok, write original filename
+        zipchecksum = join(self.expo_dir, 'data.checksum')
+        with open(zipchecksum, 'w') as fd:
+            fd.write(req.url)
+
+        self._sync_expo_3()
+
+
+    def _sync_expo_3(self):
+        # get objects now.
+        self.backend.get_objects(on_success=self._sync_expo_4,
+                                 on_error=self._sync_error_but_continue)
+
+    def _sync_expo_4(self, req, result):
         filename = join(self.expo_dir, 'objects.json')
         with open(filename, 'wb') as fd:
             json.dump(result, fd)

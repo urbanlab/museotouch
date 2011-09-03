@@ -47,13 +47,25 @@ class BackendWeb(Backend):
     def load_items(self, on_success=None, on_error=None):
         return []
 
+    def _filter_on_id(self, uid, on_success, on_error, req, json):
+        try:
+            data = [x for x in json if str(x['id']) == str(uid)]
+            if data:
+                data = data[0]
+            on_success(req, data)
+        except Exception, e:
+            Logger.exception('error on request %r' % req)
+            on_error(req, e)
+
     #
     # Public
     #
 
-    def get_expos(self, on_success=None, on_error=None):
+    def get_expos(self, on_success=None, on_error=None, uid=None):
         url = self.build_url('')
         on_success = partial(self.unquote_json, on_success, on_error)
+        if uid:
+            on_success = partial(self._filter_on_id, uid, on_success, on_error)
         self.req = UrlRequest(url, on_success, on_error)
 
     def get_objects(self, on_success=None, on_error=None):
@@ -61,6 +73,9 @@ class BackendWeb(Backend):
         url = self.build_url('?act=expo&id=%s' % self.expo)
         on_success = partial(self.unquote_json, on_success, on_error)
         self.req = UrlRequest(url, on_success, on_error)
+
+    def get_file(self, filename, on_success=None, on_error=None):
+        self.req = UrlRequest(filename, on_success, on_error)
 
     def download_object(self, uid, directory, extension, on_success=None, on_error=None,
             on_progress=None):

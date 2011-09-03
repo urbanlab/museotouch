@@ -34,6 +34,12 @@ class ExpoSelector(FloatLayout):
         for expo in result:
             # convert to string key, python 2.6.
             expo = dict([(str(x), y) for x, y in expo.iteritems()])
+            zipfiles = [x['fichier'] for x in expo['data'] if
+                    x['fichier'].rsplit('.', 1)[-1] == 'zip']
+            data = [x['fichier'] for x in expo['data'] if
+                    x['fichier'].rsplit('.', 1)[-1] in ('jpg', 'png')]
+            expo['data'] = data
+            expo['__zipfiles__'] = zipfiles
             item = Builder.template('ExpoItem', selector=self, **expo)
             layout.add_expo(item)
         self.popup(content=layout, title='Liste des expositions',
