@@ -128,3 +128,14 @@ class ImageItem(Scatter):
             if ret:
                 return ret
         return False
+
+    def on_center(self, instance, value):
+        parent = self.parent
+        if not parent:
+            return
+        x, y = value
+        x = max(parent.x, x)
+        y = max(parent.y, y)
+        x = min(parent.right, x)
+        y = min(parent.top, y)
+        self.center = x, y
