@@ -5,7 +5,6 @@ from kivy.config import Config
 Config.set('kivy', 'log_level', 'debug')
 
 import random
-from glob import glob
 from os.path import join, dirname, exists, basename
 from os import mkdir
 from kivy.app import App
@@ -25,8 +24,6 @@ from kivy.utils import format_bytes_to_human
 
 import museolib
 from museolib.utils import format_date
-from museolib.widgets.circularslider import CircularSlider
-from museolib.widgets.imagemap import ImageMap
 from museolib.widgets.imageitem import ImageItem
 from museolib.widgets.exposelector import ExpoSelector
 #from museolib.backend.backendxml import BackendXML
@@ -34,6 +31,7 @@ from museolib.backend.backendjson import BackendJSON
 from museolib.backend.backendweb import BackendWeb
 from math import cos, sin, radians
 import json
+import imp
 
 try:
     mode = 'mobile'
@@ -141,27 +139,32 @@ class MuseotouchApp(App):
     def update_objects_from_filter(self, *largs):
         '''Update the objects displayed from filters (date range, origin...)
         '''
+        # start from all items
+        items = self.db.items
+
         # update date range from slider value
-        ma, mb = self.slider.value_range
-        count = self.db.length
-        item_min = int(ma * count)
-        item_max = max(item_min + 1, int(mb * count))
+        if self.date_slider:
+            ma, mb = self.date_slider.value_range
+            count = len(items)
+            item_min = int(ma * count)
+            item_max = max(item_min + 1, int(mb * count))
 
-        # adjust item selection
-        items = self.db.items[item_min:item_max]
-        if len(items) == 0:
-            self.show_objects(items)
-            return
-        item1 = items[0]
-        item2 = items[-1]
+            # adjust item selection
+            items = items[item_min:item_max]
+            if len(items) == 0:
+                self.show_objects(items)
+                return
+            item1 = items[0]
+            item2 = items[-1]
 
-        # set the text inside the slider
-        self.slider.text_min = format_date(item1.date)
-        self.slider.text_max = format_date(item2.date)
+            # set the text inside the slider
+            self.date_slider.text_min = format_date(item1.date)
+            self.date_slider.text_max = format_date(item2.date)
 
         # filter from origin
-        origin_ids = self.imagemap.active_ids
-        items = [x for x in items if x.origin_key in origin_ids]
+        if self.imagemap:
+            origin_ids = self.imagemap.active_ids
+            items = [x for x in items if x.origin_key in origin_ids]
 
         # show only the first 10 objects
         self.show_objects(items)
@@ -198,6 +201,14 @@ class MuseotouchApp(App):
 
     def build(self):
         config = self.config
+
+        #: imagemap widget. If set, it will be used to filter items from
+        #: origin_key
+        self.imagemap = None
+
+        #: date_slider widget. If set, it will be used to filter items from
+        #: a the date range.
+        self.date_slider = None
 
         # set the image type from mode
         self.imgtype = 'dds'
@@ -256,6 +267,10 @@ class MuseotouchApp(App):
             self.error(e)
 
     def _build_app(self):
+        # Import the module
+        modexpo = imp.load_source('__expo__', join(
+            self.expo_data_dir, '__init__.py'))
+
         # link with the db. later, we need to change it to real one.
         Builder.load_file(join(self.expo_data_dir, 'museotouch.kv'))
         self.db = db = BackendJSON(filename=join(
@@ -281,46 +296,21 @@ class MuseotouchApp(App):
         Logger.info('Museotouch: %d items usable' % len(db.items))
 
         # construct the app.
-        # at one moment, this could be moved to a "generic" app.xml file
-        # that can be used to load another scenario
-        self.root = root = FloatLayout()
-        self.slider = slider = CircularSlider(
-                pos_hint={'right': 1, 'center_y': 0.5},
-                size_hint=(None, None),
-                size=(250, 500))
-        root.add_widget(slider)
-
-        # search image for map (exclude _active) files
-        sources = glob(join(self.expo_data_dir, 'widgets', 'map', '*.png'))
-        sources = [x for x in sources if '_active' not in x]
-        self.imagemap = imagemap = ImageMap(
-                pos_hint={'center_x': 0.5, 'y': 0},
-                size_hint=(None, None),
-                size=(500, 268),
-                sources=sources,
-                suffix='_active')
-        root.add_widget(imagemap)
+        self.root = root = modexpo.build(self)
 
         # add root layer for putting image
         self.root_images = FloatLayout()
-        self.root.add_widget(self.root_images)
-
-        # panic button
-        self.ordering_origin = Button(text='Continent', size_hint=(None, None),
-                size=(80, 50), pos=(0, 30))
-        self.ordering_origin.bind(on_release=self.do_ordering_origin)
-        self.root.add_widget(self.ordering_origin)
-
-        # panic button
-        self.ordering_datation = Button(text='Datation', size_hint=(None, None),
-                size=(80, 50), pos=(110, 30))
-        self.ordering_datation.bind(on_release=self.do_ordering_datation)
-        self.root.add_widget(self.ordering_datation)
+        root.add_widget(self.root_images)
 
         # update the initial slider values to show date.
-        slider.bind(value_range=self.trigger_objects_filtering)
-        imagemap.bind(active_ids=self.trigger_objects_filtering)
+        if self.date_slider:
+            self.date_slider.bind(value_range=self.trigger_objects_filtering)
+
+        if self.imagemap:
+            self.imagemap.bind(active_ids=self.trigger_objects_filtering)
+
         self.trigger_objects_filtering()
+
 
         parent = self.root.parent
         if parent:
