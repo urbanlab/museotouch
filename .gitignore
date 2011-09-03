@@ -7,6 +7,13 @@ Kivy.egg-info
 *.swp
 *.DS_Store
 *.kpf
+*.dds
+app/expos/*/data.zip
+app/expos/*/data.checksum
+app/expos/*/objects.json
+app/museotouch.ini
+cron/config.ini
+tools/*.zip
 build/*
 doc/build
 doc/sources/api-*.rst
