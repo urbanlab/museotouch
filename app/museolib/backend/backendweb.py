@@ -1,4 +1,5 @@
 from museolib.backend import Backend, BackendItem
+from kivy.logger import Logger
 from kivy.network.urlrequest import UrlRequest
 from functools import partial
 from urllib import unquote_plus
@@ -20,8 +21,12 @@ class BackendWeb(Backend):
     def build_data_url(self, path):
         return self.data_url + path
 
-    def unquote_json(self, on_success, req, json):
-        on_success(req, self._unquote(json))
+    def unquote_json(self, on_success, on_error, req, json):
+        try:
+            on_success(req, self._unquote(json))
+        except Exception, e:
+            Logger.exception('error on request %r' % req)
+            on_error(req, e)
 
     def _unquote(self, json):
         unquote = self._unquote
@@ -48,13 +53,13 @@ class BackendWeb(Backend):
 
     def get_expos(self, on_success=None, on_error=None):
         url = self.build_url('')
-        on_success = partial(self.unquote_json, on_success)
+        on_success = partial(self.unquote_json, on_success, on_error)
         self.req = UrlRequest(url, on_success, on_error)
 
     def get_objects(self, on_success=None, on_error=None):
         assert(self.expo is not None)
         url = self.build_url('?act=expo&id=%s' % self.expo)
-        on_success = partial(self.unquote_json, on_success)
+        on_success = partial(self.unquote_json, on_success, on_error)
         self.req = UrlRequest(url, on_success, on_error)
 
     def download_object(self, uid, directory, extension, on_success=None, on_error=None,

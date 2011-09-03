@@ -168,10 +168,37 @@ class MuseotouchApp(App):
 
     def build_config(self, config):
         config.setdefaults('museotouch', {
+            'url_api': 'http://museotouch.erasme.org/prive/api/',
+            'url_data': 'http://museotouch.erasme.org/prive/uploads/',
             'expo': '',
         })
 
+    def build_settings(self, settings):
+        jsondata = '''[
+            {
+                "type": "numeric",
+                "title": "Exposition",
+                "desc": "Identifiant de l'exposition par defaut",
+                "section": "museotouch",
+                "key": "expo"
+            }, {
+                "type": "string",
+                "title": "URL API",
+                "desc": "Url vers l'API du backend web",
+                "section": "museotouch",
+                "key": "url_api"
+            }, {
+                "type": "string",
+                "title": "URL Data",
+                "desc": "Url vers les datas (scenarios et objets)",
+                "section": "museotouch",
+                "key": "url_data"
+            }]'''
+        settings.add_json_panel('Museotouch', self.config, data=jsondata)
+
     def build(self):
+        config = self.config
+
         # set the image type from mode
         self.imgtype = 'dds'
         if mode == 'table':
@@ -198,8 +225,8 @@ class MuseotouchApp(App):
 
         # web backend
         self.backend = BackendWeb(
-                url='http://museotouch.erasme.org/prive/api/',
-                data_url='http://museotouch.erasme.org/prive/uploads/')
+                url=config.get('museotouch', 'url_api'),
+                data_url=config.get('museotouch', 'url_data'))
 
         # if we are on android, always start on selector
         # otherwise, check configuration
@@ -211,8 +238,8 @@ class MuseotouchApp(App):
 
     def build_for_table(self):
         # check which exposition we must use from the configuration
-        expo = self.config.get('museotouch', 'expo')
-        if expo == '':
+        expo = self.config.getint('museotouch', 'expo')
+        if expo is None or expo <= 0:
             # no exposition set in the configuration file.
             # show the selector
             return self.build_selector()
