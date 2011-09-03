@@ -85,6 +85,12 @@ class MuseotouchApp(App):
     def do_ordering_datation(self, *largs):
         children = self.root_images.children[:]
         children.sort(key=lambda x: x.item.date)
+
+        # remove and readd all children
+        self.root_images.clear_widgets()
+        for item in reversed(children):
+            self.root_images.add_widget(item)
+
         cx, cy = self.root_images.center
 
         # seperate the table in 2
