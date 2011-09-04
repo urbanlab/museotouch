@@ -39,10 +39,13 @@ class BackendWeb(Backend):
         elif tp in (str, unicode):
             json = unquote_plus(json)
             try:
+                ojson = json
                 json = json.encode('latin1')
                 json = json.decode('utf8')
-            except:
-                pass
+            except Exception, e:
+                print 'error on string %r' % json
+                print 'unable to decode ?', e
+                json = ojson
         return json
 
     def load_items(self, on_success=None, on_error=None):

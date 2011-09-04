@@ -7,6 +7,7 @@ class BackendJSON(Backend):
         filename = self.options.get('filename', None)
         with open(filename, 'r') as fd:
             data = json.loads(fd.read())
+        self.keywords = data['keywords']
         assert(filename is not None)
         for item in data['items']:
             yield BackendItem(item)

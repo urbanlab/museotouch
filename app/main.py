@@ -251,6 +251,9 @@ class MuseotouchApp(App):
         #: a the date range.
         self.date_slider = None
 
+        #: keywords widget. If set, it will be used to show keywords
+        self.keywords = None
+
         # set the image type from mode
         self.imgtype = 'dds'
         if mode == 'table':
@@ -343,6 +346,10 @@ class MuseotouchApp(App):
         # add root layer for putting image
         self.root_images = FloatLayout()
         root.add_widget(self.root_images)
+
+        # update keywords
+        if self.keywords:
+            self.keywords.keywords = db.keywords
 
         # update the initial slider values to show date.
         if self.date_slider:
@@ -544,9 +551,10 @@ class MuseotouchApp(App):
                 on_progress=self._sync_progress)
 
     def _sync_expo_6(self, req, result):
-        filename = join(self.expo_dir, 'objects.json')
+        filename = join(self.expo_dir, u'objects.json')
         with open(filename, 'wb') as fd:
-            json.dump(result, fd)
+            s = json.dumps(result)
+            fd.write(s)
 
         # on the result, remove all the object already synced
         items = result['items'][:]
