@@ -120,6 +120,9 @@ class MuseotouchApp(App):
         source = defs['source']
         if source not in self.images_displayed:
             return
+        current_images = [x.source for x in self.root_images.children]
+        if source in current_images:
+            return
 
         images_pos = self.images_pos
         if source in images_pos:
@@ -420,11 +423,16 @@ class MuseotouchApp(App):
 
     def _sync_expo_1(self, req, result):
         # check result files to found a zip files
-        zipfiles = [x['fichier'] for x in result['data'] if
-                x['fichier'].rsplit('.', 1)[-1] == 'zip']
+        self._expo_files = files = [x['fichier'] for x in result['data']]
+        zipfiles = [x for x in files if x.rsplit('.', 1)[-1] == 'zip']
         if len(zipfiles) != 1:
             raise Exception('One zip file must be attached '
                     'to the expo (found %d)' % len(zipfiles))
+
+        # write the part of the json corresponding to that expo in the dir
+        expojson = join(self.expo_dir, 'expo.json')
+        with open(expojson, 'w') as fd:
+            fd.write(expojson)
 
         # if we already downloaded the data, we might have a checksum if
         # everything is ok.
@@ -446,7 +454,6 @@ class MuseotouchApp(App):
             on_success=self._sync_expo_2,
             on_error=self._sync_error_but_continue)
 
-
     def _sync_expo_2(self, req, result):
         # write result to data.zip
         zipfilename = join(self.expo_dir, 'data.zip')
@@ -464,13 +471,34 @@ class MuseotouchApp(App):
 
         self._sync_expo_3()
 
-
     def _sync_expo_3(self):
-        # get objects now.
-        self.backend.get_objects(on_success=self._sync_expo_4,
-                                 on_error=self._sync_error_but_continue)
+        # try to found at least one image
+        images = [x for x in self._expo_files if \
+            x.rsplit('.', 1)[-1].lower() in ('png', 'jpg')]
+
+        if not images:
+            self._sync_expo_5()
+            return
+
+        # download the first one as a thumbnail
+        self.backend.get_file(
+            images[0],
+            on_success=self._sync_expo_4,
+            on_error=self._sync_error_but_continue)
 
     def _sync_expo_4(self, req, result):
+        ext = req.url.rsplit('.', 1)[-1]
+        thumbnailfn = join(self.expo_dir, 'thumbnail.%s' % ext)
+        with open(thumbnailfn, 'w') as fd:
+            fd.write(result)
+        self._sync_expo_5()
+
+    def _sync_expo_5(self):
+        # get objects now.
+        self.backend.get_objects(on_success=self._sync_expo_6,
+                                 on_error=self._sync_error_but_continue)
+
+    def _sync_expo_6(self, req, result):
         filename = join(self.expo_dir, 'objects.json')
         with open(filename, 'wb') as fd:
             json.dump(result, fd)
