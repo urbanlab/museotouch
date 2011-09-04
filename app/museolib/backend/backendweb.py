@@ -66,7 +66,7 @@ class BackendWeb(Backend):
         on_success = partial(self.unquote_json, on_success, on_error)
         if uid:
             on_success = partial(self._filter_on_id, uid, on_success, on_error)
-        self.req = UrlRequest(url, on_success, on_error)
+        self.req = UrlRequest(url, on_success, on_error, timeout=5)
 
     def get_objects(self, on_success=None, on_error=None):
         assert(self.expo is not None)
