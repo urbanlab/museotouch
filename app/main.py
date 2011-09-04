@@ -290,7 +290,7 @@ class MuseotouchApp(App):
     def build_for_table(self):
         # check which exposition we must use from the configuration
         expo = str(self.config.getint('museotouch', 'expo'))
-        if expo is None or expo <= 0:
+        if expo is None or int(expo) <= 0:
             # no exposition set in the configuration file.
             # show the selector
             return self.build_selector()
@@ -375,7 +375,7 @@ class MuseotouchApp(App):
             # create popup
             if popup is None:
                 popup = Popup(title='Chargement...', size_hint=(None, None),
-                        size=(300, 300), allow_dismiss=False)
+                        size=(300, 300), auto_dismiss=False)
                 popup.open()
             # synchronize it !
             self.sync_expo(expo_id, popup)
@@ -401,6 +401,15 @@ class MuseotouchApp(App):
         Animation(size=(300, 200), d=.2, t='out_quad').start(popup)
         self._sync_popup = popup
 
+        # prepare popup for synchronisation
+        layout = BoxLayout(orientation='vertical')
+        layout.add_widget(Label(halign='center'))
+        layout.add_widget(Label(halign='center'))
+        layout.add_widget(ProgressBar())
+        self._sync_popup.content = layout
+
+        self._sync_popup_text('Downloading exhibition description')
+
         # create layout for exhibition
         for directory in (
                 self.expo_dir,
@@ -419,7 +428,11 @@ class MuseotouchApp(App):
         self.backend.get_expos(
                 uid=expo_id,
                 on_success=self._sync_expo_1,
-                on_error=self._sync_error_but_continue)
+                on_error=self._sync_error_but_continue,
+                on_progress=self._sync_progress)
+
+    def _sync_popup_text(self, text):
+        self._sync_popup.content.children[-1].text = text
 
     def _sync_expo_1(self, req, result):
         # check result files to found a zip files
@@ -449,10 +462,12 @@ class MuseotouchApp(App):
             return
 
         # download the zip
+        self._sync_popup_text('Downloading exhibition data')
         self.backend.get_file(
             zipfiles[0],
             on_success=self._sync_expo_2,
-            on_error=self._sync_error_but_continue)
+            on_error=self._sync_error_but_continue,
+            on_progress=self._sync_progress)
 
     def _sync_expo_2(self, req, result):
         # write result to data.zip
@@ -480,23 +495,48 @@ class MuseotouchApp(App):
             self._sync_expo_5()
             return
 
+        # if we already downloaded the data, we might have a checksum if
+        # everything is ok.
+        thumbchecksum = join(self.expo_dir, 'thumbnail.checksum')
+        checksum = ''
+        if exists(thumbchecksum):
+            with open(thumbchecksum, 'r') as fd:
+                checksum = fd.read()
+
+        if checksum == images[0]:
+            Logger.info('Museolib: expo thumbnail already downloaded, continue.')
+            # avoid downloading the zip, already got it.
+            self._sync_expo_5()
+            return
+
         # download the first one as a thumbnail
+        self._sync_popup_text('Downloading exhibition thumbnail')
         self.backend.get_file(
             images[0],
             on_success=self._sync_expo_4,
-            on_error=self._sync_error_but_continue)
+            on_error=self._sync_error_but_continue,
+            on_progress=self._sync_progress)
 
     def _sync_expo_4(self, req, result):
         ext = req.url.rsplit('.', 1)[-1]
         thumbnailfn = join(self.expo_dir, 'thumbnail.%s' % ext)
         with open(thumbnailfn, 'w') as fd:
             fd.write(result)
+
+        # all ok, write original filename
+        thumbchecksum = join(self.expo_dir, 'thumbnail.checksum')
+        with open(thumbchecksum, 'w') as fd:
+            fd.write(req.url)
+
         self._sync_expo_5()
 
     def _sync_expo_5(self):
         # get objects now.
-        self.backend.get_objects(on_success=self._sync_expo_6,
-                                 on_error=self._sync_error_but_continue)
+        self._sync_popup_text('Downloading exhibition objects')
+        self.backend.get_objects(
+                on_success=self._sync_expo_6,
+                on_error=self._sync_error_but_continue,
+                on_progress=self._sync_progress)
 
     def _sync_expo_6(self, req, result):
         filename = join(self.expo_dir, 'objects.json')
@@ -506,14 +546,19 @@ class MuseotouchApp(App):
         # on the result, remove all the object already synced
         items = result['items'][:]
         for item in result['items']:
-            fichier = item['fichier']
-            if not fichier:
+            fichiers = item['data']
+            if not fichiers:
                 items.remove(item)
                 continue
-            filename, ext = self._sync_convert_filename(item['fichier'])
-            local_filename = self._sync_get_local_filename(filename)
-            if not exists(local_filename):
-                continue
+            for fichier in fichiers:
+                fichier = fichier['fichier']
+                if not self._sync_is_filename_of_item(item, fichier):
+                    continue
+                item['__item_filename__'] = fichier
+                filename, ext = self._sync_convert_filename(fichier)
+                local_filename = self._sync_get_local_filename(filename)
+                if not exists(local_filename):
+                    continue
             items.remove(item)
 
         self._sync_result = items
@@ -521,13 +566,6 @@ class MuseotouchApp(App):
         self._sync_missing = []
 
         if len(items):
-
-            # prepare for synchronization
-            layout = BoxLayout(orientation='vertical')
-            layout.add_widget(Label(halign='center'))
-            layout.add_widget(Label(halign='center'))
-            layout.add_widget(ProgressBar())
-            self._sync_popup.content = layout
 
             self._sync_download()
 
@@ -540,6 +578,10 @@ class MuseotouchApp(App):
         if type(fn) in (list, tuple):
             fn = fn[0]
         return join(self.expo_img_dir, self.imgdir, fn)
+
+    def _sync_is_filename_of_item(self, item, fichier):
+        uid = fichier.split('/')[-1].rsplit('.', 1)[0]
+        return str(uid) == str(item['id'])
 
     def _sync_convert_filename(self, filename):
         # from the original filename given by json
@@ -554,7 +596,7 @@ class MuseotouchApp(App):
     def _sync_download(self):
         uid = self._sync_result[self._sync_index]['id']
         filename, ext = self._sync_convert_filename(
-            self._sync_result[self._sync_index]['fichier'])
+            self._sync_result[self._sync_index]['__item_filename__'])
 
         text = 'Synchronisation de %d/%d' % (
                 self._sync_index + 1, len(self._sync_result))
@@ -597,13 +639,23 @@ class MuseotouchApp(App):
         self.build_app()
 
     def _sync_progress(self, req, current, total):
+        if total == -1:
+            total = req.chunk_size * 10
+            current %= req.chunk_size * 10
+            total_str = None
+        else:
+            total_str = format_bytes_to_human(total)
+        print '*progress*', req.url, current, total, req.chunk_size
         self._sync_popup.content.children[0].max = total
         self._sync_popup.content.children[0].value = current
         text = self._sync_popup.content.children[-2].text
         filename = text.split(' ')[0]
-        text = '%s - %s/%s' % (filename,
-                format_bytes_to_human(current),
-                format_bytes_to_human(total))
+        text = ''
+        if filename:
+            text = '%s - ' % filename
+        text = '%s' % format_bytes_to_human(current)
+        if total_str is not None:
+            text += '/%s' % total_str
         self._sync_popup.content.children[-2].text = text
 
     def _sync_error(self, req, result):
@@ -621,7 +673,7 @@ class MuseotouchApp(App):
         btn = Button(text='Fermer', size_hint_y=None, height=50)
         content.add_widget(btn)
         btn.bind(on_release=self.reset)
-        popup = Popup(title='Erreur', content=content, allow_dismiss=False,
+        popup = Popup(title='Erreur', content=content, auto_dismiss=False,
                 size_hint=(.5, .5))
         popup.open()
 

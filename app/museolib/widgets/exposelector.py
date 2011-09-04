@@ -37,7 +37,7 @@ class ExpoSelector(FloatLayout):
             zipfiles = [x['fichier'] for x in expo['data'] if
                     x['fichier'].rsplit('.', 1)[-1] == 'zip']
             data = [x['fichier'] for x in expo['data'] if
-                    x['fichier'].rsplit('.', 1)[-1] in ('jpg', 'png')]
+                    x['fichier'].rsplit('.', 1)[-1].lower() in ('jpg', 'png')]
             expo['data'] = data
             expo['__zipfiles__'] = zipfiles
             item = Builder.template('ExpoItem', selector=self, **expo)
@@ -51,13 +51,13 @@ class ExpoSelector(FloatLayout):
     def on_error(self, req, result):
         content = Label(text='Erreur lors du chargement\n' + str(result))
         p = self.popup(content=content, title='Erreur')
-        p.allow_dismiss = True
+        p.auto_dismiss = True
         p.bind(on_dismiss=self.load)
 
     def popup(self, content, title, **kwargs):
         if not self._popup:
             self._popup = popup = Popup(
-                    allow_dismiss=False,
+                    auto_dismiss=False,
                     size_hint=(None, None),
                     size=(400, 400))
             popup.open()

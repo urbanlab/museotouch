@@ -1,4 +1,4 @@
-from museolib.backend import Backend, BackendItem
+from museolib.backend import Backend
 from kivy.logger import Logger
 from kivy.network.urlrequest import UrlRequest
 from functools import partial
@@ -23,7 +23,8 @@ class BackendWeb(Backend):
 
     def unquote_json(self, on_success, on_error, req, json):
         try:
-            on_success(req, self._unquote(json))
+            json = self._unquote(json)
+            on_success(req, json)
         except Exception, e:
             Logger.exception('error on request %r' % req)
             on_error(req, e)
@@ -61,21 +62,24 @@ class BackendWeb(Backend):
     # Public
     #
 
-    def get_expos(self, on_success=None, on_error=None, uid=None):
+    def get_expos(self, uid=None, on_success=None, on_error=None, on_progress=None):
         url = self.build_url('')
         on_success = partial(self.unquote_json, on_success, on_error)
         if uid:
             on_success = partial(self._filter_on_id, uid, on_success, on_error)
-        self.req = UrlRequest(url, on_success, on_error, timeout=5)
+        Logger.debug('BackendWeb: GET %r' % url)
+        self.req = UrlRequest(url, on_success, on_error, on_progress, timeout=15)
 
-    def get_objects(self, on_success=None, on_error=None):
+    def get_objects(self, on_success=None, on_error=None, on_progress=None):
         assert(self.expo is not None)
         url = self.build_url('?act=expo&id=%s' % self.expo)
         on_success = partial(self.unquote_json, on_success, on_error)
-        self.req = UrlRequest(url, on_success, on_error)
+        Logger.debug('BackendWeb: GET %r' % url)
+        self.req = UrlRequest(url, on_success, on_error, on_progress)
 
-    def get_file(self, filename, on_success=None, on_error=None):
-        self.req = UrlRequest(filename, on_success, on_error)
+    def get_file(self, filename, on_success=None, on_error=None, on_progress=None):
+        Logger.debug('BackendWeb: GET %r' % filename)
+        self.req = UrlRequest(filename, on_success, on_error, on_progress)
 
     def download_object(self, uid, directory, extension, on_success=None, on_error=None,
             on_progress=None):
@@ -86,8 +90,9 @@ class BackendWeb(Backend):
         # - ...
         if directory != 'raw':
             directory = 'compressed/%s' % directory
-        url = self.build_data_url('objets/%s/%s.%s' % (
-            directory, uid, extension))
+        url = self.build_data_url('objets/%(uid)s/%(directory)s/%(uid)s.%(ext)s'
+                % {'uid': uid, 'directory': directory, 'ext': extension})
+        Logger.debug('BackendWeb: GET %r' % url)
         self.req = UrlRequest(url, on_success, on_error, on_progress,
                 chunk_size=32768)
 
