@@ -3,8 +3,10 @@ from glob import glob
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.scatter import Scatter
 from museolib.widgets.circularslider import CircularSlider
 from museolib.widgets.imagemap import ImageMap
+from museolib.widgets.keywords import Keywords
 
 def build(app):
     # Here, you must return a root widget that will be used for app
@@ -34,6 +36,20 @@ def build(app):
             sources=sources,
             suffix='_active')
     root.add_widget(imagemap)
+
+    # -------------------------------------------------------------------------
+    # Create a widget for keywords
+    # Here we are using a scatter between to be able to rotate the widget
+    app.keywords = Keywords(
+            size=(500, 250),
+            size_hint=(None, None))
+    scatter = Scatter(size=app.keywords.size,
+            auto_bring_to_front=False,
+            pos_hint={'x': 0, 'center_y': 0.5},
+            size_hint=(None, None), rotation=-90,
+            do_translate=False, do_rotate=False, do_scale=False)
+    scatter.add_widget(app.keywords)
+    root.add_widget(scatter)
 
     # -------------------------------------------------------------------------
     # Create a layout for buttons

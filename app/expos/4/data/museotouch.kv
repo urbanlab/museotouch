@@ -160,3 +160,13 @@
             font_size: 16
             color: (0.5490, 1, 1, 1)
             text: root.text_max
+
+<Keyword>:
+	color: (1, 1, 1, 1) if self.selected else (.5, .5, .5, 1) 
+	canvas.before:
+		Color:
+			rgb: 1, 1, 1
+		Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2. - 32), int(self.center_y - 10)
+			size: 20, 20
+			source: 'widgets/circle%s.png' % ('_selected' if self.selected else '')
