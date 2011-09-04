@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import kivy
 kivy.require('1.0.8-dev')
 
@@ -391,7 +393,9 @@ class MuseotouchApp(App):
     # 3. fetch missing objects
     #
 
-    def get_expo_dir(self, expo_id):
+    def get_expo_dir(self, expo_id=None):
+        if expo_id is None:
+            return join(dirname(__file__), 'expos')
         return join(dirname(__file__), 'expos', expo_id)
 
     def sync_expo(self, expo_id, popup=None):
@@ -408,7 +412,7 @@ class MuseotouchApp(App):
         layout.add_widget(ProgressBar())
         self._sync_popup.content = layout
 
-        self._sync_popup_text('Downloading exhibition description')
+        self._sync_popup_text(u'Téléchargement de la description')
 
         # create layout for exhibition
         for directory in (
@@ -439,13 +443,14 @@ class MuseotouchApp(App):
         self._expo_files = files = [x['fichier'] for x in result['data']]
         zipfiles = [x for x in files if x.rsplit('.', 1)[-1] == 'zip']
         if len(zipfiles) != 1:
-            raise Exception('One zip file must be attached '
-                    'to the expo (found %d)' % len(zipfiles))
+            self.error(u'Aucun fichier de données attaché '
+                    u'à cette exposition (zip not found)')
+            return
 
         # write the part of the json corresponding to that expo in the dir
         expojson = join(self.expo_dir, 'expo.json')
         with open(expojson, 'w') as fd:
-            fd.write(expojson)
+            json.dump([result], fd)
 
         # if we already downloaded the data, we might have a checksum if
         # everything is ok.
@@ -462,7 +467,7 @@ class MuseotouchApp(App):
             return
 
         # download the zip
-        self._sync_popup_text('Downloading exhibition data')
+        self._sync_popup_text(u'Téléchargement des données')
         self.backend.get_file(
             zipfiles[0],
             on_success=self._sync_expo_2,
@@ -510,7 +515,7 @@ class MuseotouchApp(App):
             return
 
         # download the first one as a thumbnail
-        self._sync_popup_text('Downloading exhibition thumbnail')
+        self._sync_popup_text(u'Téléchargement de la miniature')
         self.backend.get_file(
             images[0],
             on_success=self._sync_expo_4,
@@ -532,7 +537,7 @@ class MuseotouchApp(App):
 
     def _sync_expo_5(self):
         # get objects now.
-        self._sync_popup_text('Downloading exhibition objects')
+        self._sync_popup_text(u'Téléchargement des objets')
         self.backend.get_objects(
                 on_success=self._sync_expo_6,
                 on_error=self._sync_error_but_continue,
@@ -667,7 +672,7 @@ class MuseotouchApp(App):
 
     def error(self, error):
         content = BoxLayout(orientation='vertical')
-        label = Label(text=str(error), valign='middle')
+        label = Label(text=error, valign='middle')
         label.bind(size=label.setter('text_size'))
         content.add_widget(label)
         btn = Button(text='Fermer', size_hint_y=None, height=50)
