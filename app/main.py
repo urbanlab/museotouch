@@ -8,7 +8,7 @@ Config.set('kivy', 'log_level', 'debug')
 
 from random import random, randint
 from os.path import join, dirname, exists, basename
-from os import mkdir
+from os import makedirs
 from zipfile import ZipFile
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -436,9 +436,13 @@ class MuseotouchApp(App):
     #
 
     def get_expo_dir(self, expo_id=None):
+        if mode == 'mobile':
+            root_expo = '/sdcard/museotouch/expos'
+        else:
+            root_expo = join(dirname(__file__), 'expos')
         if expo_id is None:
-            return join(dirname(__file__), 'expos')
-        return join(dirname(__file__), 'expos', expo_id)
+            return root_expo
+        return join(root_expo, expo_id)
 
     def sync_expo(self, expo_id, popup=None):
         # adjust the popup 
@@ -463,7 +467,7 @@ class MuseotouchApp(App):
                 self.expo_img_dir,
                 join(self.expo_img_dir, self.imgdir)):
             try:
-                mkdir(directory)
+                makedirs(directory)
             except OSError:
                 pass
 
