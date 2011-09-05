@@ -84,18 +84,22 @@ if __name__ == '__main__':
 
     if command == 'compress':
 
+        from kivy.lib.ddsfile import DDSFile
+
         if output is None:
             output = fn.rsplit('.', 1)[0] + '.dds'
 
         img = pygame.image.load(fn)
+        print 'Original image is', img.get_size()
+        img = img.subsurface(img.get_bounding_rect())
         width, height = img.get_size()
+        print 'Bounding box found is', img.get_size()
 
         # ensure RGBA
         if img.get_bytesize() != 4:
             img = img.convert(32)
 
         # create container
-        from kivy.lib.ddsfile import DDSFile
         dds = DDSFile()
 
         # first image, ensure width/height are pot
@@ -103,9 +107,8 @@ if __name__ == '__main__':
         iwidth = _nearest_pow2(width)
         iheight = _nearest_pow2(height)
         iwidth = iheight = max(iwidth, iheight)
-        iwidth = iheight = 512
         if iwidth != width or iheight != height:
-            print 'upgrade from', (width, height), 'to', (iwidth, iheight)
+            print 'Upgrade from', (width, height), 'to', (iwidth, iheight)
             surf = pygame.Surface((iwidth, iheight), depth=32)
             cx = iwidth / 2 - width / 2
             cy = iheight / 2 - height / 2
@@ -117,14 +120,20 @@ if __name__ == '__main__':
         # convert
         trace('Converting %s' % fn)
         level = 0
+        minsize = 1024
         while True:
-            trace(' %d(%d,%d)' % (level, width, height))
             assert(img.get_bytesize() == 4)
-            data = pygame.image.tostring(img, 'RGBA', True)
-            data = squish.compressImage(data, width, height,
-                    squish.DXT1 | squish.COLOR_ITERATIVE_CLUSTER_FIT |
-                    squish.WEIGHT_COLOR_BY_ALPHA)
-            dds.add_image(level, 32, 'dxt1', width, height, data)
+
+            if width <= minsize and height <= minsize:
+                trace(' %d(%d,%d)' % (level, width, height))
+                data = pygame.image.tostring(img, 'RGBA', True)
+                data = squish.compressImage(data, width, height,
+                        squish.DXT1 | squish.COLOR_ITERATIVE_CLUSTER_FIT |
+                        squish.WEIGHT_COLOR_BY_ALPHA)
+                dds.add_image(level, 32, 'dxt1', width, height, data)
+            else:
+                level = -1
+
             if width == 1 or height == 1:
                 break
 

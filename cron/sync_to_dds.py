@@ -18,6 +18,7 @@ TODO:
 
 '''
 
+import sys
 from os import unlink
 from os.path import dirname, join, exists, basename, realpath
 from ConfigParser import ConfigParser
@@ -32,6 +33,11 @@ from datetime import datetime
 def log(text):
     time = datetime.now().isoformat()
     print '#', time, '#', text
+
+# Force mode ?
+force = False
+if '--force' in sys.argv:
+    force = True
 
 # Read configuration
 config_keys = ('user', 'password', 'host', 'path')
@@ -57,7 +63,7 @@ ftp = FTP(host, user, password)
 log('Connected to %s' % host)
 
 # Get a list of files to check
-files = ftp.nlst(join(path, 'raw'))
+files = ftp.nlst(path)
 
 # Set binary more for SIZE
 ftp.voidcmd('TYPE I')
@@ -65,18 +71,32 @@ ftp.voidcmd('TYPE I')
 # Check each raw files
 fn_to_convert = []
 log('Checking %d files to synchronize' % len(files))
-for raw_filename in files:
-    uid = basename(raw_filename).rsplit('.', 1)[0]
-    dds_filename = join(path, 'compressed', 'dds512', '%s.dds' % uid)
-    dds_filename_md5 = '%s.md5sum' % dds_filename
+for filename in files:
+    uid = basename(filename)
+    dds_filename = join(path, uid, 'compressed', 'dds', '%s.dds' % uid)
 
-    # Check if it already have been converted
-    try:
-        size = ftp.size(dds_filename_md5)
-        if size is not None and size > 0:
-            continue
-    except error_perm:
-        pass
+    # Don't check md5 if force is pushed
+    if not force:
+        # Check if it already have been converted
+        dds_filename_md5 = '%s.md5sum' % dds_filename
+        try:
+            size = ftp.size(dds_filename_md5)
+            if size is not None and size > 0:
+                continue
+        except error_perm:
+            pass
+
+    # Get files in that directory
+    raw_files = ftp.nlst(join(path, uid, 'raw'))
+    raw_filename = None
+    for item in raw_files:
+        ext = basename(item).rsplit('.', 1)[-1].lower()
+        if ext in ('png', 'jpg'):
+            raw_filename = item
+
+    if raw_filename is None:
+        log('Object %r have no raw objects found (png/jpg)' % uid)
+        continue
 
     log('Add %s to convert' % raw_filename)
     fn_to_convert.append((raw_filename, dds_filename))
