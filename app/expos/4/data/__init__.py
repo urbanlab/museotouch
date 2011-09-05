@@ -7,6 +7,7 @@ from kivy.uix.scatter import Scatter
 from museolib.widgets.circularslider import CircularSlider
 from museolib.widgets.imagemap import ImageMap
 from museolib.widgets.keywords import Keywords
+from museolib.widgets.slider import SizeSlider
 
 def build(app):
     # Here, you must return a root widget that will be used for app
@@ -23,6 +24,18 @@ def build(app):
             size_hint=(None, None),
             size=(250, 500))
     root.add_widget(slider)
+
+    # -------------------------------------------------------------------------
+    # Size slider
+    app.size_slider = slider = SizeSlider(
+	    size=(420, 30), size_hint=(None, None))
+    scatter = Scatter(size=app.size_slider.size,
+            auto_bring_to_front=False,
+	        pos_hint={'top': 0.98, 'center_x': .5},
+            size_hint=(None, None), rotation=-180,
+            do_translate=False, do_rotate=False, do_scale=False)
+    scatter.add_widget(app.size_slider)
+    root.add_widget(scatter)
 
     # -------------------------------------------------------------------------
     # Create an image map widget
