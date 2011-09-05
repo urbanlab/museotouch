@@ -202,6 +202,21 @@ class MuseotouchApp(App):
             self.date_slider.text_min = format_date(item1.date)
             self.date_slider.text_max = format_date(item2.date)
 
+        # filter on size
+        if self.size_slider:
+            # reorder item by taille
+            items.sort(key=lambda x: x.taille)
+            ma, mb = self.size_slider.value_range
+            count = len(items)
+            item_min = int(ma * count)
+            item_max = max(item_min + 1, int(mb * count))
+
+            # adjust item selection
+            items = items[item_min:item_max]
+            if len(items) == 0:
+                self.show_objects(items)
+                return
+
         # filter from origin
         if self.imagemap:
             origin_ids = self.imagemap.active_ids
@@ -265,6 +280,9 @@ class MuseotouchApp(App):
 
         #: keywords widget. If set, it will be used to show keywords
         self.keywords = None
+
+        #: size slider. If set, it will be used to show all size
+        self.size_slider = None
 
         # set the image type from mode
         self.imgtype = 'dds'
@@ -363,6 +381,10 @@ class MuseotouchApp(App):
         if self.keywords:
             self.keywords.keywords = db.keywords
             self.keywords.bind(selected_keywords=self.trigger_objects_filtering)
+
+        # update size slider
+        if self.size_slider:
+            self.size_slider.bind(value_range=self.trigger_objects_filtering)
 
         # update the initial slider values to show date.
         if self.date_slider:
@@ -692,6 +714,8 @@ class MuseotouchApp(App):
         self.build_app()
 
     def error(self, error):
+        if type(error) not in (str, unicode):
+            error = str(error)
         content = BoxLayout(orientation='vertical')
         label = Label(text=error, valign='middle')
         label.bind(size=label.setter('text_size'))

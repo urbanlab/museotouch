@@ -41,6 +41,13 @@ class BackendItem(dict):
     def keywords(self):
         return self['keywords']
 
+    @property
+    def taille(self):
+        try:
+            return int(self['taille'])
+        except:
+            return 0
+
 class Backend(object):
     def __init__(self, **options):
         self.items = []
