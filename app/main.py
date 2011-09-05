@@ -241,7 +241,7 @@ class MuseotouchApp(App):
         config.setdefaults('museotouch', {
             'url_api': 'http://museotouch.erasme.org/prive/api/',
             'url_data': 'http://museotouch.erasme.org/prive/uploads/',
-            'expo': '',
+            'expo': '0',
         })
 
     def build_settings(self, settings):
@@ -436,10 +436,15 @@ class MuseotouchApp(App):
     #
 
     def get_expo_dir(self, expo_id=None):
-        if mode == 'mobile':
+        if self.mode == 'mobile':
             root_expo = '/sdcard/museotouch/expos'
         else:
             root_expo = join(dirname(__file__), 'expos')
+        try:
+            makedirs(root_expo)
+        except OSError, e:
+            print 'ERROR WHILE CREATING INITIAL LAYOUT?'
+            print e
         if expo_id is None:
             return root_expo
         return join(root_expo, expo_id)
@@ -475,6 +480,7 @@ class MuseotouchApp(App):
         self.backend.set_expo(expo_id)
 
         # get the initial zipfile
+        Logger.info('Museotouch: Synchronization starting')
         self.backend.get_expos(
                 uid=expo_id,
                 on_success=self._sync_expo_1,
@@ -485,6 +491,7 @@ class MuseotouchApp(App):
         self._sync_popup.content.children[-1].text = text
 
     def _sync_expo_1(self, req, result):
+        Logger.info('Museotouch: Synchronization part 1')
         # check result files to found a zip files
         self._expo_files = files = [x['fichier'] for x in result['data']]
         zipfiles = [x for x in files if x.rsplit('.', 1)[-1] == 'zip']
@@ -521,6 +528,7 @@ class MuseotouchApp(App):
             on_progress=self._sync_progress)
 
     def _sync_expo_2(self, req, result):
+        Logger.info('Museotouch: Synchronization part 2')
         # write result to data.zip
         zipfilename = join(self.expo_dir, 'data.zip')
         with open(zipfilename, 'w') as fd:
@@ -538,6 +546,7 @@ class MuseotouchApp(App):
         self._sync_expo_3()
 
     def _sync_expo_3(self):
+        Logger.info('Museotouch: Synchronization part 3')
         # try to found at least one image
         images = [x for x in self._expo_files if \
             x.rsplit('.', 1)[-1].lower() in ('png', 'jpg')]
@@ -569,6 +578,7 @@ class MuseotouchApp(App):
             on_progress=self._sync_progress)
 
     def _sync_expo_4(self, req, result):
+        Logger.info('Museotouch: Synchronization part 4')
         ext = req.url.rsplit('.', 1)[-1]
         thumbnailfn = join(self.expo_dir, 'thumbnail.%s' % ext)
         with open(thumbnailfn, 'w') as fd:
@@ -582,6 +592,7 @@ class MuseotouchApp(App):
         self._sync_expo_5()
 
     def _sync_expo_5(self):
+        Logger.info('Museotouch: Synchronization part 5')
         # get objects now.
         self._sync_popup_text(u'Téléchargement des objets')
         self.backend.get_objects(
@@ -590,6 +601,7 @@ class MuseotouchApp(App):
                 on_progress=self._sync_progress)
 
     def _sync_expo_6(self, req, result):
+        Logger.info('Museotouch: Synchronization part 6')
         filename = join(self.expo_dir, u'objects.json')
         with open(filename, 'wb') as fd:
             s = json.dumps(result)
@@ -600,8 +612,10 @@ class MuseotouchApp(App):
         for item in result['items']:
             fichiers = item['data']
             if not fichiers:
+                print '===> remove item %r, no data attached' % item['nom']
                 items.remove(item)
                 continue
+            need_sync = True
             for fichier in fichiers:
                 fichier = fichier['fichier']
                 if not self._sync_is_filename_of_item(item, fichier):
@@ -611,7 +625,11 @@ class MuseotouchApp(App):
                 local_filename = self._sync_get_local_filename(filename)
                 if not exists(local_filename):
                     continue
-            items.remove(item)
+                need_sync = False
+            if not need_sync:
+                items.remove(item)
+
+        Logger.info('Museotouch: %d need to be synced' % len(items))
 
         self._sync_result = items
         self._sync_index = 0
@@ -697,7 +715,7 @@ class MuseotouchApp(App):
             total_str = None
         else:
             total_str = format_bytes_to_human(total)
-        print '*progress*', req.url, current, total, req.chunk_size
+        #print '*progress*', req.url, current, total, req.chunk_size
         self._sync_popup.content.children[0].max = total
         self._sync_popup.content.children[0].value = current
         text = self._sync_popup.content.children[-2].text
