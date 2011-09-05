@@ -286,12 +286,17 @@ class MuseotouchApp(App):
 
         # set the image type from mode
         self.imgtype = 'dds'
+        self.imgdir = 'dds'
+
+        '''
+        # low resolution for tablet
         if mode == 'table':
             # full resolution
             self.imgdir = 'dds'
         else:
             # reduced resolution
             self.imgdir = 'dds512'
+        '''
 
 
         # list of removed objects
