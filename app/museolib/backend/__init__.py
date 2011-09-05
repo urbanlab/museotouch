@@ -37,6 +37,10 @@ class BackendItem(dict):
     def origin_ex(self):
         return self['orig_geo_prec']
 
+    @property
+    def keywords(self):
+        return self['keywords']
+
 class Backend(object):
     def __init__(self, **options):
         self.items = []

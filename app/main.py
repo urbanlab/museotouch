@@ -207,6 +207,18 @@ class MuseotouchApp(App):
             origin_ids = self.imagemap.active_ids
             items = [x for x in items if x.origin_key in origin_ids]
 
+        # filter with keywords
+        if self.keywords and self.keywords.selected_keywords:
+            selected_keywords = self.keywords.selected_keywords
+            for item in items[:]:
+                remove = True
+                for key in item.keywords:
+                    if key in selected_keywords:
+                        remove = False
+                        break
+                if remove:
+                    items.remove(item)
+
         # show only the first 10 objects
         self.show_objects(items)
 
@@ -350,6 +362,7 @@ class MuseotouchApp(App):
         # update keywords
         if self.keywords:
             self.keywords.keywords = db.keywords
+            self.keywords.bind(selected_keywords=self.trigger_objects_filtering)
 
         # update the initial slider values to show date.
         if self.date_slider:
