@@ -15,6 +15,8 @@ class Keyword(Label):
 
     group = ObjectProperty(None)
 
+    text_id = StringProperty(None)
+
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
             self.selected = not self.selected
@@ -22,7 +24,7 @@ class Keyword(Label):
 
     def on_selected(self, instance, value):
         keywords = self.controler.selected_keywords
-        key = self.text
+        key = self.text_id
         if value:
             if not key in keywords:
                 keywords.append(key)
@@ -63,15 +65,14 @@ class Keywords(Accordion):
         accitem = None
         accgroup = None
         for item in value:
-            if 'name' in item:
-                # create new accordion
-                accitem = AccordionItem(title=item['name'])
-                self.add_widget(accitem)
-                # create new group
-                accgroup = KeywordsGroup(title=item['name'], accitem=accitem)
-                accitem.add_widget(accgroup)
-            elif 'keywords' in item:
-                for key in item['keywords']:
-                    keyword = Keyword(text=key, controler=self, group=accgroup)
-                    accgroup.add_widget(keyword)
+            # create new accordion
+            accitem = AccordionItem(title=item['group'])
+            self.add_widget(accitem)
+            # create new group
+            accgroup = KeywordsGroup(title=item['group'], accitem=accitem)
+            accitem.add_widget(accgroup)
+            for child in item['children']:
+                keyword = Keyword(text=child['name'], text_id=child['id'],
+                        controler=self, group=accgroup)
+                accgroup.add_widget(keyword)
 
