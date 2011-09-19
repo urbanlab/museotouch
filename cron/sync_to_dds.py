@@ -65,9 +65,6 @@ log('Connected to %s' % host)
 # Get a list of files to check
 files = ftp.nlst(path)
 
-# Set binary more for SIZE
-ftp.voidcmd('TYPE I')
-
 # Check each raw files
 fn_to_convert = []
 log('Checking %d files to synchronize' % len(files))
@@ -80,10 +77,11 @@ for filename in files:
         # Check if it already have been converted
         dds_filename_md5 = '%s.md5sum' % dds_filename
         try:
+            ftp.voidcmd('TYPE I')
             size = ftp.size(dds_filename_md5)
             if size is not None and size > 0:
                 continue
-        except error_perm:
+        except error_perm, e:
             pass
 
     # Get files in that directory
