@@ -13,6 +13,8 @@ from os import walk
 from zipfile import ZipFile
 from shutil import copyfile
 
+ignore_exts = ('pyc', 'swp', 'swo', 'pyo')
+
 def package(expoid):
 
     # search the directory of the exposition
@@ -37,6 +39,9 @@ def package(expoid):
             for filename in filenames:
                 src_fn = join(dirpath, filename)
                 dst_fn = join(dst_path, filename)
+                ext = src_fn.rsplit('.', 1)[-1]
+                if ext in ignore_exts:
+                    continue
                 print '# compressing', dst_fn
                 zp.write(src_fn, dst_fn)
 
