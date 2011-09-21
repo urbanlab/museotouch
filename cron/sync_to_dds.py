@@ -89,11 +89,11 @@ for filename in files:
     raw_filename = None
     for item in raw_files:
         ext = basename(item).rsplit('.', 1)[-1].lower()
-        if ext in ('png', 'jpg'):
+        if ext in ('png', 'jpg', 'jpeg', 'tif', 'tiff'):
             raw_filename = item
 
     if raw_filename is None:
-        log('Object %r have no raw objects found (png/jpg)' % uid)
+        log('Object %r have no raw objects found (png/jpg/jpeg/tif/tiff)' % uid)
         continue
 
     log('Add %s to convert' % raw_filename)
@@ -154,6 +154,12 @@ for raw_remote_fn, dds_remote_fn in fn_to_convert:
         if not exists(dds_local_fn):
             log('=> Error while converting to DDS, abort this file.')
             continue
+
+        # create compressed directory
+        try:
+            ftp.mkd(dirname(dds_remote_fn))
+        except error_perm, e:
+            pass
 
         # Save to FTP
         log('Push DDS to ftp')
