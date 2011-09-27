@@ -23,7 +23,7 @@ from kivy.uix.label import Label
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.popup import Popup
 from kivy.uix.image import Image
-from kivy.utils import format_bytes_to_human
+from kivy.utils import format_bytes_to_human, platform
 
 import museolib
 from museolib.utils import format_date
@@ -32,6 +32,7 @@ from museolib.widgets.exposelector import ExpoSelector
 #from museolib.backend.backendxml import BackendXML
 from museolib.backend.backendjson import BackendJSON
 from museolib.backend.backendweb import BackendWeb
+from museolib.rfid import RfidDaemon
 import json
 import imp
 
@@ -243,6 +244,12 @@ class MuseotouchApp(App):
             'url_data': 'http://museotouch.erasme.org/prive/uploads/',
             'expo': '0',
         })
+        if platform() not in ('ios', 'android'):
+            config.setdefaults('rfid', {
+                'uid_restart': '',
+                'uid_mainscreen': '',
+                'uid_settings': '',
+            })
 
     def build_settings(self, settings):
         jsondata = '''[
@@ -266,6 +273,27 @@ class MuseotouchApp(App):
                 "key": "url_data"
             }]'''
         settings.add_json_panel('Museotouch', self.config, data=jsondata)
+        if platform() not in ('ios', 'android'):
+            jsondata = '''[
+                {
+                    "type": "string",
+                    "title": "Redémarrage",
+                    "desc": "RFID pour le redémarrage de l'application",
+                    "section": "rfid",
+                    "key": "uid_restart"
+                }, {
+                    "type": "string",
+                    "title": "Ecran principal",
+                    "desc": "Retour vers l'écran principal",
+                    "section": "rfid",
+                    "key": "uid_mainscreen"
+                }, {
+                    "type": "string",
+                    "title": "Configuration",
+                    "desc": "Affichage de l'écran de configuration",
+                    "section": "rfid",
+                    "key": "uid_settings"
+                }]'''
 
     def build(self):
         config = self.config
@@ -288,17 +316,6 @@ class MuseotouchApp(App):
         self.imgtype = 'dds'
         self.imgdir = 'dds'
 
-        '''
-        # low resolution for tablet
-        if mode == 'table':
-            # full resolution
-            self.imgdir = 'dds'
-        else:
-            # reduced resolution
-            self.imgdir = 'dds512'
-        '''
-
-
         # list of removed objects
         self.images_displayed = []
         self.images_pos = {}
@@ -319,6 +336,13 @@ class MuseotouchApp(App):
                 url=config.get('museotouch', 'url_api'),
                 data_url=config.get('museotouch', 'url_data'))
 
+        # rfid daemon
+        self.rfid_daemon = None
+        if platform() not in ('ios', 'android'):
+            self.rfid_daemon = RfidDaemon()
+            self.rfid_daemon.bind(on_uid=self.on_rfid_uid)
+            self.rfid_daemon.start()
+
         # if we are on android, always start on selector
         # otherwise, check configuration
         if mode == 'table':
@@ -326,6 +350,9 @@ class MuseotouchApp(App):
         else:
             self.build_selector()
 
+    def on_stop(self):
+        self.rfid_daemon.stop()
+        super(MuseotouchApp, self).on_stop()
 
     def build_for_table(self):
         # check which exposition we must use from the configuration
