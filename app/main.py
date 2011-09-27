@@ -108,7 +108,6 @@ class MuseotouchApp(App):
         # direction
         dx = 1
         dy = -1
-        print (mx, my), (mmx, mmy)
 
         for i, item in enumerate(reversed(children)):
             mi = groups.index(keyfn(item))
