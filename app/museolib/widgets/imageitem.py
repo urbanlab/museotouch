@@ -5,6 +5,13 @@ from kivy.animation import Animation
 from kivy.uix.scatter import Scatter
 from kivy.uix.floatlayout import FloatLayout
 
+try:
+    import android
+    is_android = True
+except ImportError:
+    is_android = False
+
+
 class ImageItemContent(FloatLayout):
     item = ObjectProperty(None)
     flip_alpha = NumericProperty(1.)
@@ -45,6 +52,8 @@ class ImageItem(Scatter):
             return
         if self.counter == 0:
             Animation(alpha_button=1., t='out_quad', d=0.3).start(self)
+        if is_android and touch.is_double_tap:
+            self.flip()
         uid = '%s_counter' % self.uid
         touch.ud[uid] = True
         self.counter += 1
@@ -83,6 +92,8 @@ class ImageItem(Scatter):
             if not self.flip_front:
                 scale = max(1., self.scale)
                 k['scale'] = scale
+        if is_android:
+            k['rotation'] = 0.
         Animation(flip_alpha=alpha,
             t='out_quad', d=0.3, **k).start(self)
 
