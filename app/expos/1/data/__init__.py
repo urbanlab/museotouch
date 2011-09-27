@@ -18,18 +18,6 @@ def build(app):
     root = FloatLayout()
 
     # -------------------------------------------------------------------------
-    # Size slider
-    app.size_slider = slider = SizeSlider(
-	    size=(420, 30), size_hint=(None, None))
-    scatter = Scatter(size=app.size_slider.size,
-            auto_bring_to_front=False,
-	        pos_hint={'top': 0.98, 'center_x': .5},
-            size_hint=(None, None), rotation=-180,
-            do_translate=False, do_rotate=False, do_scale=False)
-    scatter.add_widget(app.size_slider)
-    root.add_widget(scatter)
-
-    # -------------------------------------------------------------------------
     # Create an image map widget
     # search image for map (exclude _active) files
     sources = glob(join(app.expo_data_dir, 'widgets', 'map', '*.png'))

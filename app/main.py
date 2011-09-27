@@ -29,17 +29,11 @@ import museolib
 from museolib.utils import format_date
 from museolib.widgets.imageitem import ImageItem
 from museolib.widgets.exposelector import ExpoSelector
-#from museolib.backend.backendxml import BackendXML
 from museolib.backend.backendjson import BackendJSON
 from museolib.backend.backendweb import BackendWeb
-import json
-import imp
-
-try:
-    mode = 'mobile'
-    import android
-except ImportError:
-    mode = 'table'
+from json import dump, dumps
+from imp import load_source
+from math import ceil
 
 def delayed_work(func, items, delay=0):
     if not items:
@@ -55,7 +49,9 @@ class MuseotouchApp(App):
 
     @property
     def mode(self):
-        return mode
+        if platform() in ('android', 'ios'):
+            return 'mobile'
+        return 'table'
 
     def do_reset_item_position(self, *largs):
         self.images_pos = {}
@@ -71,23 +67,63 @@ class MuseotouchApp(App):
     def do_ordering_origin(self, *largs):
         children = self.root_images.children
         origs = list(set([x.item.origin_key for x in children]))
+        def child_key(child):
+            return child.item.origin_key
+        self._display_ordering_as_group(children, origs, child_key)
 
-        m = 300
-        x = 150
-        y = self.root_images.height / 2 - 75
+    def do_ordering_keywords(self, *largs):
+        # TODO implement !
+        pass
+
+    def do_ordering_size(self, *largs):
+        children = self.root_images.children[:]
+        children.sort(key=lambda x: x.item.taille)
+        self._display_ordering_as_table(children)
+
+    def do_ordering_datation(self, *largs):
+        children = self.root_images.children[:]
+        children.sort(key=lambda x: x.item.date)
+        self._display_ordering_as_table(children)
+
+    def _display_ordering_as_group(self, children, groups, keyfn):
+        # size of image
+        imgs = int(512 * 0.5)
+
+        # size of area for work
+        width = self.root_images.width - 800
+        height = self.root_images.height - 400
+
+        # images per size
+        mx = max(1, width // imgs)
+        my = max(1, height // imgs)
+
+        # max
+        mmx = min(len(groups), mx)
+        mmy = int(min(ceil(len(groups) / float(mx)), my))
+
+        x = self.root_images.center_x - (mmx * imgs) / 2
+        y = self.root_images.center_y - (mmy * imgs) / 2 + imgs
+        m = imgs
+
+        # direction
+        dx = 1
+        dy = -1
+        print (mx, my), (mmx, mmy)
 
         for i, item in enumerate(reversed(children)):
-            ix = x + origs.index(item.item.origin_key) * m
+            mi = groups.index(keyfn(item))
+            ix = x + (mi % mx) * m * dx
+            iy = y + (mi // mx) * m * dy
+            '''
+            ix = x + groups.index(keyfn(item)) * m
             iy = y
+            '''
             item.flip_front=True
             (Animation(d=0.05 + i / 30.) + Animation(scale=0.30, pos=(ix, iy),
                     rotation=0 + random() * 20 - 10, t='out_quad',
                     d=.20)).start(item)
 
-    def do_ordering_datation(self, *largs):
-        children = self.root_images.children[:]
-        children.sort(key=lambda x: x.item.date)
-
+    def _display_ordering_as_table(self, children):
         # remove and readd all children
         self.root_images.clear_widgets()
         for item in reversed(children):
@@ -95,17 +131,27 @@ class MuseotouchApp(App):
 
         cx, cy = self.root_images.center
 
-        # seperate the table in 2
-        imgs = 512 * 0.3
-        width = self.root_images.width - 300
-        height = self.root_images.height - 300
-        x = 50
-        y = self.root_images.top - imgs - 50
-        dx = 1
-        dy = -1
+        # size of image
+        imgs = int(512 * 0.3)
 
+        # size of area for work
+        width = self.root_images.width - 600
+        height = self.root_images.height - 400
+
+        # images per size
         mx = 1 + width // imgs
         my = 1 + height // imgs
+
+        # initial position
+        x = self.root_images.center_x - (mx * imgs) / 2
+        y = self.root_images.center_y + (my * imgs) / 2 - imgs
+
+        # XXX make it configurable, this is to prevent overlap with map widget
+        y += 80
+
+        # direction
+        dx = 1
+        dy = -1
 
         for i, item in enumerate(children):
             mi = i % (mx * my)
@@ -115,8 +161,6 @@ class MuseotouchApp(App):
             (Animation(d=0.1 + i / 30.) + Animation(scale=0.30, pos=(ix, iy),
                     rotation=0., t='out_quad',
                     d=.25)).start(item)
-
-        return
 
     def show_object(self, defs):
         source = defs['source']
@@ -351,7 +395,7 @@ class MuseotouchApp(App):
 
         # if we are on android, always start on selector
         # otherwise, check configuration
-        if mode == 'table':
+        if self.mode == 'table':
             self.build_for_table()
         else:
             self.build_selector()
@@ -397,7 +441,7 @@ class MuseotouchApp(App):
 
     def _build_app(self):
         # Import the module
-        modexpo = imp.load_source('__expo__', join(
+        modexpo = load_source('__expo__', join(
             self.expo_data_dir, '__init__.py'))
 
         # link with the db. later, we need to change it to real one.
@@ -557,7 +601,7 @@ class MuseotouchApp(App):
         # write the part of the json corresponding to that expo in the dir
         expojson = join(self.expo_dir, 'expo.json')
         with open(expojson, 'w') as fd:
-            json.dump([result], fd)
+            dump([result], fd)
 
         # if we already downloaded the data, we might have a checksum if
         # everything is ok.
@@ -658,7 +702,7 @@ class MuseotouchApp(App):
         Logger.info('Museotouch: Synchronization part 6')
         filename = join(self.expo_dir, u'objects.json')
         with open(filename, 'wb') as fd:
-            s = json.dumps(result)
+            s = dumps(result)
             fd.write(s)
 
         # on the result, remove all the object already synced

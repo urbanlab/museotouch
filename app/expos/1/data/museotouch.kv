@@ -48,21 +48,8 @@
 		pos_hint: {'top': 0.7}
 		size_hint_x: 0.3
 		padding: 5
-
 		Label:
-			text: 'Datation'
-			text_size: (self.width, None)
-			size_hint_y: None
-			height: self.texture_size[1] + 10
-			font_size: 14
-		Label:
-			text: root.item.datation if root.item.datation.strip() != '' else root.item.date_crea
-			text_size: (self.width, None)
-			size_hint_y: None
-			height: self.texture_size[1] + 10
-			font_size: 12
-		Label:
-			text: 'Origine'
+			text: 'Partie du corps'
 			text_size: (self.width, None)
 			size_hint_y: None
 			height: self.texture_size[1] + 10
@@ -73,20 +60,6 @@
 			size_hint_y: None
 			height: self.texture_size[1] + 10
 			font_size: 12
-		Label:
-			text: 'Taille'
-			text_size: (self.width, None)
-			size_hint_y: None
-			height: self.texture_size[1] + 10
-			font_size: 14
-		Label:
-			text: u'%d' % (root.item.taille)
-			text_size: (self.width, None)
-			size_hint_y: None
-			height: self.texture_size[1] + 10
-			font_size: 12
-		Label:
-			text: str(root.item.id)
 
 	GridLayout:
 		cols: 1
