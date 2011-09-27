@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 Synchronize raw file to dds files
 =================================
