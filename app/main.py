@@ -32,7 +32,6 @@ from museolib.widgets.exposelector import ExpoSelector
 #from museolib.backend.backendxml import BackendXML
 from museolib.backend.backendjson import BackendJSON
 from museolib.backend.backendweb import BackendWeb
-from museolib.rfid import RfidDaemon
 import json
 import imp
 
@@ -294,6 +293,7 @@ class MuseotouchApp(App):
                     "section": "rfid",
                     "key": "uid_settings"
                 }]'''
+            settings.add_json_panel('Rfid', self.config, data=jsondata)
 
     def build(self):
         config = self.config
@@ -339,6 +339,12 @@ class MuseotouchApp(App):
         # rfid daemon
         self.rfid_daemon = None
         if platform() not in ('ios', 'android'):
+            try:
+                from museolib.rfid import RfidDaemon
+            except Exception:
+                Logger.critical('Unable to import RfidDaemon, pynfc missing ?')
+                Logger.exception()
+                self.error('Unable to import RfidDaemon')
             self.rfid_daemon = RfidDaemon()
             self.rfid_daemon.bind(on_uid=self.on_rfid_uid)
             self.rfid_daemon.start()
@@ -353,6 +359,22 @@ class MuseotouchApp(App):
     def on_stop(self):
         self.rfid_daemon.stop()
         super(MuseotouchApp, self).on_stop()
+
+    def on_rfid_uid(self, instance, uid):
+        Logger.debug('App: Got RFID %r' % uid)
+        token = self.config.get
+        if uid == token('rfid', 'uid_restart').lower():
+            Logger.info('App: Rfid ask to restart the app !')
+            self.stop()
+        elif uid == token('rfid', 'uid_mainscreen').lower():
+            Logger.info('App: Rfid ask to return on main screen')
+            self.close_settings()
+        elif uid == token('rfid', 'uid_settings').lower():
+            Logger.info('App: Rfid ask to open settings')
+            self.open_settings()
+        else:
+            # TODO: check on webserver if some scenario need to be done
+            pass
 
     def build_for_table(self):
         # check which exposition we must use from the configuration
