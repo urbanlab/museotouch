@@ -24,7 +24,7 @@ class Keyword(Label):
 
     def on_selected(self, instance, value):
         keywords = self.controler.selected_keywords
-        key = self.text_id
+        key = (self.group, self.text_id)
         if value:
             if not key in keywords:
                 keywords.append(key)

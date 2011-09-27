@@ -266,16 +266,44 @@ class MuseotouchApp(App):
             items = [x for x in items if x.origin_key in origin_ids]
 
         # filter with keywords
+        # AND between group
+        # OR inside group
         if self.keywords and self.keywords.selected_keywords:
             selected_keywords = self.keywords.selected_keywords
-            for item in items[:]:
-                remove = True
-                for key in item.keywords:
-                    if key in selected_keywords:
-                        remove = False
-                        break
-                if remove:
-                    items.remove(item)
+            groups = list(set([x[0] for x in selected_keywords]))
+            groups_result = {}
+            items_result = []
+
+            # check every group
+            for group in groups:
+                # check keywords for current group
+                keywords = [x[1] for x in selected_keywords if x[0] == group]
+
+                result = []
+
+                # check every items if we got at least one keyword of that group
+                for item in items:
+                    for key in keywords:
+                        # found one group keyword in the item ?
+                        if key in item.keywords:
+                            result.append(item)
+                            if not item in items_result:
+                                items_result.append(item)
+                            break
+
+                # add the result to the group result
+                groups_result[group] = result
+
+            # on all the avialable item, ensure they are all in the selected
+            # group
+            for item in items_result[:]:
+                valid = all([item in x for x in groups_result.itervalues()])
+                if not valid:
+                    items_result.remove(item)
+
+            # now set the result as the new set of items
+            items = items_result
+
 
         # show only the first 10 objects
         self.show_objects(items)
