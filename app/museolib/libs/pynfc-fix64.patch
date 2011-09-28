@@ -1,0 +1,22 @@
+--- pynfc.py.orig	2011-09-27 12:51:37.288219363 +0200
++++ pynfc.py	2011-09-27 12:51:40.768224467 +0200
+@@ -4,6 +4,7 @@
+ @author: mike
+ '''
+ 
++import sys
+ import ctypes
+ import ctypes.util
+ 
+@@ -15,7 +16,10 @@
+ (NC_PN531, NC_PN532, NC_PN533) = (0x10, 0x20, 0x30)
+ 
+ _byte_t = ctypes.c_ubyte
+-_size_t = ctypes.c_uint32
++if sys.maxint > 2**32:
++    _size_t = ctypes.c_uint64
++else:
++    _size_t = ctypes.c_uint32
+ _enum_val = ctypes.c_int
+ 
+ class DeviceDescription(ctypes.Structure):

@@ -1,0 +1,11 @@
+--- pynfc.py.orig	2011-09-27 12:51:37.288219363 +0200
++++ pynfc.py	2011-09-27 13:07:05.689581042 +0200
+@@ -357,7 +361,7 @@
+ 
+     def initiator_poll_targets(self, targetlist, pollnum, period):
+ 
+-        targtypes = Modulation * len(targetlist)
++        targtypes = (Modulation * len(targetlist))()
+         for i in range(len(targetlist)):
+             targtypes[i] = targetlist[i]
+ 

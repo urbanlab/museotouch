@@ -23,23 +23,17 @@ from kivy.uix.label import Label
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.popup import Popup
 from kivy.uix.image import Image
-from kivy.utils import format_bytes_to_human
+from kivy.utils import format_bytes_to_human, platform
 
 import museolib
 from museolib.utils import format_date
 from museolib.widgets.imageitem import ImageItem
 from museolib.widgets.exposelector import ExpoSelector
-#from museolib.backend.backendxml import BackendXML
 from museolib.backend.backendjson import BackendJSON
 from museolib.backend.backendweb import BackendWeb
-import json
-import imp
-
-try:
-    mode = 'mobile'
-    import android
-except ImportError:
-    mode = 'table'
+from json import dump, dumps
+from imp import load_source
+from math import ceil
 
 def delayed_work(func, items, delay=0):
     if not items:
@@ -55,7 +49,9 @@ class MuseotouchApp(App):
 
     @property
     def mode(self):
-        return mode
+        if platform() in ('android', 'ios'):
+            return 'mobile'
+        return 'table'
 
     def do_reset_item_position(self, *largs):
         self.images_pos = {}
@@ -71,23 +67,62 @@ class MuseotouchApp(App):
     def do_ordering_origin(self, *largs):
         children = self.root_images.children
         origs = list(set([x.item.origin_key for x in children]))
+        def child_key(child):
+            return child.item.origin_key
+        self._display_ordering_as_group(children, origs, child_key)
 
-        m = 300
-        x = 150
-        y = self.root_images.height / 2 - 75
+    def do_ordering_keywords(self, *largs):
+        # TODO implement !
+        pass
+
+    def do_ordering_size(self, *largs):
+        children = self.root_images.children[:]
+        children.sort(key=lambda x: x.item.taille)
+        self._display_ordering_as_table(children)
+
+    def do_ordering_datation(self, *largs):
+        children = self.root_images.children[:]
+        children.sort(key=lambda x: x.item.date)
+        self._display_ordering_as_table(children)
+
+    def _display_ordering_as_group(self, children, groups, keyfn):
+        # size of image
+        imgs = int(512 * 0.5)
+
+        # size of area for work
+        width = self.root_images.width - 800
+        height = self.root_images.height - 400
+
+        # images per size
+        mx = max(1, width // imgs)
+        my = max(1, height // imgs)
+
+        # max
+        mmx = min(len(groups), mx)
+        mmy = int(min(ceil(len(groups) / float(mx)), my))
+
+        x = self.root_images.center_x - (mmx * imgs) / 2
+        y = self.root_images.center_y - (mmy * imgs) / 2 + imgs
+        m = imgs
+
+        # direction
+        dx = 1
+        dy = -1
 
         for i, item in enumerate(reversed(children)):
-            ix = x + origs.index(item.item.origin_key) * m
+            mi = groups.index(keyfn(item))
+            ix = x + (mi % mx) * m * dx
+            iy = y + (mi // mx) * m * dy
+            '''
+            ix = x + groups.index(keyfn(item)) * m
             iy = y
+            '''
             item.flip_front=True
             (Animation(d=0.05 + i / 30.) + Animation(scale=0.30, pos=(ix, iy),
                     rotation=0 + random() * 20 - 10, t='out_quad',
                     d=.20)).start(item)
 
-    def do_ordering_datation(self, *largs):
-        children = self.root_images.children[:]
-        children.sort(key=lambda x: x.item.date)
-
+    def _display_ordering_as_table(self, children):
         # remove and readd all children
         self.root_images.clear_widgets()
         for item in reversed(children):
@@ -95,17 +130,27 @@ class MuseotouchApp(App):
 
         cx, cy = self.root_images.center
 
-        # seperate the table in 2
-        imgs = 512 * 0.3
-        width = self.root_images.width - 300
-        height = self.root_images.height - 300
-        x = 50
-        y = self.root_images.top - imgs - 50
-        dx = 1
-        dy = -1
+        # size of image
+        imgs = int(512 * 0.3)
 
+        # size of area for work
+        width = self.root_images.width - 600
+        height = self.root_images.height - 400
+
+        # images per size
         mx = 1 + width // imgs
         my = 1 + height // imgs
+
+        # initial position
+        x = self.root_images.center_x - (mx * imgs) / 2
+        y = self.root_images.center_y + (my * imgs) / 2 - imgs
+
+        # XXX make it configurable, this is to prevent overlap with map widget
+        y += 80
+
+        # direction
+        dx = 1
+        dy = -1
 
         for i, item in enumerate(children):
             mi = i % (mx * my)
@@ -115,8 +160,6 @@ class MuseotouchApp(App):
             (Animation(d=0.1 + i / 30.) + Animation(scale=0.30, pos=(ix, iy),
                     rotation=0., t='out_quad',
                     d=.25)).start(item)
-
-        return
 
     def show_object(self, defs):
         source = defs['source']
@@ -223,16 +266,44 @@ class MuseotouchApp(App):
             items = [x for x in items if x.origin_key in origin_ids]
 
         # filter with keywords
+        # AND between group
+        # OR inside group
         if self.keywords and self.keywords.selected_keywords:
             selected_keywords = self.keywords.selected_keywords
-            for item in items[:]:
-                remove = True
-                for key in item.keywords:
-                    if key in selected_keywords:
-                        remove = False
-                        break
-                if remove:
-                    items.remove(item)
+            groups = list(set([x[0] for x in selected_keywords]))
+            groups_result = {}
+            items_result = []
+
+            # check every group
+            for group in groups:
+                # check keywords for current group
+                keywords = [x[1] for x in selected_keywords if x[0] == group]
+
+                result = []
+
+                # check every items if we got at least one keyword of that group
+                for item in items:
+                    for key in keywords:
+                        # found one group keyword in the item ?
+                        if key in item.keywords:
+                            result.append(item)
+                            if not item in items_result:
+                                items_result.append(item)
+                            break
+
+                # add the result to the group result
+                groups_result[group] = result
+
+            # on all the avialable item, ensure they are all in the selected
+            # group
+            for item in items_result[:]:
+                valid = all([item in x for x in groups_result.itervalues()])
+                if not valid:
+                    items_result.remove(item)
+
+            # now set the result as the new set of items
+            items = items_result
+
 
         # show only the first 10 objects
         self.show_objects(items)
@@ -243,6 +314,12 @@ class MuseotouchApp(App):
             'url_data': 'http://museotouch.erasme.org/prive/uploads/',
             'expo': '0',
         })
+        if platform() not in ('ios', 'android'):
+            config.setdefaults('rfid', {
+                'uid_restart': '',
+                'uid_mainscreen': '',
+                'uid_settings': '',
+            })
 
     def build_settings(self, settings):
         jsondata = '''[
@@ -266,6 +343,28 @@ class MuseotouchApp(App):
                 "key": "url_data"
             }]'''
         settings.add_json_panel('Museotouch', self.config, data=jsondata)
+        if platform() not in ('ios', 'android'):
+            jsondata = '''[
+                {
+                    "type": "string",
+                    "title": "Redémarrage",
+                    "desc": "RFID pour le redémarrage de l'application",
+                    "section": "rfid",
+                    "key": "uid_restart"
+                }, {
+                    "type": "string",
+                    "title": "Ecran principal",
+                    "desc": "Retour vers l'écran principal",
+                    "section": "rfid",
+                    "key": "uid_mainscreen"
+                }, {
+                    "type": "string",
+                    "title": "Configuration",
+                    "desc": "Affichage de l'écran de configuration",
+                    "section": "rfid",
+                    "key": "uid_settings"
+                }]'''
+            settings.add_json_panel('Rfid', self.config, data=jsondata)
 
     def build(self):
         config = self.config
@@ -288,17 +387,6 @@ class MuseotouchApp(App):
         self.imgtype = 'dds'
         self.imgdir = 'dds'
 
-        '''
-        # low resolution for tablet
-        if mode == 'table':
-            # full resolution
-            self.imgdir = 'dds'
-        else:
-            # reduced resolution
-            self.imgdir = 'dds512'
-        '''
-
-
         # list of removed objects
         self.images_displayed = []
         self.images_pos = {}
@@ -319,13 +407,45 @@ class MuseotouchApp(App):
                 url=config.get('museotouch', 'url_api'),
                 data_url=config.get('museotouch', 'url_data'))
 
+        # rfid daemon
+        self.rfid_daemon = None
+        if platform() not in ('ios', 'android'):
+            try:
+                from museolib.rfid import RfidDaemon
+            except Exception:
+                Logger.critical('Unable to import RfidDaemon, pynfc missing ?')
+                Logger.exception()
+                self.error('Unable to import RfidDaemon')
+            self.rfid_daemon = RfidDaemon()
+            self.rfid_daemon.bind(on_uid=self.on_rfid_uid)
+            self.rfid_daemon.start()
+
         # if we are on android, always start on selector
         # otherwise, check configuration
-        if mode == 'table':
+        if self.mode == 'table':
             self.build_for_table()
         else:
             self.build_selector()
 
+    def on_stop(self):
+        self.rfid_daemon.stop()
+        super(MuseotouchApp, self).on_stop()
+
+    def on_rfid_uid(self, instance, uid):
+        Logger.debug('App: Got RFID %r' % uid)
+        token = self.config.get
+        if uid == token('rfid', 'uid_restart').lower():
+            Logger.info('App: Rfid ask to restart the app !')
+            self.stop()
+        elif uid == token('rfid', 'uid_mainscreen').lower():
+            Logger.info('App: Rfid ask to return on main screen')
+            self.close_settings()
+        elif uid == token('rfid', 'uid_settings').lower():
+            Logger.info('App: Rfid ask to open settings')
+            self.open_settings()
+        else:
+            # TODO: check on webserver if some scenario need to be done
+            pass
 
     def build_for_table(self):
         # check which exposition we must use from the configuration
@@ -348,7 +468,7 @@ class MuseotouchApp(App):
 
     def _build_app(self):
         # Import the module
-        modexpo = imp.load_source('__expo__', join(
+        modexpo = load_source('__expo__', join(
             self.expo_data_dir, '__init__.py'))
 
         # link with the db. later, we need to change it to real one.
@@ -508,7 +628,7 @@ class MuseotouchApp(App):
         # write the part of the json corresponding to that expo in the dir
         expojson = join(self.expo_dir, 'expo.json')
         with open(expojson, 'w') as fd:
-            json.dump([result], fd)
+            dump([result], fd)
 
         # if we already downloaded the data, we might have a checksum if
         # everything is ok.
@@ -609,7 +729,7 @@ class MuseotouchApp(App):
         Logger.info('Museotouch: Synchronization part 6')
         filename = join(self.expo_dir, u'objects.json')
         with open(filename, 'wb') as fd:
-            s = json.dumps(result)
+            s = dumps(result)
             fd.write(s)
 
         # on the result, remove all the object already synced

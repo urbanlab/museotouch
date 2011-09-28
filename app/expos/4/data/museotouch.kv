@@ -86,7 +86,17 @@
 			height: self.texture_size[1] + 10
 			font_size: 12
 		Label:
-			text: str(root.item.id)
+			text: 'Informations' if root.item.freefield else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] + 10
+			font_size: 14
+		Label:
+			text: root.item.freefield or ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] + 10
+			font_size: 12
 
 	GridLayout:
 		cols: 1

@@ -29,7 +29,7 @@ def build(app):
     # Size slider
     app.size_slider = slider = SizeSlider(
 	    size=(420, 30), size_hint=(None, None))
-    scatter = Scatter(size=app.size_slider.size,
+    scatter = size_slider_scatter = Scatter(size=app.size_slider.size,
             auto_bring_to_front=False,
 	        pos_hint={'top': 0.98, 'center_x': .5},
             size_hint=(None, None), rotation=-180,
@@ -56,7 +56,7 @@ def build(app):
     app.keywords = Keywords(
             size=(500, 250),
             size_hint=(None, None))
-    scatter = Scatter(size=app.keywords.size,
+    scatter = keywords_scatter = Scatter(size=app.keywords.size,
             auto_bring_to_front=False,
             pos_hint={'x': 0, 'center_y': 0.5},
             size_hint=(None, None), rotation=-90,
@@ -65,38 +65,75 @@ def build(app):
     root.add_widget(scatter)
 
     # -------------------------------------------------------------------------
-    # Create a layout for buttons
-    toolbar_layout = BoxLayout(size_hint=(None, None),
-        pos=(32, 32), spacing=32)
-    kwargs = {'size_hint': (None, None), 'size': (64, 64)}
-    root.add_widget(toolbar_layout)
-
-    # -------------------------------------------------------------------------
     # Create a button to replace randomly elements on screen
+    # This button is on the bottom/left part of the screen
+    kwargs = {'size_hint': (None, None), 'size': (64, 64),
+            'border': (0, 0, 0, 0)}
     ordering_origin = Button(
-            background_normal='widgets/filter_reload.png',
-            background_down='widgets/filter_reload_down.png',
-            **kwargs)
+        background_normal='widgets/corner_bottomleft.png',
+        background_down='widgets/corner_bottomleft_down.png',
+        **kwargs)
     ordering_origin.bind(on_release=app.do_reset_item_position)
-    toolbar_layout.add_widget(ordering_origin)
+    root.add_widget(ordering_origin)
 
     # -------------------------------------------------------------------------
     # Create a button to order by continent
+    # This button must be placed to the right of continent
+    kwargs = {'size_hint': (None, None), 'size': (40, 40),
+            'border': (0, 0, 0, 0)}
     ordering_origin = Button(
-            background_normal='widgets/filter_origin.png',
-            background_down='widgets/filter_origin_down.png',
+            background_normal='widgets/circle_filter.png',
+            background_down='widgets/circle_filter_down.png',
             **kwargs)
     ordering_origin.bind(on_release=app.do_ordering_origin)
-    toolbar_layout.add_widget(ordering_origin)
+    root.add_widget(ordering_origin)
+
+    def set_ordering_origin_pos(instance, value):
+        ordering_origin.y = instance.y + 20
+        ordering_origin.x = instance.right + 20
+    imagemap.bind(pos=set_ordering_origin_pos)
 
     # -------------------------------------------------------------------------
     # Create a button to order by datation
     ordering_datation = Button(
-            background_normal='widgets/filter_date.png',
-            background_down='widgets/filter_date_down.png',
+            background_normal='widgets/circle_filter.png',
+            background_down='widgets/circle_filter_down.png',
             **kwargs)
     ordering_datation.bind(on_release=app.do_ordering_datation)
-    toolbar_layout.add_widget(ordering_datation)
+    root.add_widget(ordering_datation)
+
+    def set_ordering_datation_pos(instance, value):
+        ordering_datation.y = instance.top + 20
+        ordering_datation.right = instance.right - 20
+    app.date_slider.bind(pos=set_ordering_datation_pos)
+
+    # -------------------------------------------------------------------------
+    # Create a button to order by size
+    ordering_size = Button(
+            background_normal='widgets/circle_filter.png',
+            background_down='widgets/circle_filter_down.png',
+            **kwargs)
+    ordering_size.bind(on_release=app.do_ordering_size)
+    root.add_widget(ordering_size)
+
+    def set_ordering_size_pos(instance, value):
+        ordering_size.y = instance.top - 35
+        ordering_size.right = instance.x - 70
+    size_slider_scatter.bind(pos=set_ordering_size_pos)
+
+    # -------------------------------------------------------------------------
+    # Create a button to order by keywords
+    ordering_keywords = Button(
+            background_normal='widgets/circle_filter.png',
+            background_down='widgets/circle_filter_down.png',
+            **kwargs)
+    #ordering_keywords.bind(on_release=app.do_ordering_keywords)
+    root.add_widget(ordering_keywords)
+
+    def set_ordering_keywords_pos(instance, value):
+        ordering_keywords.x = 20
+        ordering_keywords.top = instance.y - 40
+    keywords_scatter.bind(pos=set_ordering_keywords_pos)
 
     return root
 

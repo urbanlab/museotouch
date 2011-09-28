@@ -14,6 +14,10 @@ class BackendItem(dict):
         return self['orig_geo']
 
     @property
+    def freefield(self):
+        return self['freefield']
+
+    @property
     def origin_key(self):
         return convert_to_key(self.origin)
 
