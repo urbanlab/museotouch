@@ -23,12 +23,17 @@ def build(app):
     sources = glob(join(app.expo_data_dir, 'widgets', 'map', '*.png'))
     sources = [x for x in sources if '_active' not in x]
     app.imagemap = imagemap = ImageMap(
-            pos_hint={'center_x': 0.5, 'y': 0},
             size_hint=(None, None),
-            size=(500, 268),
+            size=(600, 800),
             sources=sources,
             suffix='_active')
-    root.add_widget(imagemap)
+    scatter = scatter_imagemap = Scatter(
+            size=(600, 800),
+            size_hint=(None, None), rotation=90, scale=.5,
+            pos_hint={'center_x': 0.5, 'y': 0},
+            do_translate=False, do_rotate=False, do_scale=False)
+    scatter.add_widget(app.imagemap)
+    root.add_widget(scatter)
 
     # -------------------------------------------------------------------------
     # Create a widget for keywords
@@ -53,21 +58,32 @@ def build(app):
 
     # -------------------------------------------------------------------------
     # Create a button to replace randomly elements on screen
+    # This button is on the bottom/left part of the screen
+    kwargs = {'size_hint': (None, None), 'size': (64, 64),
+            'border': (0, 0, 0, 0)}
     ordering_origin = Button(
-            background_normal='widgets/filter_reload.png',
-            background_down='widgets/filter_reload_down.png',
-            **kwargs)
+        background_normal='widgets/corner_bottomleft.png',
+        background_down='widgets/corner_bottomleft_down.png',
+        **kwargs)
     ordering_origin.bind(on_release=app.do_reset_item_position)
-    toolbar_layout.add_widget(ordering_origin)
+    root.add_widget(ordering_origin)
 
     # -------------------------------------------------------------------------
     # Create a button to order by continent
+    # This button must be placed to the right of continent
+    kwargs = {'size_hint': (None, None), 'size': (40, 40),
+            'border': (0, 0, 0, 0)}
     ordering_origin = Button(
-            background_normal='widgets/filter_origin.png',
-            background_down='widgets/filter_origin_down.png',
+            background_normal='widgets/circle_filter.png',
+            background_down='widgets/circle_filter_down.png',
             **kwargs)
     ordering_origin.bind(on_release=app.do_ordering_origin)
-    toolbar_layout.add_widget(ordering_origin)
+    root.add_widget(ordering_origin)
+
+    def set_ordering_origin_pos(instance, value):
+        ordering_origin.y = instance.y + 20
+        ordering_origin.x = instance.right + 20
+    scatter_imagemap.bind(pos=set_ordering_origin_pos)
 
     return root
 
