@@ -412,13 +412,12 @@ class MuseotouchApp(App):
         if platform() not in ('ios', 'android'):
             try:
                 from museolib.rfid import RfidDaemon
+                self.rfid_daemon = RfidDaemon()
+                self.rfid_daemon.bind(on_uid=self.on_rfid_uid)
+                self.rfid_daemon.start()
             except Exception:
                 Logger.critical('Unable to import RfidDaemon, pynfc missing ?')
-                Logger.exception()
-                self.error('Unable to import RfidDaemon')
-            self.rfid_daemon = RfidDaemon()
-            self.rfid_daemon.bind(on_uid=self.on_rfid_uid)
-            self.rfid_daemon.start()
+                Logger.exception('')
 
         # if we are on android, always start on selector
         # otherwise, check configuration
@@ -428,7 +427,8 @@ class MuseotouchApp(App):
             self.build_selector()
 
     def on_stop(self):
-        self.rfid_daemon.stop()
+        if self.rfid_daemon:
+            self.rfid_daemon.stop()
         super(MuseotouchApp, self).on_stop()
 
     def on_rfid_uid(self, instance, uid):
