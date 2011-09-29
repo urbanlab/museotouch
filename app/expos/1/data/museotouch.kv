@@ -39,6 +39,13 @@
 		background_normal: 'widgets/btn_moreinfo.png'
 		on_release: root.on_btn_moreinfo()
 
+	Label:
+		text: root.item.freefield or ''
+		size_hint_y: None
+		height: self.texture_size[1] + 20
+		width: self.texture_size[0] + 20
+		font_size: 14
+
 
 
 <ImageItemContent>:
@@ -167,6 +174,13 @@
 
 # Template used for Keyword item in accordion.
 [KeywordItemTitle@Label]:
+	text: '\n'.join(ctx.title.lower())
+	font_size: 30
+	font_name: 'data/fonts/DroidSans-Bold.ttf'
+	text_size: (self.width, None)
+	color: (110/255., 205/255., 221/255., 1) if not ctx.item.collapse else (198/255., 198/255., 198/255., 1)
+
+[KeywordItemTitle_REMOVE_THAT@Label]:
 	text: ctx.title.lower()
 	font_size: 30
 	font_name: 'data/fonts/DroidSans-Bold.ttf'
