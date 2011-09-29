@@ -29,9 +29,9 @@ def build(app):
             suffix='_active')
     scatter = scatter_imagemap = Scatter(
             auto_bring_to_front=False,
-            size=(600, 800),
-            size_hint=(None, None), rotation=90, scale=.5,
-            pos_hint={'center_x': 0.5, 'y': 0},
+            size=imagemap.size,
+            size_hint=(None, None), rotation=0, scale=.5,
+            pos_hint={'right': 1, 'center_y': .5},
             do_translate=False, do_rotate=False, do_scale=False)
     scatter.add_widget(app.imagemap)
     root.add_widget(scatter)
@@ -40,13 +40,14 @@ def build(app):
     # Create a widget for keywords
     # Here we are using a scatter between to be able to rotate the widget
     app.keywords = Keywords(
-            size=(500, 250),
+            size=(500, 300),
             size_hint=(None, None),
+            orientation='vertical',
             title_template='KeywordItemTitle')
     scatter = Scatter(size=app.keywords.size,
             auto_bring_to_front=False,
-            pos_hint={'x': 0, 'center_y': 0.5},
-            size_hint=(None, None), rotation=-90,
+            pos_hint={'x': 0.01, 'center_y': 0.5},
+            size_hint=(None, None), rotation=0,
             do_translate=False, do_rotate=False, do_scale=False)
     scatter.add_widget(app.keywords)
     root.add_widget(scatter)
@@ -71,7 +72,7 @@ def build(app):
     root.add_widget(ordering_origin)
 
     # -------------------------------------------------------------------------
-    # Create a button to order by continent
+    # Create a button to order by body part
     # This button must be placed to the right of continent
     kwargs = {'size_hint': (None, None), 'size': (40, 40),
             'border': (0, 0, 0, 0)}
@@ -83,8 +84,8 @@ def build(app):
     root.add_widget(ordering_origin)
 
     def set_ordering_origin_pos(instance, value):
-        ordering_origin.y = instance.y + 20
-        ordering_origin.x = instance.right + 20
+        ordering_origin.top = instance.y - 20
+        ordering_origin.right = instance.right - 20
     scatter_imagemap.bind(pos=set_ordering_origin_pos)
 
     return root

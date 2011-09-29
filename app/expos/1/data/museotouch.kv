@@ -170,17 +170,23 @@
 
 <Keyword>:
 	color: (110/255., 205/255., 221/255., 1) if self.selected else (198/255., 198/255., 198/255., 1)
-	font_size: 16
+	font_size: 14
+	text_size: (self.width, None)
 
 # Template used for Keyword item in accordion.
+<KeywordsGroup>:
+	cols: 1
+	row_default_height: 25
+	row_force_default: True
+
 [KeywordItemTitle@Label]:
-	text: '\n'.join(ctx.title.lower())
+	text: ctx.title.lower()
 	font_size: 30
 	font_name: 'data/fonts/DroidSans-Bold.ttf'
 	text_size: (self.width, None)
 	color: (110/255., 205/255., 221/255., 1) if not ctx.item.collapse else (198/255., 198/255., 198/255., 1)
 
-[KeywordItemTitle_REMOVE_THAT@Label]:
+[KeywordItemTitle_INITIALPRESENTATION@Label]:
 	text: ctx.title.lower()
 	font_size: 30
 	font_name: 'data/fonts/DroidSans-Bold.ttf'
