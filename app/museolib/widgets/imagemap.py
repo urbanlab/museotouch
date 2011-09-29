@@ -35,7 +35,10 @@ class ImageMapItem(Image):
         x = int(x)
         y = int(y)
         coreimage = self._coreimage
-        color = coreimage.read_pixel(x, y)
+        try:
+            color = coreimage.read_pixel(x, y)
+        except IndexError:
+            return False
         if color[-1] == 0:
             return False
         self.active = not self.active

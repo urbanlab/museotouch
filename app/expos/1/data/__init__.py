@@ -28,6 +28,7 @@ def build(app):
             sources=sources,
             suffix='_active')
     scatter = scatter_imagemap = Scatter(
+            auto_bring_to_front=False,
             size=(600, 800),
             size_hint=(None, None), rotation=90, scale=.5,
             pos_hint={'center_x': 0.5, 'y': 0},
