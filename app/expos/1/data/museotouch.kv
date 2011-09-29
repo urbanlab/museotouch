@@ -40,7 +40,7 @@
 		on_release: root.on_btn_moreinfo()
 
 	Label:
-		text: root.item.freefield or ''
+		text: (root.item.freefield or '') if root.flip_front else ''
 		size_hint_y: None
 		height: self.texture_size[1] + 20
 		width: self.texture_size[0] + 20
