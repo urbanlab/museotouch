@@ -40,7 +40,8 @@ def build(app):
     # Here we are using a scatter between to be able to rotate the widget
     app.keywords = Keywords(
             size=(500, 250),
-            size_hint=(None, None))
+            size_hint=(None, None),
+            title_template='KeywordItemTitle')
     scatter = Scatter(size=app.keywords.size,
             auto_bring_to_front=False,
             pos_hint={'x': 0, 'center_y': 0.5},

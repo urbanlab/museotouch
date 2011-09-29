@@ -56,6 +56,8 @@ class Keywords(Accordion):
 
     selected_keywords = ListProperty([])
 
+    title_template = StringProperty(None)
+
     def __init__(self, **kwargs):
         super(Keywords, self).__init__(**kwargs)
 
@@ -66,7 +68,10 @@ class Keywords(Accordion):
         accgroup = None
         for item in value:
             # create new accordion
-            accitem = AccordionItem(title=item['group'])
+            k = {}
+            if self.title_template:
+                k['title_template'] = self.title_template
+            accitem = AccordionItem(title=item['group'], **k)
             self.add_widget(accitem)
             # create new group
             accgroup = KeywordsGroup(title=item['group'], accitem=accitem)
