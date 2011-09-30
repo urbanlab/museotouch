@@ -44,7 +44,7 @@ def build(app):
             size_hint=(None, None),
             orientation='vertical',
             title_template='KeywordItemTitle')
-    scatter = Scatter(size=app.keywords.size,
+    scatter = scatter_keywords = Scatter(size=app.keywords.size,
             auto_bring_to_front=False,
             pos_hint={'x': 0.01, 'center_y': 0.5},
             size_hint=(None, None), rotation=0,
@@ -64,16 +64,15 @@ def build(app):
     # This button is on the bottom/left part of the screen
     kwargs = {'size_hint': (None, None), 'size': (64, 64),
             'border': (0, 0, 0, 0)}
-    ordering_origin = Button(
+    ordering_random = Button(
         background_normal='widgets/corner_bottomleft.png',
         background_down='widgets/corner_bottomleft_down.png',
         **kwargs)
-    ordering_origin.bind(on_release=app.do_reset_item_position)
-    root.add_widget(ordering_origin)
+    ordering_random.bind(on_release=app.do_reset_item_position)
+    root.add_widget(ordering_random)
 
     # -------------------------------------------------------------------------
     # Create a button to order by body part
-    # This button must be placed to the right of continent
     kwargs = {'size_hint': (None, None), 'size': (40, 40),
             'border': (0, 0, 0, 0)}
     ordering_origin = Button(
@@ -87,6 +86,22 @@ def build(app):
         ordering_origin.top = instance.y - 20
         ordering_origin.right = instance.right - 20
     scatter_imagemap.bind(pos=set_ordering_origin_pos)
+
+    # -------------------------------------------------------------------------
+    # Create a button to order by keyword group
+    kwargs = {'size_hint': (None, None), 'size': (40, 40),
+            'border': (0, 0, 0, 0)}
+    ordering_keywords = Button(
+            background_normal='widgets/circle_filter.png',
+            background_down='widgets/circle_filter_down.png',
+            **kwargs)
+    ordering_keywords.bind(on_release=app.do_ordering_keywords)
+    root.add_widget(ordering_keywords)
+
+    def set_ordering_keywords_pos(instance, value):
+        ordering_keywords.x = instance.x + 20
+        ordering_keywords.top = instance.y - 20
+    scatter_keywords.bind(pos=set_ordering_keywords_pos)
 
     return root
 

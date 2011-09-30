@@ -67,13 +67,27 @@ class MuseotouchApp(App):
     def do_ordering_origin(self, *largs):
         children = self.root_images.children
         origs = list(set([x.item.origin_key for x in children]))
-        def child_key(child):
-            return child.item.origin_key
-        self._display_ordering_as_group(children, origs, child_key)
+        def index_for_child(groups, child):
+            return groups.index(child.item.origin_key)
+        self._display_ordering_as_group(children, origs, index_for_child)
 
     def do_ordering_keywords(self, *largs):
-        # TODO implement !
-        pass
+        # ordering only on the current selected group
+        if not self.keywords:
+            return
+        # get current active group
+        children = self.root_images.children
+        active = [x for x in self.keywords.children if not x.collapse]
+        groups = [uid for g, uid in self.keywords.selected_keywords if g.accitem
+                in active]
+        if not groups:
+            return
+        def index_for_child(groups, child):
+            for index, key in enumerate(groups):
+                if key in child.item.keywords:
+                    return index
+            return -1
+        self._display_ordering_as_group(children, groups, index_for_child)
 
     def do_ordering_size(self, *largs):
         children = self.root_images.children[:]
@@ -85,7 +99,8 @@ class MuseotouchApp(App):
         children.sort(key=lambda x: x.item.date)
         self._display_ordering_as_table(children)
 
-    def _display_ordering_as_group(self, children, groups, keyfn):
+    def _display_ordering_as_group(self, children, groups, 
+            index_for_child):
         # size of image
         imgs = int(512 * 0.5)
 
@@ -110,7 +125,7 @@ class MuseotouchApp(App):
         dy = -1
 
         for i, item in enumerate(reversed(children)):
-            mi = groups.index(keyfn(item))
+            mi = index_for_child(groups, item)
             ix = x + (mi % mx) * m * dx
             iy = y + (mi // mx) * m * dy
             '''
