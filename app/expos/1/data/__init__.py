@@ -30,9 +30,9 @@ def build(app):
     scatter = scatter_imagemap = Scatter(
             auto_bring_to_front=False,
             size=imagemap.size,
-            size_hint=(None, None), rotation=0, scale=.5,
+            size_hint=(None, None), rotation=0, scale=.8,
             pos_hint={'right': 1, 'center_y': .5},
-            do_translate=False, do_rotate=False, do_scale=False)
+            do_translation=False, do_rotation=False, do_scale=False)
     scatter.add_widget(app.imagemap)
     root.add_widget(scatter)
 
@@ -40,7 +40,7 @@ def build(app):
     # Create a widget for keywords
     # Here we are using a scatter between to be able to rotate the widget
     app.keywords = Keywords(
-            size=(500, 300),
+            size=(500, 450),
             size_hint=(None, None),
             orientation='vertical',
             title_template='KeywordItemTitle')
@@ -48,7 +48,7 @@ def build(app):
             auto_bring_to_front=False,
             pos_hint={'x': 0.01, 'center_y': 0.5},
             size_hint=(None, None), rotation=0,
-            do_translate=False, do_rotate=False, do_scale=False)
+            do_translation=False, do_rotation=False, do_scale=False)
     scatter.add_widget(app.keywords)
     root.add_widget(scatter)
 
@@ -73,7 +73,7 @@ def build(app):
 
     # -------------------------------------------------------------------------
     # Create a button to order by body part
-    kwargs = {'size_hint': (None, None), 'size': (40, 40),
+    kwargs = {'size_hint': (None, None), 'size': (64, 64),
             'border': (0, 0, 0, 0)}
     ordering_origin = Button(
             background_normal='widgets/circle_filter.png',
@@ -83,13 +83,13 @@ def build(app):
     root.add_widget(ordering_origin)
 
     def set_ordering_origin_pos(instance, value):
-        ordering_origin.top = instance.y - 20
         ordering_origin.right = instance.right - 20
+        ordering_origin.y = instance.top + 20
     scatter_imagemap.bind(pos=set_ordering_origin_pos)
 
     # -------------------------------------------------------------------------
     # Create a button to order by keyword group
-    kwargs = {'size_hint': (None, None), 'size': (40, 40),
+    kwargs = {'size_hint': (None, None), 'size': (64, 64),
             'border': (0, 0, 0, 0)}
     ordering_keywords = Button(
             background_normal='widgets/circle_filter.png',
@@ -99,8 +99,8 @@ def build(app):
     root.add_widget(ordering_keywords)
 
     def set_ordering_keywords_pos(instance, value):
-        ordering_keywords.x = instance.x + 20
-        ordering_keywords.top = instance.y - 20
+        ordering_keywords.x = instance.x
+        ordering_keywords.y = instance.top + 50
     scatter_keywords.bind(pos=set_ordering_keywords_pos)
 
     return root

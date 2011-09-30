@@ -61,7 +61,7 @@ class MuseotouchApp(App):
             y = randint(root.y + 300, root.top - 100)
             rotation = randint(0, 360)
             item.flip_front = True
-            (Animation(d=0.1 + i / 30.) + Animation(scale=0.30, center=(x, y),
+            (Animation(d=0.1 + i / 30.) + Animation(scale=item.scale_min, center=(x, y),
                     rotation=rotation, t='out_quad', d=.25)).start(item)
 
     def do_ordering_origin(self, *largs):
@@ -102,7 +102,7 @@ class MuseotouchApp(App):
     def _display_ordering_as_group(self, children, groups, 
             index_for_child):
         # size of image
-        imgs = int(512 * 0.5)
+        imgs = int(512 * .7)
 
         # size of area for work
         width = self.root_images.width - 800
@@ -133,7 +133,7 @@ class MuseotouchApp(App):
             iy = y
             '''
             item.flip_front=True
-            (Animation(d=0.05 + i / 30.) + Animation(scale=0.30, pos=(ix, iy),
+            (Animation(d=0.05 + i / 30.) + Animation(scale=item.scale_min, pos=(ix, iy),
                     rotation=0 + random() * 20 - 10, t='out_quad',
                     d=.20)).start(item)
 
@@ -146,7 +146,7 @@ class MuseotouchApp(App):
         cx, cy = self.root_images.center
 
         # size of image
-        imgs = int(512 * 0.3)
+        imgs = int(512 * .5)
 
         # size of area for work
         width = self.root_images.width - 600
@@ -172,7 +172,7 @@ class MuseotouchApp(App):
             ix = x + (mi % mx) * imgs * dx
             iy = y + (mi // mx) * imgs * dy
             item.flip_front=True
-            (Animation(d=0.1 + i / 30.) + Animation(scale=0.30, pos=(ix, iy),
+            (Animation(d=0.1 + i / 30.) + Animation(scale=item.scale_min, pos=(ix, iy),
                     rotation=0., t='out_quad',
                     d=.25)).start(item)
 

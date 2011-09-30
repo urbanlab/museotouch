@@ -1,13 +1,19 @@
 #:kivy 1.0
 #:import math math
+#:set petita 'widgets/PetitaLight.ttf'
+#:set petita_medium 'widgets/PetitaMedium.ttf'
+#:set petita_bold 'widgets/PetitaBold.ttf'
+#:set color_keyword_hi [0.9098039215686274, 0.34509803921568627, 0.06666666666666667, 1] #get_color_from_hex('#e85811')
+#:set color_title_hi [0.8862745098039215, 0.19215686274509805, 0.15294117647058825, 1] #get_color_from_hex('#e23127')
+#:set color_normal [0.7764705882352941, 0.7764705882352941, 0.7764705882352941, 1] #get_color_from_hex('#c6c6c6')
 
 <ImageItem>:
 	border: 2 / self.scale
 	size_hint: None, None
 	size: 512, 512
-	scale: 0.30
+	scale: 0.50
 	container: container
-	scale_min: .3
+	scale_min: .5
 	scale_max: 10
 	canvas:
 		Color:
@@ -41,10 +47,11 @@
 
 	Label:
 		text: (root.item.freefield or '') if root.flip_front else ''
+		font_name: petita_medium
 		size_hint_y: None
 		height: self.texture_size[1] + 20
 		width: self.texture_size[0] + 20
-		font_size: 14
+		font_size: 25
 
 
 
@@ -60,12 +67,14 @@
 			text_size: (self.width, None)
 			size_hint_y: None
 			height: self.texture_size[1] + 10
+			font_name: petita_bold
 			font_size: 14
 		Label:
 			text: u'%s\n%s' % (root.item.origin, root.item.origin_ex)
 			text_size: (self.width, None)
 			size_hint_y: None
 			height: self.texture_size[1] + 10
+			font_name: petita
 			font_size: 12
 
 	GridLayout:
@@ -84,7 +93,8 @@
 			text: root.item.title
 			text_size: (self.width - 20, None)
 			valign: 'middle'
-			font_size: 16
+			font_size: 24
+			font_name: petita_bold
 			size_hint_y: None
 			height: max(102, self.texture_size[1])
 			color: (1, 1, 1, 1 - root.flip_alpha)
@@ -93,6 +103,8 @@
 			text: root.item.description
 			text_size: (self.width - 20, None)
 			size_hint_y: None
+			font_name: petita
+			font_size: 16
 			height: self.texture_size[1]
 			color: (1, 1, 1, 1 - root.flip_alpha)
 
@@ -169,25 +181,28 @@
 
 
 <Keyword>:
-	color: (110/255., 205/255., 221/255., 1) if self.selected else (198/255., 198/255., 198/255., 1)
-	font_size: 14
+	color: color_keyword_hi if self.selected else color_normal
+	font_size: 25
+	font_name: petita
 	text_size: (self.width, None)
 
 # Template used for Keyword item in accordion.
 <KeywordsGroup>:
 	cols: 1
-	row_default_height: 25
+	row_default_height: 40
 	row_force_default: True
 
 [KeywordItemTitle@Label]:
-	text: ctx.title.lower()
-	font_size: 30
-	font_name: 'data/fonts/DroidSans-Bold.ttf'
+	text: ctx.title
+	font_size: 42
+	font_name: petita_bold
 	text_size: (self.width, None)
-	color: (110/255., 205/255., 221/255., 1) if not ctx.item.collapse else (198/255., 198/255., 198/255., 1)
+	size_hint_y: 2
+	color: color_title_hi if not ctx.item.collapse else color_normal
+	#on_size: self.parent.minimum_size = (self.size)
 
 [KeywordItemTitle_INITIALPRESENTATION@Label]:
-	text: ctx.title.lower()
+	text: ctx.title
 	font_size: 30
 	font_name: 'data/fonts/DroidSans-Bold.ttf'
 	text_size: (self.height - 20, None)

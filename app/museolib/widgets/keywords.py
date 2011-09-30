@@ -46,7 +46,8 @@ class KeywordsGroup(GridLayout):
     def on_count_selected(self, instance, value):
         text = '%s' % self.title
         if value > 0:
-            text += ' (%d)' % value
+            #text += ' (%d)' % value
+            text += ' *'
         self.accitem.title = text
 
 
