@@ -38,7 +38,7 @@ def build(app):
     # Create a widget for keywords
     # Here we are using a scatter between to be able to rotate the widget
     app.keywords = Keywords(
-            size=(550, 650),
+            size=(550, 750),
             size_hint=(None, None),
             orientation='vertical',
             title_template='KeywordItemTitle')

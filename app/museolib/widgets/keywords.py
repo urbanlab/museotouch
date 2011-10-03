@@ -55,6 +55,8 @@ class Keywords(Accordion):
 
     keywords = ListProperty([])
 
+    alphabetical_sort = BooleanProperty(True)
+
     selected_keywords = ListProperty([])
 
     title_template = StringProperty(None)
@@ -77,7 +79,10 @@ class Keywords(Accordion):
             # create new group
             accgroup = KeywordsGroup(title=item['group'], accitem=accitem)
             accitem.add_widget(accgroup)
-            for child in item['children']:
+            children = item['children']
+            if self.alphabetical_sort:
+                children.sort(key=lambda x: x['name'])
+            for child in children:
                 keyword = Keyword(text=child['name'], text_id=child['id'],
                         controler=self, group=accgroup)
                 accgroup.add_widget(keyword)
