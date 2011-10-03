@@ -278,7 +278,13 @@ class MuseotouchApp(App):
         # filter from origin
         if self.imagemap:
             origin_ids = self.imagemap.active_ids
-            items = [x for x in items if x.origin_key in origin_ids]
+
+            # special case. If we got some keywords, but no origin, don't use
+            # it.
+            if self.keywords and self.keywords.selected_keywords and not origin_ids:
+                pass
+            else:
+                items = [x for x in items if x.origin_key in origin_ids]
 
         # filter with keywords
         # AND between group

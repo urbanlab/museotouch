@@ -4,10 +4,8 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatter import Scatter
-from museolib.widgets.circularslider import CircularSlider
 from museolib.widgets.imagemap import ImageMap
 from museolib.widgets.keywords import Keywords
-from museolib.widgets.slider import SizeSlider
 
 def build(app):
     # Here, you must return a root widget that will be used for app
@@ -40,7 +38,7 @@ def build(app):
     # Create a widget for keywords
     # Here we are using a scatter between to be able to rotate the widget
     app.keywords = Keywords(
-            size=(500, 450),
+            size=(550, 650),
             size_hint=(None, None),
             orientation='vertical',
             title_template='KeywordItemTitle')
