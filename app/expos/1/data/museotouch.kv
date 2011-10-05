@@ -46,7 +46,7 @@
 		on_release: root.on_btn_moreinfo()
 
 	Label:
-		text: (root.item.freefield or '') if root.flip_front else '' + '(%d)' % root.item.id
+		text: (root.item.freefield or '') if root.flip_front else ''
 		font_name: petita_medium
 		size_hint_y: None
 		height: self.texture_size[1] + 20
