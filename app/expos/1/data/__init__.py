@@ -28,7 +28,7 @@ def build(app):
     scatter = scatter_imagemap = Scatter(
             auto_bring_to_front=False,
             size=imagemap.size,
-            size_hint=(None, None), rotation=0, scale=.8,
+            size_hint=(None, None), rotation=0, scale=1.25,
             pos_hint={'right': 1, 'center_y': .5},
             do_translation=False, do_rotation=False, do_scale=False)
     scatter.add_widget(app.imagemap)
@@ -82,7 +82,7 @@ def build(app):
 
     def set_ordering_origin_pos(instance, value):
         ordering_origin.right = instance.right - 20
-        ordering_origin.y = instance.top + 20
+        ordering_origin.y = instance.top + 100
     scatter_imagemap.bind(pos=set_ordering_origin_pos)
 
     # -------------------------------------------------------------------------
@@ -98,7 +98,7 @@ def build(app):
 
     def set_ordering_keywords_pos(instance, value):
         ordering_keywords.x = instance.x
-        ordering_keywords.y = instance.top + 50
+        ordering_keywords.y = instance.top + 170
     scatter_keywords.bind(pos=set_ordering_keywords_pos)
 
     return root
