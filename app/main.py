@@ -762,14 +762,34 @@ class MuseotouchApp(App):
                 items.remove(item)
                 continue
             need_sync = True
+            print 'check', item['id']
             for fichier in fichiers:
                 fichier = fichier['fichier']
                 if not self._sync_is_filename_of_item(item, fichier):
+                    print '1'
                     continue
                 item['__item_filename__'] = fichier
                 filename, ext = self._sync_convert_filename(fichier)
                 local_filename = self._sync_get_local_filename(filename)
                 if not exists(local_filename):
+                    print '2'
+                    continue
+                # now, ensure the md5 is the same
+                md5_local_filename = '%s.md5sum' % local_filename
+                md5 = item['fichier_md5'].strip()
+
+                # if we don't have md5 sum attached, forget about it.
+                if not exists(md5_local_filename):
+                    if not md5:
+                        need_sync = False
+                    print '3', need_sync, repr(md5)
+                    continue
+                # ok, is the md5 is the same ?
+                with open(md5_local_filename, 'r') as fd:
+                    md5_local = fd.read()
+                # different md5, redownload.
+                if md5 != md5_local:
+                    print '4', repr(md5)
                     continue
                 need_sync = False
             if not need_sync:
@@ -823,13 +843,15 @@ class MuseotouchApp(App):
 
         # check if the file already exist on the disk
         filename = self._sync_get_local_filename(filename)
+        '''
         if exists(filename):
             # speedup a little bit. but we can't use always -1.
             Clock.schedule_once(self._sync_download_next,
                     -1 if self._sync_index % 10 < 8 else 0)
         else:
-            self.backend.download_object(uid, self.imgdir, self.imgtype,
-                self._sync_download_ok, self._sync_error, self._sync_progress)
+        '''
+        self.backend.download_object(uid, self.imgdir, self.imgtype,
+            self._sync_download_ok, self._sync_error, self._sync_progress)
 
     def _sync_download_ok(self, req, result):
         if req.resp_status < 200 or req.resp_status >= 300:
@@ -841,6 +863,14 @@ class MuseotouchApp(App):
             filename = self._sync_get_local_filename(filename)
             with open(filename, 'wb') as fd:
                 fd.write(result)
+
+            # write md5 attached to item if exist
+            item_md5 = self._sync_result[self._sync_index]['fichier_md5'].strip()
+            if item_md5:
+                md5_filename = '%s.md5sum' % filename
+                with open(md5_filename, 'wb') as fd:
+                    fd.write(item_md5)
+
         Clock.schedule_once(self._sync_download_next)
 
     def _sync_download_next(self, *largs):
