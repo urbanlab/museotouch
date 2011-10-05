@@ -92,6 +92,8 @@ for filename in files:
         ext = basename(item).rsplit('.', 1)[-1].lower()
         if ext in ('png', 'jpg', 'jpeg', 'tif', 'tiff'):
             raw_filename = item
+            # take the first in order of preference, not the inverse
+            break
 
     if raw_filename is None:
         log('Object %r have no raw objects found (png/jpg/jpeg/tif/tiff)' % uid)
