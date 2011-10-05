@@ -82,7 +82,7 @@ def build(app):
 
     def set_ordering_origin_pos(instance, value):
         ordering_origin.right = instance.right - 20
-        ordering_origin.y = instance.top + 100
+        ordering_origin.y = instance.top - 5
     scatter_imagemap.bind(pos=set_ordering_origin_pos)
 
     # -------------------------------------------------------------------------
