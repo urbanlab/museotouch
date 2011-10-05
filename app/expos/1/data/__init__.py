@@ -22,7 +22,7 @@ def build(app):
     sources = [x for x in sources if '_active' not in x]
     app.imagemap = imagemap = ImageMap(
             size_hint=(None, None),
-            size=(600, 800),
+            size=(308, 800),
             sources=sources,
             suffix='_active')
     scatter = scatter_imagemap = Scatter(
