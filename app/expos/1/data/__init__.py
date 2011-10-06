@@ -22,13 +22,13 @@ def build(app):
     sources = [x for x in sources if '_active' not in x]
     app.imagemap = imagemap = ImageMap(
             size_hint=(None, None),
-            size=(308, 800),
+            size=(385, 1000),
             sources=sources,
             suffix='_active')
     scatter = scatter_imagemap = Scatter(
             auto_bring_to_front=False,
             size=imagemap.size,
-            size_hint=(None, None), rotation=0, scale=1.25,
+            size_hint=(None, None), rotation=0, scale=1,
             pos_hint={'right': 1, 'center_y': .5},
             do_translation=False, do_rotation=False, do_scale=False)
     scatter.add_widget(app.imagemap)
