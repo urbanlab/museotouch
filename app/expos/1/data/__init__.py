@@ -82,7 +82,7 @@ def build(app):
 
     def set_ordering_origin_pos(instance, value):
         ordering_origin.right = instance.right - 20
-        ordering_origin.y = instance.top - 5
+        ordering_origin.y = instance.top - 40
     scatter_imagemap.bind(pos=set_ordering_origin_pos)
 
     # -------------------------------------------------------------------------
@@ -98,7 +98,7 @@ def build(app):
 
     def set_ordering_keywords_pos(instance, value):
         ordering_keywords.x = instance.x
-        ordering_keywords.y = instance.top + 170
+        ordering_keywords.y = instance.top + 135
     scatter_keywords.bind(pos=set_ordering_keywords_pos)
 
     return root
