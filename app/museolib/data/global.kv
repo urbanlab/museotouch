@@ -22,10 +22,11 @@
 	orientation: 'horizontal'
 
 	ScrollView:
-		BoxLayout:
+		GridLayout:
 			id: list_expos
-			orientation: 'vertical'
 			size_hint_y: None
+			height: self.minimum_height
+			cols: 1
 			spacing: 10
 			padding: 10
 
