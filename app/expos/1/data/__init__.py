@@ -6,6 +6,9 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatter import Scatter
 from museolib.widgets.imagemap import ImageMap
 from museolib.widgets.keywords import Keywords
+from museolib.widgets.basket import Basket
+from kivy.utils import platform
+
 
 def build(app):
     # Here, you must return a root widget that will be used for app
@@ -101,7 +104,7 @@ def build(app):
         ordering_keywords.y = instance.top + 135
     scatter_keywords.bind(pos=set_ordering_keywords_pos)
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Create a basket widget
     # This button is on the bottom/left part of the screen
     kwargs = {'pos_hint':{'right': 1, 'top': 1},'size_hint': (None, None), 'size': (64, 64),
@@ -123,5 +126,6 @@ def build(app):
         if platform() not in ('android'):  
             root.add_widget(basket)
 
+    # -------------------------------------------------------------------------
     return root
 
