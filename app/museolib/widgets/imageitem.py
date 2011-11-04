@@ -46,6 +46,9 @@ class ImageItem(Scatter):
     #: Touch counter
     counter = NumericProperty(0)
 
+    #: Basket widget
+    basket = ObjectProperty(None)
+
     def on_touch_down(self, touch):
         ret = super(ImageItem, self).on_touch_down(touch)
         if not ret:
@@ -58,6 +61,26 @@ class ImageItem(Scatter):
         touch.ud[uid] = True
         self.counter += 1
         return True
+
+    def on_touch_move(self, touch):
+        ret = super(ImageItem,self).on_touch_move(touch)
+
+        #check if the item collides with the basket
+        #get basket center point
+        if self.basket == None : 
+            self.basket = self.app.basket
+        basket = self.basket
+        if basket.active : 
+            x,y = basket.center
+            #check if collides with the basket
+            if self.collide_point(x,y) : 
+                #add itself to the basket
+                item_id = int(self.item['id'])
+                if not basket.already_in( item_id) : 
+                    basket.add_item( item_id )
+                    self.border += 11
+            
+        return ret
 
     def on_touch_up(self, touch):
         ret = super(ImageItem, self).on_touch_up(touch)
