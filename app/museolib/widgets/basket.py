@@ -48,6 +48,7 @@ class Basket(Button):
     url_send = BooleanProperty( False )
     url_send_url = StringProperty( '' )
     objects = ListProperty( [] )
+    objects_detailed = DictProperty( {} )
     app = ObjectProperty(None)
     url = StringProperty( 'http://museotouch.erasme.org/prive/' )
     api_url = StringProperty( 'api/index.php' )
@@ -84,10 +85,11 @@ class Basket(Button):
         else : 
             return False 
 
-    def add_item(self,id):
+    def add_item(self,id, item):
         if not self.active : return
         self.counter +=1
         self.objects.append(id)
+        self.objects_detailed[str(id)] = item
         self.update_counter_label()
         print 'basket : add item '+str(id)
 
@@ -239,6 +241,7 @@ class Basket(Button):
     def api_url_send(self,id_basket,url_code):
         #ask the backend to send the basket to the specidied url
         if self.url_send :
+            print self.objects_detailed
             suffix = self.api_url_commands['retrieve_basket_online']
             urld = self.url + self.retrieve_basket_url + suffix[0] + id_basket + suffix[1] + url_code
             urle = self.url_send_url + urld

@@ -81,9 +81,10 @@ class ImageItem(Scatter):
             #check if collides with the basket
             if self.collide_point(x,y) : 
                 #add itself to the basket
-                item_id = int(self.item['id'])
+                item = self.item
+                item_id = int(item['id'])
                 if not basket.already_in( item_id) : 
-                    basket.add_item( item_id )
+                    basket.add_item( item_id, item )
                     #send back to init position
                     pos = self.last_touch_down_pos
                     anim = Animation(center = pos, duration = .5, t='out_quad' )
