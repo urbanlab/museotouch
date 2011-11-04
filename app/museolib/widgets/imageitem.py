@@ -49,6 +49,10 @@ class ImageItem(Scatter):
     #: Basket widget
     basket = ObjectProperty(None)
 
+    #: Last touch_down to date
+    last_touch_down_pos = ObjectProperty(None)
+    
+
     def on_touch_down(self, touch):
         ret = super(ImageItem, self).on_touch_down(touch)
         if not ret:
@@ -60,6 +64,8 @@ class ImageItem(Scatter):
         uid = '%s_counter' % self.uid
         touch.ud[uid] = True
         self.counter += 1
+        #remember init pos in case of a drag to basket
+        self.last_touch_down_pos = touch.pos
         return True
 
     def on_touch_move(self, touch):
@@ -78,7 +84,10 @@ class ImageItem(Scatter):
                 item_id = int(self.item['id'])
                 if not basket.already_in( item_id) : 
                     basket.add_item( item_id )
-                    self.border += 11
+                    #send back to init position
+                    pos = self.last_touch_down_pos
+                    anim = Animation(center = pos, duration = .5, t='out_quad' )
+                    anim.start(self)
             
         return ret
 
