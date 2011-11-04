@@ -59,7 +59,8 @@ class Basket(Button):
     smtp_server = StringProperty( '' )    
     counter = NumericProperty(0)
     enlarged = BooleanProperty(False)
-    email = StringProperty( '' )  
+    email = StringProperty( '' )
+    id_basket = StringProperty( '' )  
 
     def __init__(self, **kwargs):
         super(Basket,self).__init__(**kwargs)
@@ -106,30 +107,6 @@ class Basket(Button):
         anim = Animation(size = (self.width * 2, self.height * 2), duration = .25, t='out_quad' )
         anim.start(self)
 
-    def get_email(self):
-        self.ti = ti = TextInput( text = 'Entrez votre email',size_hint =(None,None),size = (215,30), pos_hint = {'top':1,'right':1} )
-        self.parent.add_widget(ti)
-        win = self.get_parent_window()     
-        #win.request_keyboard(callback = self.keyboard_callback, target = ti)
-        self.val_button = val_button = Button( text = 'ok', size_hint =(None,None),size = (40,40), pos_hint = {'top':1,'right':1} )
-        self.val_button.bind(on_press = self.validate_keyboard_input)
-        self.parent.add_widget(val_button)
-
-    def validate_keyboard_input(self,a) :
-        email = self.ti.text
-        if not self.email_integrity_ok(email): 
-            self.ti.text = 'Email errone'
-            return
-        self.email = email
-        parent = self.parent
-        parent.remove_widget(self.ti) 
-        parent.remove_widget(self.val_button)
-        self.get_parent_window().release_keyboard()
-        #reduce size
-        anim = Animation(size = (self.width / 2, self.height / 2), duration = .25, t='out_quad' )
-        anim.start(self)
-        self.enlarged = False
-
     def email_integrity_ok(self,email):
         #control email integrity
         a,b,c = email.partition('@')  
@@ -147,17 +124,15 @@ class Basket(Button):
             return
 
         if self.enlarged : return
-        if self.email_send :
-            self.enlarge()
-            self.get_email()
 
         #in a specific thread in order to not block the app while waiting for an http answer?
         id_basket,url_code = self.api_create_basket()
         self.api_add_objects(objects, id_basket)
-        self.api_email_send(id_basket)
         self.api_url_send(id_basket,url_code)
+        self.api_email_send(id_basket)
         #reset basket
-        self.reset()
+        if not self.email_send :
+            self.reset()
 
     def api_create_basket(self):
         #send to api
@@ -170,8 +145,9 @@ class Basket(Button):
         except TypeError :
             print '[ERROR  ] Basket : Backend URL is unreachable: check either url configuration or connectivity' 
             return
-        #print answera
+        print 'basket created'
         id_basket = answera['id']
+        print id_basket
         url_code = answera['code_url']#url param to retrieve the basket online
         
         return (id_basket,url_code)
@@ -183,25 +159,64 @@ class Basket(Button):
                 #add object to the basket
                 if idb == '' : idb = idb + str(i)
                 else : idb = idb + ',' + str(i)
-            suffix = self.api_url_commands['add_object'] 
-            urlb = self.url + suffix[0] + idb + suffix[1] + id_basket
+            suffix = self.api_url_commands['add_object']
+            url = self.url+self.api_url 
+            urlb = url + suffix[0] + idb + suffix[1] + id_basket
+            print urlb
             #send to api
             answerb = self.get_url(urlb)
             #answerb = wget(urlb)
             if not answerb == "OK" : 
                 #print log
                 pass
+            print 'added objects'
 
     def api_email_send(self,id_basket):
         #ask the backend to send the basket by email
         if self.email_send :
-                email_add = self.email
-                
+                self.enlarge()
+                self.api_email_send2(id_basket)
+
+    def api_email_send2(self, id_basket):
+        self.ti = ti = TextInput( text = 'Entrez votre email',size_hint =(None,None),size = (215,30), pos_hint = {'top':1,'right':1} )
+        self.parent.add_widget(ti)
+        win = self.get_parent_window()     
+        #win.request_keyboard(callback = self.keyboard_callback, target = ti)
+        self.val_button = val_button = Button( text = 'ok', size_hint =(None,None),size = (40,40), pos_hint = {'top':1,'right':1} )
+        self.val_button.bind(on_press = self.validate_keyboard_input)
+        self.parent.add_widget(val_button)
+        self.id_basket = id_basket
+
+    def validate_keyboard_input(self,a) :
+        email = self.ti.text
+        if not self.email_integrity_ok(email): 
+            self.ti.text = 'Email errone'
+            return
+        self.email = email
+        parent = self.parent
+        parent.remove_widget(self.ti) 
+        parent.remove_widget(self.val_button)
+        self.get_parent_window().release_keyboard()
+        #reduce size
+        anim = Animation(size = (self.width / 2, self.height / 2), duration = .25, t='out_quad' )
+        anim.start(self)
+        self.enlarged = False
+        #continue email_send
+        self.api_email_send3()
+
+    def api_email_send3(self):
+                email_add = self.email 
+                id_basket = self.id_basket                
+
                 suffix = self.api_url_commands['send_basket']
-                urlc = self.url + suffix[0] + id_basket + suffix[1] + email_add 
+                url = self.url+self.api_url
+                urlc = url + suffix[0] + id_basket + suffix[1] + email_add 
                 #send to api
                 answerc = self.get_url(urlc)
+                print urlc
                 print 'basket : email sent to '+ email_add
+                self.reset()
+                print 'basket : reset'
 
     def api_url_send(self,id_basket,url_code):
         #ask the backend to send the basket to the specidied url
