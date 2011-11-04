@@ -63,14 +63,14 @@ def build(app):
     # -------------------------------------------------------------------------
     # Create a button to replace randomly elements on screen
     # This button is on the bottom/left part of the screen
-    kwargs = {'size_hint': (None, None), 'size': (64, 64),
+    '''kwargs = {'size_hint': (None, None), 'size': (64, 64),
             'border': (0, 0, 0, 0)}
     ordering_random = Button(
         background_normal='widgets/corner_bottomleft.png',
         background_down='widgets/corner_bottomleft_down.png',
         **kwargs)
     ordering_random.bind(on_release=app.do_reset_item_position)
-    root.add_widget(ordering_random)
+    root.add_widget(ordering_random)'''
 
     # -------------------------------------------------------------------------
     # Create a button to order by body part
@@ -85,7 +85,7 @@ def build(app):
 
     def set_ordering_origin_pos(instance, value):
         ordering_origin.right = instance.right - 20
-        ordering_origin.y = instance.top - 40
+        ordering_origin.y = instance.top - 1020
     scatter_imagemap.bind(pos=set_ordering_origin_pos)
 
     # -------------------------------------------------------------------------
@@ -101,13 +101,13 @@ def build(app):
 
     def set_ordering_keywords_pos(instance, value):
         ordering_keywords.x = instance.x
-        ordering_keywords.y = instance.top + 135
+        ordering_keywords.y = instance.top - 845
     scatter_keywords.bind(pos=set_ordering_keywords_pos)
 
     # -------------------------------------------------------------------------
     # Create a basket widget
     # This button is on the bottom/left part of the screen
-    kwargs = {'pos_hint':{'right': 1, 'top': 1},'size_hint': (None, None), 'size': (64, 64),
+    kwargs = {'pos_hint':{'right': 1, 'top': 1},'size_hint': (None, None), 'size': (128, 128),
             'border': (0, 0, 0, 0), 'color' : (0,0,0,1), 'bold' : True}
     #active to False disables the basket
     #email_send to True activates sending the url of the basket by email
