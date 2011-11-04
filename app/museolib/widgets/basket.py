@@ -230,7 +230,7 @@ class Basket(Button):
                 except :
                     print '[ERROR  ] Basket : Url defined as url_send_url in __init__.py file is unreachable: check either url or connectivity' 
                     return
-    
+
    
 
 class TestApp(App):
