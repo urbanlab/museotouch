@@ -107,7 +107,7 @@ def build(app):
     # -------------------------------------------------------------------------
     # Create a basket widget
     # This button is on the bottom/left part of the screen
-    kwargs = {'pos_hint':{'right': 1, 'top': 1},'size_hint': (None, None), 'size': (128, 128),
+    kwargs = {'pos_hint':{'right': 1, 'top': 1},'size_hint': (None, None), 'size': (100, 100),
             'border': (0, 0, 0, 0), 'color' : (0,0,0,1), 'bold' : True}
     #active to False disables the basket
     #email_send to True activates sending the url of the basket by email

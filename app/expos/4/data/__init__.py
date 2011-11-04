@@ -69,14 +69,14 @@ def build(app):
     # -------------------------------------------------------------------------
     # Create a button to replace randomly elements on screen
     # This button is on the bottom/left part of the screen
-    kwargs = {'size_hint': (None, None), 'size': (64, 64),
+    '''kwargs = {'size_hint': (None, None), 'size': (64, 64),
             'border': (0, 0, 0, 0)}
     ordering_origin = Button(
         background_normal='widgets/corner_bottomleft.png',
         background_down='widgets/corner_bottomleft_down.png',
         **kwargs)
     ordering_origin.bind(on_release=app.do_reset_item_position)
-    root.add_widget(ordering_origin)
+    root.add_widget(ordering_origin)'''
 
     # -------------------------------------------------------------------------
     # Create a button to order by continent
@@ -140,7 +140,7 @@ def build(app):
     # -------------------------------------------------------------------------
     # Create a basket widget
     # This button is on the bottom/left part of the screen
-    kwargs = {'pos_hint':{'right': 1, 'top': 1},'size_hint': (None, None), 'size': (64, 64),
+    kwargs = {'pos_hint':{'right': 1, 'top': 1},'size_hint': (None, None), 'size': (128, 128),
             'border': (0, 0, 0, 0), 'color' : (0,0,0,1), 'bold' : True}
     #active to False disables the basket
     #email_send to True activates sending the url of the basket by email
