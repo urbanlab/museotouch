@@ -98,6 +98,7 @@ class Basket(Button):
         return page.read()
 
     def enlarge(self):
+        if self.enlarged : return 
         self.enlarged = True 
         #bring to front
         parent = self.parent
@@ -168,6 +169,7 @@ class Basket(Button):
     def api_email_send(self,id_basket):
         #ask the backend to send the basket by email
         if self.email_send :
+                if self.enlarged : return
                 self.enlarge()
                 self.api_email_send2(id_basket)
 
@@ -199,6 +201,7 @@ class Basket(Button):
         self.api_email_send3()
 
     def reduce_size(self):
+        if not self.enlarged : return
         parent = self.parent
         parent.remove_widget(self.ti) 
         parent.remove_widget(self.val_button)
