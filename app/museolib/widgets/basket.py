@@ -145,7 +145,6 @@ class Basket(Button):
         except TypeError :
             print '[ERROR  ] Basket : Backend URL is unreachable: check either url configuration or connectivity' 
             return
-        print 'basket created'
         id_basket = answera['id']
         print id_basket
         url_code = answera['code_url']#url param to retrieve the basket online
@@ -162,14 +161,12 @@ class Basket(Button):
             suffix = self.api_url_commands['add_object']
             url = self.url+self.api_url 
             urlb = url + suffix[0] + idb + suffix[1] + id_basket
-            print urlb
             #send to api
             answerb = self.get_url(urlb)
             #answerb = wget(urlb)
             if not answerb == "OK" : 
                 #print log
                 pass
-            print 'added objects'
 
     def api_email_send(self,id_basket):
         #ask the backend to send the basket by email
@@ -213,7 +210,6 @@ class Basket(Button):
                 urlc = url + suffix[0] + id_basket + suffix[1] + email_add 
                 #send to api
                 answerc = self.get_url(urlc)
-                print urlc
                 print 'basket : email sent to '+ email_add
                 self.reset()
                 print 'basket : reset'
