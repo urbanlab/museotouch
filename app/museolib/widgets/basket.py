@@ -50,7 +50,7 @@ class Basket(Button):
     objects = ListProperty( [] )
     objects_detailed = DictProperty( {} )
     app = ObjectProperty(None)
-    url = StringProperty( 'http://museotouch.erasme.org/prive/' )
+    url = StringProperty( '' ) 
     api_url = StringProperty( 'api/index.php' )
     retrieve_basket_url = StringProperty( 'cart.php' ) 
     api_url_commands = {'new_basket' : '?act=cart', 'add_object': ['?act=acart&item=','&cart='], 'delete_object':['?act=dcart&item=','&cart='], 'retrieve_basket_online': ['?id=','&code='], 'send_basket': ['?act=scart&id=','&mail='] }
@@ -68,6 +68,7 @@ class Basket(Button):
         self.text = '       '+str(self.counter)+'\n  '
         #link action on press
         self.bind(on_press = self.validate_basket)
+        self.url = self.app.config.get('museotouch', 'url')
         
     def update_counter_label(self):
         self.text = '      '+str(self.counter)+'\n    '

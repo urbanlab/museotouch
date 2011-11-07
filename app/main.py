@@ -331,6 +331,7 @@ class MuseotouchApp(App):
 
     def build_config(self, config):
         config.setdefaults('museotouch', {
+            'url': 'http://museotouch.erasme.org/prive/',
             'url_api': 'http://museotouch.erasme.org/prive/api/',
             'url_data': 'http://museotouch.erasme.org/prive/uploads/',
             'expo': '0',
