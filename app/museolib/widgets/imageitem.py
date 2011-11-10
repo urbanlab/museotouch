@@ -87,9 +87,15 @@ class ImageItem(Scatter):
                     basket.add_item( item_id, item )
                     #send back to init position
                     pos = self.last_touch_down_pos
+                    #avoid a bug when touching the keyboard
+                    if pos is not None :
+                        pos = pos
+                    else :
+                        pos = (100,100)  
                     anim = Animation(center = pos, duration = .5, t='out_quad' )
                     anim.start(self)
-            
+                    
+                    
         return ret
 
     def on_touch_up(self, touch):
