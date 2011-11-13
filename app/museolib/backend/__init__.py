@@ -46,6 +46,16 @@ class BackendItem(dict):
         return self['keywords']
 
     @property
+    def medias(self):
+        ret = []
+        for x in self['data']:
+            name = x['fichier'].rsplit('/')[-1].rsplit('.')[0]
+            if name == str(self.id):
+                continue
+            ret.append(x['fichier'])
+        return ret
+
+    @property
     def taille(self):
         try:
             return int(self['taille'])

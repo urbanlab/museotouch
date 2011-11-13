@@ -1,9 +1,12 @@
-from kivy.clock import Clock
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty, \
-        BooleanProperty
+        BooleanProperty, ListProperty
 from kivy.animation import Animation
 from kivy.uix.scatter import Scatter
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.video import Video
+from kivy.uix.image import AsyncImage
+from kivy.uix.label import Label
+from os.path import splitext
 
 try:
     import android
@@ -11,10 +14,61 @@ try:
 except ImportError:
     is_android = False
 
+class ItemMediaBrowser(FloatLayout):
+    item = ObjectProperty(None)
+    index = NumericProperty(-1)
+    content = ObjectProperty(None)
+    media = ObjectProperty(None, allownone=True)
+
+    def on_index(self, instance, value):
+        if self.media:
+            if isinstance(self.media, Video):
+                self.media.play = False
+            self.media = None
+        value = value % len(self.item.medias)
+        media = self.item.medias[value]
+        name, ext = splitext(media)
+        ext = ext[1:].lower()
+
+        try:
+            if ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv'):
+                w = Video(source=media, play=True)
+            else:
+                w = AsyncImage(source=media)
+        except:
+            w = Label(text='Unable to read that media')
+        self.content.clear_widgets()
+        self.content.add_widget(w)
+        self.media = w
+
+    def stop(self):
+        if self.media:
+            if isinstance(self.media, Video):
+                self.media.play = False
+            self.media = None
 
 class ImageItemContent(FloatLayout):
     item = ObjectProperty(None)
+    imageitem = ObjectProperty(None)
     flip_alpha = NumericProperty(1.)
+    mediacontent = ObjectProperty(None, allownone=True)
+
+    def toggle_media(self):
+        '''Toggle display of medias if exist
+        '''
+        if not self.mediacontent:
+            self.mediacontent = ItemMediaBrowser(item=self.item)
+            self.add_widget(self.mediacontent)
+            self.mediacontent.index = 0
+            self.imageitem.color[3] = 0
+        else:
+            self.remove_widget(self.mediacontent)
+            self.mediacontent = None
+            self.imageitem.color[3] = 1
+
+    def stop(self):
+        if self.mediacontent:
+            self.mediacontent.stop()
 
 class ImageItem(Scatter):
 
@@ -51,6 +105,9 @@ class ImageItem(Scatter):
 
     #: Last touch_down to date
     last_touch_down_pos = ObjectProperty(None)
+
+    #: Color
+    color = ListProperty([1, 1, 1, 1])
     
 
     def on_touch_down(self, touch):
@@ -117,6 +174,7 @@ class ImageItem(Scatter):
         # first time ? create content
 
     def on_flip_front(self, instance, value):
+        self.color[3] = 1
         # do animation ?
         alpha = 1. if value else 0.
         k = {}
@@ -140,7 +198,7 @@ class ImageItem(Scatter):
         if self.content is not None:
             return
         self.content = ImageItemContent(item=self.item,
-                flip_alpha=self.flip_alpha)
+                flip_alpha=self.flip_alpha, imageitem=self)
 
     def on_flip_alpha(self, instance, value):
         content = self.content
@@ -189,3 +247,7 @@ class ImageItem(Scatter):
         x = min(parent.right, x)
         y = min(parent.top, y)
         self.center = x, y
+
+    def on_parent(self, instance, value):
+        if value is None and self.content:
+            self.content.stop()

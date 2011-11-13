@@ -33,6 +33,7 @@
 			id: container
 
 		Image:
+			color: root.color
 			source: root.source
 			size_hint: (1 * (0.3 + 0.7 * root.flip_alpha), 1 * (0.3 + 0.7 * root.flip_alpha))
 			pos_hint: {'top': 1}
@@ -52,7 +53,6 @@
 		height: self.texture_size[1] + 20
 		width: self.texture_size[0] + 20
 		font_size: 25
-
 
 
 <ImageItemContent>:
@@ -76,6 +76,16 @@
 			height: self.texture_size[1] + 10
 			font_name: petita
 			font_size: 12
+		Button:
+			text: 'Voir les médias' if len(root.item.medias) else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] + 10
+			font_name: petita_bold
+			font_size: 14
+			on_release: root.toggle_media() if len(root.item.medias) else None
+			background_color: (0, 0, 0, 0)
+			color: (.8, .8, .8, 1)
 
 	GridLayout:
 		cols: 1
@@ -107,6 +117,43 @@
 			font_size: 16
 			height: self.texture_size[1]
 			color: (1, 1, 1, 1 - root.flip_alpha)
+
+
+<ItemMediaBrowser>:
+	content: content
+	canvas:
+		Color:
+			rgb: 0, 0, 0
+		Rectangle:
+			size: self.size
+	BoxLayout:
+		orientation: 'vertical'
+		BoxLayout:
+			id: content
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint_y: None
+			spacing: 10
+			padding: 10
+			height: 64
+			Button:
+				text: '<'
+				on_release: root.index -= 1
+				font_name: petita_bold
+				background_color: (.1, .1, .1, .5)
+				font_size: 14
+			Button:
+				text: 'Fermer'
+				on_release: root.parent.toggle_media() if root.parent else None
+				font_name: petita_bold
+				background_color: (.1, .1, .1, .5)
+				font_size: 14
+			Button:
+				text: '>'
+				on_release: root.index += 1
+				font_name: petita_bold
+				background_color: (.1, .1, .1, .5)
+				font_size: 14
 
 
 <CircularSlider>:
