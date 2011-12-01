@@ -456,13 +456,13 @@ class MuseotouchApp(App):
     def on_rfid_uid(self, instance, uid):
         Logger.debug('App: Got RFID %r' % uid)
         token = self.config.get
-        if uid == token('rfid', 'uid_restart').lower():
+        if uid in token('rfid', 'uid_restart').lower().split(','):
             Logger.info('App: Rfid ask to restart the app !')
             self.stop()
-        elif uid == token('rfid', 'uid_mainscreen').lower():
+        elif uid in token('rfid', 'uid_mainscreen').lower().split(','):
             Logger.info('App: Rfid ask to return on main screen')
             self.close_settings()
-        elif uid == token('rfid', 'uid_settings').lower():
+        elif uid in token('rfid', 'uid_settings').lower().split(','):
             Logger.info('App: Rfid ask to open settings')
             self.open_settings()
         else:
