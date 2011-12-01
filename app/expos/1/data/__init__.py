@@ -44,6 +44,7 @@ def build(app):
             size=(550, 650),
             size_hint=(None, None),
             orientation='vertical',
+            alphabetical_sort=True,
             title_template='KeywordItemTitle')
     scatter = scatter_keywords = Scatter(size=app.keywords.size,
             auto_bring_to_front=False,
