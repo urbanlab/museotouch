@@ -175,17 +175,18 @@ class Basket(Button):
                 self.api_email_send2(id_basket)
 
     def api_email_send2(self, id_basket):
-        self.ti = ti = TextInput( text = 'Entrez votre email',size_hint =(None,None),size = (215,30), pos_hint = {'top':1,'right':1} )
+        font_size = 12
+        self.ti = ti = TextInput( text = 'Entrez votre email',size_hint =(None,None),size = (315,45), font_size = font_size, pos_hint = {'top':1,'right':1} )
         self.parent.add_widget(ti)
         win = self.get_parent_window()     
         #win.request_keyboard(callback = self.keyboard_callback, target = ti)
-        self.val_button = val_button = Button( text = 'ok', size_hint =(None,None),size = (40,40), pos_hint = {'top':1,'right':1} )
+        self.val_button = val_button = Button( text = 'ok', size_hint =(None,None),size = (60,47), font_size = font_size, pos_hint = {'top':1,'right':1} )
         self.val_button.bind(on_press = self.validate_keyboard_input)
         self.parent.add_widget(val_button)
-        self.cancel_button = cancel_button = Button( text = 'annul', font_size = 10, size_hint =(None,None),size = (40,30), pos_hint = {'top':0.935,'right':1} )
+        self.cancel_button = cancel_button = Button( text = 'annul', font_size = font_size, size_hint =(None,None),size = (60,45), pos_hint = {'top':0.875,'right':1} )
         self.cancel_button.bind(on_press = self.cancel_keyboard_input)
         self.parent.add_widget(cancel_button)
-        self.delete_button = delete_button = Button( text = 'suppr', font_size = 10, size_hint =(None,None),size = (40,30), pos_hint = {'top':0.885,'right':1} )
+        self.delete_button = delete_button = Button( text = 'suppr', font_size = font_size, size_hint =(None,None),size = (60,45), pos_hint = {'top':0.935,'right':1} )
         self.delete_button.bind(on_press = self.delete_basket)
         self.parent.add_widget(delete_button)
         #self.id_basket = id_basket
@@ -266,5 +267,5 @@ class TestApp(App):
         self.g = Basket(app=self)
         return self.g 
 
-if __name__ in ('__android__', '__main__'):
+if __name__ in ('__main__'):
     TestApp().run()
