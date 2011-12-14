@@ -44,8 +44,12 @@ class EmailForm(Widget):
 
 class Basket(Button):
     active = BooleanProperty( False )
+    #send by email the url of the basket content in html format
     email_send = BooleanProperty( False )
-    url_send = BooleanProperty( False )
+    #send item detailed to url_send_url when an item is added to the basket (get method)
+    url_send_detailed_item = BooleanProperty( False )
+    #send to url_send_url the url that contains the basket content in json (get method) 
+    url_send = BooleanProperty( False ) 
     url_send_url = StringProperty( '' )
     objects = ListProperty( [] )
     objects_detailed = DictProperty( {} )
@@ -53,7 +57,7 @@ class Basket(Button):
     url = StringProperty( '' ) 
     api_url = StringProperty( 'api/index.php' )
     retrieve_basket_url = StringProperty( 'cart.php' ) 
-    api_url_commands = {'new_basket' : '?act=cart', 'add_object': ['?act=acart&item=','&cart='], 'delete_object':['?act=dcart&item=','&cart='], 'retrieve_basket_online': ['?id=','&code='], 'send_basket': ['?act=scart&id=','&mail='] }
+    api_url_commands = {'new_basket' : '?act=cart', 'add_object': ['?act=acart&item=','&cart='], 'delete_object':['?act=dcart&item=','&cart='], 'retrieve_basket_online': ['?id=','&code='], 'send_basket': ['?act=scart&id=','&mail='], 'retrieve_basket_as_json': ['?act=lcart&id=', '&code='] }
     smtp_server = StringProperty( '' )    
     counter = NumericProperty(0)
     enlarged = BooleanProperty(False)
@@ -69,6 +73,11 @@ class Basket(Button):
         #link action on press
         self.bind(on_press = self.validate_basket)
         self.url = self.app.config.get('museotouch', 'url')
+        self.url_send_url = self.app.config.get('museotouch', 'url_send_url')
+        self.email_send = ( self.app.config.get('museotouch', 'email_send') == 'True')
+        self.url_send_detailed_item = ( self.app.config.get('museotouch', 'url_send_detailed_item') == 'True')
+        self.url_send = ( self.app.config.get('museotouch', 'url_send') == 'True')
+        
         
     def update_counter_label(self):
         self.text = '      '+str(self.counter)+'\n    '
@@ -76,6 +85,7 @@ class Basket(Button):
     def reset(self):
         #self.layout.clear_widgets()
         self.objects = []
+        self.objects_detailed = {}
         self.counter = 0
         #clear text input
         self.update_counter_label()
@@ -92,6 +102,7 @@ class Basket(Button):
         self.objects.append(id)
         self.objects_detailed[str(id)] = item
         self.update_counter_label()
+        self.url_send_item(id, item)
         print 'basket : add item '+str(id)
 
     def get_url(self,url):
@@ -169,7 +180,7 @@ class Basket(Button):
 
     def api_email_send(self,id_basket):
         #ask the backend to send the basket by email
-        if self.email_send :
+        if self.email_send == True:
                 if self.enlarged : return
                 self.enlarge()
                 self.api_email_send2(id_basket)
@@ -243,22 +254,40 @@ class Basket(Button):
         self.reset()
         print 'basket : reset'
 
+    def url_send_item(self,id_item, item):
+        #send the detailed content of the item to the specidied url
+        if self.url_send_detailed_item == True:
+            item = self.objects_detailed[str(id_item)]
+            #build url suffix
+            suffix = '?'
+            for key,detail in item.iteritems():
+                key = key.encode("utf-8")
+                if key not in ['keywords','data'] :
+                    detail = detail.encode("utf-8")
+                    suffix = suffix + str(key) + '=' + str(detail) + '&'
+            suffix = suffix[:-1]
+            urle = self.url_send_url + suffix
+            print 'basket : added item '+ urle
+            answere = UrlRequest(urle, self.url_send_item2, self.url_send_item_error)
+          
+    def url_send_item2(self,req, answere):
+        pass
+
+    def url_send_item_error(self, req, err):
+        print err 
+        print '[ERROR  ] Basket : Url defined as url_send_url in __init__.py file is unreachable: check either url or connectivity' 
+
     def api_url_send(self,id_basket,url_code):
         #ask the backend to send the basket to the specidied url
-        if self.url_send :
-            print self.objects_detailed
-            suffix = self.api_url_commands['retrieve_basket_online']
-            urld = self.url + self.retrieve_basket_url + suffix[0] + id_basket + suffix[1] + url_code
-            urle = self.url_send_url + urld
-            try :
-                answere = self.get_url(urle)
-                print 'basket : url '+ urle
-            except :
-                print '[ERROR  ] Basket : Url defined as url_send_url in __init__.py file is unreachable: check either url or connectivity' 
-                return
+        if self.url_send == True:
+            suffix = self.api_url_commands['retrieve_basket_as_json']
+            urld = suffix[0] + str(id_basket) + suffix[1] + str(url_code)
+            urle = self.url_send_url + '?json='+self.url+self.api_url+urld
+            print 'basket : json '+ urle
+            answere = UrlRequest(urle, self.url_send_item2, self.url_send_item_error)
+            
             if not self.email_send :
                 self.reset()
-
    
 
 class TestApp(App):

@@ -55,10 +55,10 @@ class MuseotouchApp(App):
 
     def do_reset_item_position(self, *largs):
         self.images_pos = {}
-        root = self.root_images
+        root = self.root_images     
         for i, item in enumerate(reversed(root.children)):
-            x = randint(root.x + 200, root.right - 200)
-            y = randint(root.y + 300, root.top - 100)
+            x = randint(root.x + 200, root.right - 500)
+            y = randint(root.y + 300, root.top - 200)
             rotation = randint(0, 360)
             item.flip_front = True
             (Animation(d=0.1 + i / 30.) + Animation(scale=item.scale_min, center=(x, y),
