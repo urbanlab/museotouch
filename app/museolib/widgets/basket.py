@@ -24,7 +24,7 @@ from os.path import join, split, abspath, splitext#, dirname, exists
 from os import listdir 
 from json import loads
 from random import random
-import urllib2#, urllib
+import urllib2, urllib
 
 class EmailForm(Widget):
     app = ObjectProperty(None)
@@ -259,17 +259,18 @@ class Basket(Button):
         if self.url_send_detailed_item == True:
             item = self.objects_detailed[str(id_item)]
             #build url suffix
-            suffix = '?'
+            item_urlencoded = {}
             for key,detail in item.iteritems():
                 key = key.encode("utf-8")
                 if key not in ['keywords','data'] :
                     detail = detail.encode("utf-8")
-                    suffix = suffix + str(key) + '=' + str(detail) + '&'
-            suffix = suffix[:-1]
-            urle = self.url_send_url + suffix
+                    item_urlencoded[key] = detail
+            item_urlencoded = urllib.urlencode(item_urlencoded)
+            urle = self.url_send_url + '?%s' % item_urlencoded
             print 'basket : added item '+ urle
+            #send
             answere = UrlRequest(urle, self.url_send_item2, self.url_send_item_error)
-          
+            
     def url_send_item2(self,req, answere):
         pass
 
