@@ -335,6 +335,10 @@ class MuseotouchApp(App):
             'url_api': 'http://museotouch.erasme.org/prive/api/',
             'url_data': 'http://museotouch.erasme.org/prive/uploads/',
             'expo': '0',
+            'email_send' = 'True',
+            'url_send_url' = 'http://urltest.lapin.be',
+            'url_send' = 'True',
+            'url_send_detailed_item' = 'True'
         })
         if platform() not in ('ios', 'android'):
             config.setdefaults('rfid', {
