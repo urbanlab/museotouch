@@ -3,7 +3,6 @@ from kivy.properties import NumericProperty, ReferenceListProperty, \
         StringProperty
 from kivy.vector import Vector
 
-
 class CircularSlider(FloatLayout):
     value_min = NumericProperty(0.0)
     value_max = NumericProperty(1.0)
@@ -33,7 +32,7 @@ class CircularSlider(FloatLayout):
             touch.ungrab(self)
             return True
 
-    def update_from_touch(self, touch):
+    def update_from_touch(	self, touch):
         x, y = touch.pos
 
         # convert angle to value between 0-1
@@ -79,8 +78,6 @@ class CircularSlider(FloatLayout):
         elif value < self.value_min:
             return
         setattr(self, name, value)
-
-
 
 if __name__ == '__main__':
     from kivy.base import runTouchApp
