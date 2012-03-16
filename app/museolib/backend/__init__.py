@@ -38,6 +38,10 @@ class BackendItem(dict):
         return self['date_crea']
 
     @property
+    def date_acqui(self):
+        return self['date_acqui']
+
+    @property
     def origin_ex(self):
         return self['orig_geo_prec']
 
