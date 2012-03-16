@@ -81,7 +81,17 @@ for filename in files:
             ftp.voidcmd('TYPE I')
             size = ftp.size(dds_filename_md5)
             if size is not None and size > 0:
-                continue
+                try:
+                    ftp.voidcmd('TYPE I')
+                    size = ftp.size(dds_filename)
+                    #log('Size %s Uid %s' % (size,uid))
+                    #permets de forcer le retraitement pour certains fichiers
+                    if size is not None and size == 699192 and int(uid) > 354 :
+                        pass
+                    else: 
+                        continue
+                except error_perm, e:
+                    continue
         except error_perm, e:
             pass
 

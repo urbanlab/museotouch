@@ -120,7 +120,8 @@ if __name__ == '__main__':
         # convert
         trace('Converting %s' % fn)
         level = 0
-        minsize = 1024
+        # minsize = 1024
+        minsize = 4096
         while True:
             assert(img.get_bytesize() == 4)
 
