@@ -11,8 +11,8 @@ from museolib.widgets.keywords import Keywords
 from museolib.widgets.basket import Basket
 from kivy.utils import platform
 
-title_font_size = 25
-title_color = (0.8862745098039215, 0.19215686274509805, 0.15294117647058825,1)#(1,0,0,1)#(197/255.,176/255.,210/255.) 
+title_font_size = 27
+title_color = (189./255., 157./255., 213./255, 1)#(0.8862745098039215, 0.19215686274509805, 0.15294117647058825,1)#(1,0,0,1)#(197/255.,176/255.,210/255.) 
 title_font = 'widgets/PetitaBold.ttf'
 title_bold = True
 
@@ -33,7 +33,7 @@ def build(app):
             size=(250, 500))
     scatter = date_slider_scatter = Scatter(size=app.date_slider.size,
             auto_bring_to_front = False,
-            pos = (400,230),
+            pos = (550,200),
             #pos_hint={'y': 0.01, 'center_x': .5},
             size_hint=(None, None), rotation=-90, scale=0.9,
             do_translate=False, do_rotate=False, do_scale=False)
@@ -57,7 +57,7 @@ def build(app):
             size=imagemap.size,
             #pos_hint={'x': 0.61, 'center_y': .55},
             #pos_hint={'y': 0.61},
-            pos = (1040,70),
+            pos = (0,40),
             rotation=0, 
             scale=0.5,
             do_translation=False, do_rotation=False, do_scale=False)
@@ -69,7 +69,7 @@ def build(app):
     # Create a widget for keywords
     # Here we are using a scatter between to be able to rotate the widget
     app.keywords = Keywords(
-            size=(450, 650),
+            size=(325, 650),
             size_hint=(None, None),
             orientation='vertical',
             title_template='KeywordItemTitle')
@@ -78,7 +78,7 @@ def build(app):
             auto_bring_to_front=False,
             #pos_hint={'x': 0.01, 'center_y': 0.5},
             size_hint=(None, None),
-            pos = (0,-200),
+            pos = (1275,-230),
             rotation=0, 
             scale=0.9,
             do_translation=False, do_rotation=False, do_scale=False)
@@ -106,12 +106,12 @@ def build(app):
 
     # -------------------------------------------------------------------------
     # Create a button to order by map
-    kwargs = {'size_hint': (None, None), 'size': (64, 64),
+    kwargs = {'size_hint': (None, None), 'size': (44, 44),
             'border': (0, 0, 0, 0)}
     ordering_origin = o = Button(
             background_normal='widgets/circle_filter.png',
             background_down='widgets/circle_filter_down.png',
-            pos = (1040,10),
+            pos = (0,10),
             **kwargs)
     ordering_origin.bind(on_release=app.do_ordering_origin)
     root.add_widget(ordering_origin)
@@ -132,16 +132,16 @@ def build(app):
             bold=title_bold,
             size_hint=(None, None),
             size = (350,40),
-            pos = (o.x + 40, o.y + 14)
+            pos = (o.x - 14, o.y + 4)
             )
     root.add_widget(title_map)
 
     # -------------------------------------------------------------------------
     # Create a button to order by keyword group
-    kwargs = {'size_hint': (None, None), 'size': (64, 64),
+    kwargs = {'size_hint': (None, None), 'size': (44, 44),
             'border': (0, 0, 0, 0)}
     ordering_keywords = o = Button(
-            pos = (10,10),
+            pos = (1275,10),
             background_normal='widgets/circle_filter.png',
             background_down='widgets/circle_filter_down.png',
             **kwargs)
@@ -163,16 +163,16 @@ def build(app):
             bold=title_bold,
             size_hint=(None, None),
             size = (300,40),
-            pos = (o.x + 80, o.y + 14)
+            pos = (o.x + 25, o.y + 4)
             )
     root.add_widget(title_map)
 
     # -------------------------------------------------------------------------
     # Create a button to order by datation
-    kwargs = {'size_hint': (None, None), 'size': (64, 64),
+    kwargs = {'size_hint': (None, None), 'size': (44, 44),
             'border': (0, 0, 0, 0)}
     ordering_datation = o = Button(
-            pos = (422,10),
+            pos = (577,10),
             background_normal='widgets/circle_filter.png',
             background_down='widgets/circle_filter_down.png',
             **kwargs)
@@ -193,7 +193,7 @@ def build(app):
             bold=title_bold,
             size_hint=(None, None),
             size = (220,40),
-            pos = (o.x + 20, o.y + 14)
+            pos = (o.x - 14, o.y + 4)
             )
     root.add_widget(title_map)
 
