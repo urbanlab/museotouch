@@ -8,7 +8,7 @@
 #:set color_title_hi [0, 0, 0, 1] 
 #get_color_from_hex('#e23127')
 #:set color_normal [0.7764705882352941, 0.7764705882352941, 0.7764705882352941, 1] #get_color_from_hex('#c6c6c6')
-
+#:set title_color [102./255., 194./255., 204./255, 1]
 
 <ImageItem>:
 	border: 2 / self.scale
@@ -182,7 +182,7 @@
 
     canvas:
         Color:
-            rgb: 189./255., 157./255., 213./255, 1
+            rgb: title_color
         Ellipse:
             pos: self.right - self.outer_radius, self.center_y - self.outer_radius
             size: self.outer_radius * 2, self.outer_radius * 2
@@ -200,7 +200,7 @@
             pos: self.pos
             size: self.size
         Color:
-            rgba: 0.8862745098039215, 0.19215686274509805, 0.15294117647058825, 1
+            rgba: title_color
         Line:
             points: (self.right - math.sin(math.radians(self.angle_min)) * self.outer_radius, self.center_y -math.cos(math.radians(self.angle_min)) * self.outer_radius, self.right - math.sin(math.radians(self.angle_min)) * (self.inner_radius - 50), self.center_y -math.cos(math.radians(self.angle_min)) * (self.inner_radius - 50))
         Line:
@@ -225,11 +225,11 @@
 
         Label:
             font_size: 16
-            color: (189./255., 157./255., 213./255, 1)
+            color: (title_color)
             text: root.text_min
         Label:
             font_size: 16
-            color: (189./255., 157./255., 213./255, 1)
+            color: (title_color)
             text: root.text_max
 
 
@@ -249,7 +249,7 @@
 
 
 <Keyword>:
-	color: color_keyword_hi if self.selected else color_normal
+	color: title_color if self.selected else color_normal
 	font_size: 25
 	font_name: petita
 	text_size: (self.width, None)
@@ -265,7 +265,7 @@
 	font_size: 30
 	font_name: 'data/fonts/DroidSans-Bold.ttf'
 	text_size: (self.height - 20, None)
-	color: (110/255., 205/255., 221/255., 1) if not ctx.item.collapse else (198/255., 198/255., 198/255., 1)
+	color: (title_color) if not ctx.item.collapse else (198/255., 198/255., 198/255., 1)
 	canvas.before:
 		PushMatrix
 		Translate:
