@@ -216,7 +216,7 @@ class MuseotouchApp(App):
 
             x = randint(root.x + 200, root.right - 200)
             y = randint(root.y + 400, root.top - 100)
-            angle = randint(0, 360)
+            angle = randint(0, 360) 
 
             image = dict(source=filename, rotation=angle + 90,
                     center=(x, y), item=item, app=self)
