@@ -13,6 +13,7 @@ from kivy.utils import platform
 
 title_font_size = 27
 title_color = (189./255., 157./255., 213./255, 1)#(0.8862745098039215, 0.19215686274509805, 0.15294117647058825,1)#(1,0,0,1)#(197/255.,176/255.,210/255.) 
+title_normal = (0.7764705882352941, 0.7764705882352941, 0.7764705882352941, 1)#(0.8862745098039215, 0.19215686274509805, 0.15294117647058825,1)#(1,0,0,1)#(197/255.,176/255.,210/255.) 
 title_font = 'widgets/PetitaBold.ttf'
 title_bold = True
 
@@ -59,7 +60,7 @@ def build(app):
             #pos_hint={'y': 0.61},
             pos = (0,40),
             rotation=0, 
-            scale=0.5,
+            scale=0.4,
             do_translation=False, do_rotation=False, do_scale=False)
     scatter.add_widget(app.imagemap)
     root.add_widget(scatter)
@@ -128,7 +129,7 @@ def build(app):
             text='Departement',
             font_name=title_font,
             font_size=title_font_size,
-            color=title_color,
+            color=title_normal,
             bold=title_bold,
             size_hint=(None, None),
             size = (350,40),
@@ -159,7 +160,7 @@ def build(app):
             text='Types de cartes',
             font_name=title_font,
             font_size=title_font_size,
-            color=title_color,
+            color=title_normal,
             bold=title_bold,
             size_hint=(None, None),
             size = (300,40),
@@ -189,7 +190,7 @@ def build(app):
             text='Date',
             font_name=title_font,
             font_size=title_font_size,
-            color=title_color,
+            color=title_normal,
             bold=title_bold,
             size_hint=(None, None),
             size = (220,40),
@@ -200,7 +201,7 @@ def build(app):
     # -------------------------------------------------------------------------
     # Create a basket widget
     # This button is on the bottom/left part of the screen
-    kwargs = {'pos_hint':{'right': 1, 'top': 1},'size_hint': (None, None), 'size': (100, 100),
+    kwargs = {'pos_hint':{'right': 1, 'top': 1},'size_hint': (None, None), 'size': (130, 55),
             'border': (0, 0, 0, 0), 'color' : (0,0,0,1), 'bold' : True}
     #active to False disables the basket
     #email_send to True activates sending the url of the basket by email
