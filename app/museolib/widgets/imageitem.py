@@ -136,7 +136,7 @@ class ImageItem(Scatter):
         if basket.active : 
             x,y = basket.center
             #check if collides with the basket
-            if self.collide_point(x,y) : 
+            if self.collide_point(x,y) and self.counter == 1 : 
                 #add itself to the basket
                 item = self.item
                 item_id = int(item['id'])
