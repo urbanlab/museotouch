@@ -105,8 +105,8 @@ class MuseotouchApp(App):
         imgs = int(512 * .7)
 
         # size of area for work
-        width = self.root_images.width - 800
-        height = self.root_images.height - 400
+        width = self.root_images.width - 200
+        height = self.root_images.height - 700
 
         # images per size
         mx = max(1, width // imgs)
@@ -149,8 +149,8 @@ class MuseotouchApp(App):
         imgs = int(512 * .5)
 
         # size of area for work
-        width = self.root_images.width - 600
-        height = self.root_images.height - 400
+        width = self.root_images.width - 200
+        height = self.root_images.height - 700
 
         # images per size
         mx = 1 + width // imgs
