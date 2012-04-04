@@ -50,3 +50,6 @@ Scénario::
 En cas d'erreur, affichage TXT de type:
 
 	"Erreur : MESSAGE"
+	
+	
+Ajouter les fichiers de configurations et dernieres modifications
