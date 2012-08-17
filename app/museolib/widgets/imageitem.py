@@ -6,7 +6,8 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.video import Video
 from kivy.uix.image import AsyncImage
 from kivy.uix.label import Label
-from os.path import splitext
+from os.path import splitext, join, isfile
+from pdb import set_trace as rrr
 
 try:
     import android
@@ -30,8 +31,17 @@ class ItemMediaBrowser(FloatLayout):
         name, ext = splitext(media)
         ext = ext[1:].lower()
 
+        # convert media url to local media path (all medias are already downloaded)
+        from museolib.utils import no_url
+        media = join(self.parent.parent.parent.parent.app.expo_dir, 'otherfiles', no_url(media))
+        if not isfile(media):
+            print " ### Oops, this media is not downloaded !"
         try:
-            if ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv'):
+            if ext in ('mp3', 'ogg', 'flac', 'wav'):
+                w = Label(text="It's a song : " + media)
+                if not isfile(media):
+                    w = Label(text="Song not downloaded.")
+            elif ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv'):
                 w = Video(source=media, play=True)
             else:
                 w = AsyncImage(source=media)
@@ -108,7 +118,26 @@ class ImageItem(Scatter):
 
     #: Color
     color = ListProperty([1, 1, 1, 1])
+
+    #: If we want a square img
+    img_square = ObjectProperty(None)
     
+    def __init__(self, *args, **kwargs):
+        square = False
+        if 'square' in kwargs and kwargs['square'] == True:
+            square = True
+            del kwargs['square']
+        super(ImageItem, self).__init__(**kwargs)
+        if square:
+            # Rognage => maximum square :
+            my_ceil = lambda n: 0 if n < 0 else n
+            L,H = self.img_square.texture.size
+            x = my_ceil(L-H)/2
+            y = my_ceil(H-L)/2
+            w = min(L,H)
+            h = min(L,H)
+            #import pdb; pdb.set_trace()
+            self.img_square.texture = self.img_square.texture.get_region(x, y, w, h)
 
     def on_touch_down(self, touch):
         ret = super(ImageItem, self).on_touch_down(touch)
@@ -124,7 +153,7 @@ class ImageItem(Scatter):
         #remember init pos in case of a drag to basket
         self.last_touch_down_pos = touch.pos
         return True
-
+    
     def on_touch_move(self, touch):
         ret = super(ImageItem,self).on_touch_move(touch)
 
@@ -136,21 +165,22 @@ class ImageItem(Scatter):
         if basket.active : 
             x,y = basket.center
             #check if collides with the basket
-            if self.collide_point(x,y) and self.counter == 1 : 
+#            if self.collide_point(x,y) : 
+            if self.collide_widget(basket):
                 #add itself to the basket
                 item = self.item
                 item_id = int(item['id'])
                 if not basket.already_in( item_id) : 
-                    basket.add_item( item_id, item )
-                    #send back to init position
-                    pos = self.last_touch_down_pos
-                    #avoid a bug when touching the keyboard
-                    if pos is not None :
-                        pos = pos
-                    else :
-                        pos = (100,100)  
-                    anim = Animation(center = pos, duration = .5, t='out_quad' )
-                    anim.start(self)
+                    basket.add_item( item_id, item, self )
+                #send back to init position
+                pos = self.last_touch_down_pos
+                #avoid a bug when touching the keyboard
+                if pos is not None :
+                    pos = pos
+                else :
+                    pos = (100,100)  
+                anim = Animation(center = pos, duration = .5, t='out_quad' )
+                anim.start(self)
                     
                     
         return ret

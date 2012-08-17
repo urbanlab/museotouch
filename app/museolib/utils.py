@@ -18,3 +18,6 @@ def convert_to_key(name):
     name = remove_accents(name.lower())
     name = u''.join([x if x in ascii_table else '_' for x in name])
     return name
+
+def no_url(f):
+    return f[7:].replace('/', '_')

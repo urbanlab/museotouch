@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import kivy
-kivy.require('1.0.8-dev')
+#kivy.require('1.0.8-dev')
+kivy.require('1.1.1')
 
 from kivy.config import Config
 Config.set('kivy', 'log_level', 'debug')
 
 from random import random, randint
-from os.path import join, dirname, exists, basename
+from os.path import join, dirname, exists, basename, isfile
 from os import makedirs
 from zipfile import ZipFile
 from kivy.app import App
@@ -24,16 +25,22 @@ from kivy.uix.progressbar import ProgressBar
 from kivy.uix.popup import Popup
 from kivy.uix.image import Image
 from kivy.utils import format_bytes_to_human, platform
+from kivy.core.window import Window
 
 import museolib
-from museolib.utils import format_date
+from museolib.utils import format_date, no_url
 from museolib.widgets.imageitem import ImageItem
+from museolib.widgets.scrollviewitem import ScrollViewItem
 from museolib.widgets.exposelector import ExpoSelector
 from museolib.backend.backendjson import BackendJSON
 from museolib.backend.backendweb import BackendWeb
 from json import dump, dumps
 from imp import load_source
 from math import ceil
+from functools import partial
+
+from pdb import set_trace as rrr
+import time
 
 def delayed_work(func, items, delay=0):
     if not items:
@@ -105,8 +112,8 @@ class MuseotouchApp(App):
         imgs = int(512 * .7)
 
         # size of area for work
-        width = self.root_images.width - 200
-        height = self.root_images.height - 700
+        width = self.root_images.width - 800
+        height = self.root_images.height - 400
 
         # images per size
         mx = max(1, width // imgs)
@@ -149,8 +156,8 @@ class MuseotouchApp(App):
         imgs = int(512 * .5)
 
         # size of area for work
-        width = self.root_images.width - 200
-        height = self.root_images.height - 700
+        width = self.root_images.width - 600
+        height = self.root_images.height - 400
 
         # images per size
         mx = 1 + width // imgs
@@ -177,63 +184,116 @@ class MuseotouchApp(App):
                     d=.25)).start(item)
 
     def show_object(self, defs):
-        source = defs['source']
-        if source not in self.images_displayed:
-            return
-        current_images = [x.source for x in self.root_images.children]
-        if source in current_images:
-            return
+        #rrr()
+        if self.root.type_expo == 'normal':
+            source = defs['source']
+            if source not in self.images_displayed:
+                return
+            current_images = [x.source for x in self.root_images.children]
+            if source in current_images:
+                return
 
-        images_pos = self.images_pos
-        if source in images_pos:
-            p = images_pos[source]
-            defs.pop('center', None)
-            defs['center'] = p['center']
-            defs['rotation'] = p['rotation']
+            images_pos = self.images_pos
+            if source in images_pos:
+                p = images_pos[source]
+                defs.pop('center', None)
+                defs['center'] = p['center']
+                defs['rotation'] = p['rotation']
 
-        center = defs.pop('center')
-        rotation = defs.pop('rotation')
-        item = ImageItem(**defs)
-        self.root_images.add_widget(item, -1)
-        item.rotation = rotation
-        item.center = center
-        images_pos[source] = {
-            'center': item.center,
-            'rotation': item.rotation}
+            center = defs.pop('center')
+            rotation = defs.pop('rotation')
+            item = ImageItem(**defs)
+            self.root_images.add_widget(item, -1)
+            item.rotation = rotation
+            item.center = center
+            images_pos[source] = {
+                'center': item.center,
+                'rotation': item.rotation}
 
     def show_objects(self, objects):
-        images = [x.source for x in self.root_images.children]
         root = self.root
+        if root.type_expo == 'normal':
+            images = [x.source for x in self.root_images.children]
 
-        images_to_add = []
-        images_displayed = []
-        for item in objects:
-            # is the current filename is already showed ?
-            filename = item.filename
-            if filename in images:
-                images.remove(filename)
-                continue
+            images_to_add = []
+            images_displayed = []
+            for item in objects:
+                # is the current filename is already showed ?
+                filename = item.filename
+                if filename in images:
+                    images.remove(filename)
+                    continue
 
-            x = randint(root.x + 200, root.right - 200)
-            y = randint(root.y + 400, root.top - 100)
-            angle = randint(0, 360) 
+                x = randint(root.x + 200, root.right - 200)
+                y = randint(root.y + 300, root.top - 100)
+                angle = randint(0, 360)
 
-            image = dict(source=filename, rotation=angle + 90,
-                    center=(x, y), item=item, app=self)
-            images_to_add.append(image)
-            images_displayed.append(filename)
+                image = dict(source=filename, rotation=angle + 90,
+                        center=(x, y), item=item, app=self)
+                images_to_add.append(image)
+                images_displayed.append(filename)
 
-        self.images_displayed = images_displayed
-        delayed_work(self.show_object, images_to_add)
+            self.images_displayed = images_displayed
+            delayed_work(self.show_object, images_to_add)
 
-        # remove all the previous images
-        for child in self.root_images.children[:]:
-            for filename in images:
-                if filename == child.source:
-                    self.images_pos[filename] = {
-                        'center': child.center,
-                        'rotation': child.rotation }
-                    self.root_images.remove_widget(child)
+            # remove all the previous images
+            for child in self.root_images.children[:]:
+                for filename in images:
+                    if filename == child.source:
+                        self.images_pos[filename] = {
+                            'center': child.center,
+                            'rotation': child.rotation }
+                        self.root_images.remove_widget(child)
+        elif root.type_expo == 'ns':
+            #rrr()
+            images = [x.source for x in root.scroller.layout.children]
+
+            images_to_add = []
+            images_displayed = []
+            for item in objects:
+                # is the current filename already showed ?
+                filename = item.filename
+                if filename in images:
+                    images.remove(filename)
+                    continue
+
+                image = dict(source=filename, item=item, app=self)
+                images_to_add.append(image)
+                images_displayed.append(filename)
+
+            self.images_displayed = images_displayed
+            #delayed_work(self.show_object, images_to_add)
+
+            # remove all the previous images
+            for child in root.scroller.layout.children[:]:
+                for filename in images:
+                    if filename == child.source:
+                        root.scroller.layout.remove_widget(child)
+                        if child.imgItem is not None:
+                            if hasattr(child.imgItem, 'sound'):
+                                child.imgItem.sound.stop()
+                                child.imgItem.sound.unload()
+                            child.imgItem.parent.remove_widget(child.imgItem)
+
+            # show_object is not called because we make the display process here
+            winWidth = Window.width
+            totalHeight = Window.height * 0.8
+            try:
+                itemWidth = winWidth / len(objects)
+            except ZeroDivisionError:
+                itemWidth = winWidth
+            
+            if itemWidth < 200:
+                itemWidth = 200
+
+            root.scroller.layout.col_default_width = itemWidth
+            root.scroller.layout.bind(minimum_width=root.scroller.layout.setter('width'))
+            
+            for img in images_to_add:
+                item = ScrollViewItem(source = img['source'], itemWidth = itemWidth, totalHeight = totalHeight, app=self)
+                item.db_item = img['item']
+                root.scroller.layout.add_widget(item)
+            root.scroller.updateItemSize()
 
     def update_objects_from_filter(self, *largs):
         '''Update the objects displayed from filters (date range, origin...)
@@ -259,7 +319,7 @@ class MuseotouchApp(App):
             # set the text inside the slider
             self.date_slider.text_min = format_date(item1.date)
             self.date_slider.text_max = format_date(item2.date)
-
+        
         # filter on size
         if self.size_slider:
             # reorder item by taille
@@ -286,6 +346,55 @@ class MuseotouchApp(App):
             else:
                 items = [x for x in items if x.origin_key in origin_ids]
 
+        # filter from keywords but with image buttons, only if there is group of keyword with 'filtre' in the group's name
+        if self.imageButtons:
+            keywords_names = self.imageButtons.active_ids
+            keywords_ids = []
+            groups = self.db.keywords
+            items_result = []  
+            keywords_all = []
+
+            for group in groups:
+                if group['group'].find('filtre') != -1:
+                    keywords_all = group['children']
+
+            if (keywords_all):
+                for name in keywords_names:
+                    for keyword in keywords_all:
+                        if name == keyword['name']:
+                            keywords_ids.append(keyword['id'])
+
+                for item in items:
+                    for key in keywords_ids:
+                        if key in item.keywords:
+                            items_result.append(item)
+
+                if self.imageButtons.show_objects_when_empty == True:
+                    if not keywords_names and not items_result: #si aucune image activee et aucun resultat
+                      items_result = items # on affiche tout
+
+                items = items_result
+
+            # for group in groups:
+            #     if group.title.find('filtre'):
+            #         print('filtre image trouvé')
+
+            #         if self.keywords and self.keywords.selected_keywords and not keywords_ids:
+            #             pass
+            #         else:
+            #             #items = [x for x in items if x.origin_ex in keywords_ids]
+            #     		items_result = []
+            #     		items = self.db.items		
+            #     		for item in items:
+            #     		    #print item.keywords
+            #     		    for key in keywords_ids:
+            #     			if key in item.keywords:
+            #     			    if not item in items_result:
+            #     				items_result.append(item)			                
+            #     		items = items_result		
+		#print "image buttons filter"		
+		# items
+
         # filter with keywords
         # AND between group
         # OR inside group
@@ -299,13 +408,13 @@ class MuseotouchApp(App):
             for group in groups:
                 # check keywords for current group
                 keywords = [x[1] for x in selected_keywords if x[0] == group]
-
                 result = []
 
                 # check every items if we got at least one keyword of that group
                 for item in items:
+                    #print 'item : ', item.origin_ex
                     for key in keywords:
-                        # found one group keyword in the item ?
+                        # found one group keyword in the 
                         if key in item.keywords:
                             result.append(item)
                             if not item in items_result:
@@ -325,6 +434,12 @@ class MuseotouchApp(App):
             # now set the result as the new set of items
             items = items_result
 
+        if self.calendar:
+            calfield = 'cal'
+            if len(items) > 0:
+                if 'calannee' in items[0]:
+                    calfield = 'calannee'
+                items = [x for x in items if self.calendar.accepts(x[calfield])]
 
         # show only the first 10 objects
         self.show_objects(items)
@@ -408,6 +523,12 @@ class MuseotouchApp(App):
 
         #: size slider. If set, it will be used to show all size
         self.size_slider = None
+        
+        #:Image buttons. 
+        self.imageButtons = None
+
+        #: Calendar 
+        self.calendar = None
 
         # set the image type from mode
         self.imgtype = 'dds'
@@ -516,13 +637,18 @@ class MuseotouchApp(App):
                 Logger.error('Museolib: Unable to found image %s' % filename)
                 items.remove(item)
                 continue
+            #rrr()
             item.filename = filename
 
+        print ">>>>>>>>>>>>>>>>>>>>>>>> n items", len(items)
         db.items = items
         Logger.info('Museotouch: %d items usable' % len(db.items))
 
         # construct the app.
         self.root = root = modexpo.build(self)
+        # type_expo introduced for nuits sonores ("ns")
+        if not hasattr(root, 'type_expo'):
+            root.type_expo = 'normal'
 
         # add root layer for putting image
         self.root_images = FloatLayout()
@@ -543,7 +669,13 @@ class MuseotouchApp(App):
 
         if self.imagemap:
             self.imagemap.bind(active_ids=self.trigger_objects_filtering)
+        
+        if self.imageButtons:
+            self.imageButtons.bind(active_ids=self.trigger_objects_filtering)
 
+        if self.calendar:
+            self.calendar.bind(update=self.trigger_objects_filtering)
+        
         self.trigger_objects_filtering()
 
 
@@ -671,6 +803,7 @@ class MuseotouchApp(App):
             return
 
         # download the zip
+        print ' &&&& the zip is', zipfiles[0]
         self._sync_popup_text(u'Téléchargement des données')
         self.backend.get_file(
             zipfiles[0],
@@ -751,8 +884,24 @@ class MuseotouchApp(App):
                 on_error=self._sync_error_but_continue,
                 on_progress=self._sync_progress)
 
+    def aft(self, req, result):
+        ''' fonction appelee quand un fichier secondaire a fini son telechargement '''
+        filepath = join(self.expo_dir, 'otherfiles', no_url(req.url))
+        output = open(filepath, 'wb')
+        output.write(result) # fichier sauvegarde
+        output.close()
+        self.url_requests.remove(req)
+        if not self.url_requests: # si c'etait le dernier fichier
+            if hasattr(self, 'root'):
+                if hasattr(self.root, 'gif'):
+                    self.root.remove_widget(self.root.gif) # on supprime le gif de chargement
+        print " ###", req.url, '--> download finished !'
+
     def _sync_expo_6(self, req, result):
         Logger.info('Museotouch: Synchronization part 6')
+        # self._sync_popup_text(u'Téléchargement des ...')
+        self.url_requests = []
+
         filename = join(self.expo_dir, u'objects.json')
         with open(filename, 'wb') as fd:
             s = dumps(result)
@@ -771,7 +920,56 @@ class MuseotouchApp(App):
             for fichier in fichiers:
                 fichier = fichier['fichier']
                 if not self._sync_is_filename_of_item(item, fichier):
-                    print '1'
+                    print ' ### The file <{0}> is not downloaded - yet.'.format(fichier)
+                    from museolib.utils import no_url
+                    filepath = join(self.expo_dir, 'otherfiles', no_url(fichier))
+                    print ' ### It could be downloaded in', filepath
+                    if not isfile(join(self.expo_dir, 'otherfiles', no_url(fichier))):
+                        print ' ### (this file does not exist yet - let"s download it !)'
+
+                        # def chunk_report(here, step, total):
+                        #     print here, '/', total, '// +', step
+
+                        # def chunk_read(url, chunk_size=8192, on_progress=None):
+                        #     import urllib2
+                        #     response = urllib2.urlopen(url);
+                        #     total_size = response.info().getheader('Content-Length').strip()
+                        #     total_size = int(total_size)
+                        #     bytes_so_far = 0
+
+                        #     while 1:
+                        #         chunk = response.read(chunk_size)
+                        #         bytes_so_far += len(chunk)
+
+                        #         if not chunk:
+                        #             print 'end'
+                        #             break
+
+                        #         if on_progress:
+                        #             class fooo(object): pass
+                        #             req = fooo()
+                        #             req.url = url
+                        #             req.chunk_size = chunk_size
+                        #             on_progress(req, bytes_so_far, total_size)
+
+                        #     return bytes_so_far
+
+                        # self._sync_popup_text(u'Téléchargement de '+fichier)
+                        # chunk_read(fichier, on_progress=self._sync_progress)
+                        # print ' &&&& END of', fichier
+
+                        from kivy.network.urlrequest import UrlRequest
+                        req = UrlRequest(fichier, on_success=self.aft, on_error=self.aft)
+                        self.url_requests.append(req)
+                        # import urllib2
+                        # f = urllib2.urlopen(fichier)
+                        # output = open(filepath, 'wb')
+                        # output.write(f.read())
+                        # output.close()
+
+                    else:
+                        print ' ### (this file already exists)'
+
                     continue
                 item['__item_filename__'] = fichier
                 filename, ext = self._sync_convert_filename(fichier)
@@ -779,6 +977,7 @@ class MuseotouchApp(App):
                 if not exists(local_filename):
                     print '2'
                     continue
+
                 # now, ensure the md5 is the same
                 md5_local_filename = '%s.md5sum' % local_filename
                 md5 = item['fichier_md5'].strip()

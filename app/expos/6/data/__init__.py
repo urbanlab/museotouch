@@ -34,7 +34,7 @@ def build(app):
             size=(250, 500))
     scatter = date_slider_scatter = Scatter(size=app.date_slider.size,
             auto_bring_to_front = False,
-            pos = (600,200),
+            pos = (550,200),
             #pos_hint={'y': 0.01, 'center_x': .5},
             size_hint=(None, None), rotation=-90, scale=0.9,
             do_translate=False, do_rotate=False, do_scale=False)
@@ -58,7 +58,7 @@ def build(app):
             size=imagemap.size,
             #pos_hint={'x': 0.61, 'center_y': .55},
             #pos_hint={'y': 0.61},
-            pos = (50,40),
+            pos = (0,40),
             rotation=0, 
             scale=0.4,
             do_translation=False, do_rotation=False, do_scale=False)
@@ -79,7 +79,7 @@ def build(app):
             auto_bring_to_front=False,
             #pos_hint={'x': 0.01, 'center_y': 0.5},
             size_hint=(None, None),
-            pos = (1325,-230),
+            pos = (1275,-230),
             rotation=0, 
             scale=0.9,
             do_translation=False, do_rotation=False, do_scale=False)
@@ -110,9 +110,9 @@ def build(app):
     kwargs = {'size_hint': (None, None), 'size': (44, 44),
             'border': (0, 0, 0, 0)}
     ordering_origin = o = Button(
-            background_normal='widgets/classer.png',
-            background_down='widgets/classer_down.png',
-            pos = (50,10),
+            background_normal='widgets/circle_filter.png',
+            background_down='widgets/circle_filter_down.png',
+            pos = (0,10),
             **kwargs)
     ordering_origin.bind(on_release=app.do_ordering_origin)
     root.add_widget(ordering_origin)
@@ -142,9 +142,9 @@ def build(app):
     kwargs = {'size_hint': (None, None), 'size': (44, 44),
             'border': (0, 0, 0, 0)}
     ordering_keywords = o = Button(
-            pos = (1325,10),
-            background_normal='widgets/classer.png',
-            background_down='widgets/classer_down.png',
+            pos = (1275,10),
+            background_normal='widgets/circle_filter.png',
+            background_down='widgets/circle_filter_down.png',
             **kwargs)
     ordering_keywords.bind(on_release=app.do_ordering_keywords)
     root.add_widget(ordering_keywords)
@@ -173,9 +173,9 @@ def build(app):
     kwargs = {'size_hint': (None, None), 'size': (44, 44),
             'border': (0, 0, 0, 0)}
     ordering_datation = o = Button(
-            pos = (627,10),
-            background_normal='widgets/classer.png',
-            background_down='widgets/classer_down.png',
+            pos = (577,10),
+            background_normal='widgets/circle_filter.png',
+            background_down='widgets/circle_filter_down.png',
             **kwargs)
     ordering_datation.bind(on_release=app.do_ordering_datation)
     root.add_widget(ordering_datation)
@@ -202,7 +202,7 @@ def build(app):
     # Create a basket widget
     # This button is on the bottom/left part of the screen
     kwargs = {'pos_hint':{'right': 1, 'top': 1},'size_hint': (None, None), 'size': (130, 55),
-            'border': (0, 0, 0, 0), 'color' : (0,0,0,1), 'bold' : True}
+            'border': (50, 50, 50, 50), 'color' : (0,0,0,1), 'bold' : True}
     #active to False disables the basket
     #email_send to True activates sending the url of the basket by email
     #url_send to True activates sending the url of the basket to a specific url 
@@ -222,5 +222,4 @@ def build(app):
 
     # -------------------------------------------------------------------------
     return root
-
 

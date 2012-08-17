@@ -70,20 +70,21 @@ class Keywords(Accordion):
         accitem = None
         accgroup = None
         for item in value:
-            # create new accordion
-            k = {}
-            if self.title_template:
-                k['title_template'] = self.title_template
-            accitem = AccordionItem(title=item['group'], **k)
-            self.add_widget(accitem)
-            # create new group
-            accgroup = KeywordsGroup(title=item['group'], accitem=accitem)
-            accitem.add_widget(accgroup)
-            children = item['children']
-            if self.alphabetical_sort:
-                children.sort(key=lambda x: x['name'])
-            for child in children:
-                keyword = Keyword(text=child['name'], text_id=child['id'],
-                        controler=self, group=accgroup)
-                accgroup.add_widget(keyword)
+            if item['group'].find('filtre') == -1: # We don't use groups with "filtre" in the name, -> only for imagebuttons
+                # create new accordion
+                k = {}
+                if self.title_template:
+                    k['title_template'] = self.title_template
+                accitem = AccordionItem(title=item['group'], **k)
+                self.add_widget(accitem)
+                # create new group
+                accgroup = KeywordsGroup(title=item['group'], accitem=accitem)
+                accitem.add_widget(accgroup)
+                children = item['children']
+                if self.alphabetical_sort:
+                    children.sort(key=lambda x: x['name'])
+                for child in children:
+                    keyword = Keyword(text=child['name'], text_id=child['id'],
+                            controler=self, group=accgroup)
+                    accgroup.add_widget(keyword)
 

@@ -14,40 +14,20 @@ class BackendItem(dict):
         return self['orig_geo']
 
     @property
-    def freefield(self):
-        return self['freefield']
-
-    @property
-    def origin_key(self):
-        return convert_to_key(self.origin)
+    def origin_ex(self):
+        return self['orig_geo_prec']
 
     @property
     def title(self):
         return self['nom']
 
-    @property
-    def description(self):
-        return self['cartel']
+    # @property
+    # def description(self):
+    #     return self['cartel']
 
     @property
-    def datation(self):
-        return self['datation']
-
-    @property
-    def date_crea(self):
-        return self['date_crea']
-
-    @property
-    def date_acqui(self):
-        return self['date_acqui']
-
-    @property
-    def origin_ex(self):
-        return self['orig_geo_prec']
-
-    @property
-    def keywords(self):
-        return self['keywords']
+    def origin_key(self):
+        return convert_to_key(self.origin)
 
     @property
     def medias(self):
@@ -65,6 +45,16 @@ class BackendItem(dict):
             return int(self['taille'])
         except:
             return 0
+
+    def __getattr__(self, nom):
+        """ Si l'attribut n'est pas dans ceux ci dessus, c'est un item du JSON : """
+        if nom in self:  # renvoie None sinon
+            return self[nom]
+        else:
+            raise AttributeError(nom)
+
+    def __setattr__(self, nom, val):
+        self[nom] = val
 
 class Backend(object):
     def __init__(self, **options):
