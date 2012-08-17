@@ -10,7 +10,7 @@ from museolib.widgets.imagebuttons import ImageButtons
 from museolib.widgets.keywords import Keywords
 from museolib.widgets.basket import Basket
 from museolib.widgets.circularslider import CircularSlider
-from museolib.widgets.calendarslider import CalendarSlider 
+# from museolib.widgets.calendarslider import CalendarSlider 
 from kivy.utils import platform
 from kivy.animation import Animation
 
