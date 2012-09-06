@@ -199,6 +199,9 @@ class MuseotouchApp(App):
                 defs.pop('center', None)
                 defs['center'] = p['center']
                 defs['rotation'] = p['rotation']
+    
+            if self.root.square_items == True:
+                defs['square'] = True
 
             center = defs.pop('center')
             rotation = defs.pop('rotation')
@@ -649,6 +652,10 @@ class MuseotouchApp(App):
         # type_expo introduced for nuits sonores ("ns")
         if not hasattr(root, 'type_expo'):
             root.type_expo = 'normal'
+
+        #resize dds file in items for an item without black margins
+        if not hasattr(root, 'square_items'):
+            root.square_items = False
 
         # add root layer for putting image
         self.root_images = FloatLayout()

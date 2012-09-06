@@ -72,14 +72,13 @@ class CalendarSlider(FloatLayout):
                 self.days = False
             else:
                 self.days = True
-
+        
         self.slider_h.bind(
             value_min=self.up_min_hours,
             value_max=self.up_max_hours)
         self.slider_d.bind(
             value_min=self.up_min_days,
             value_max=self.up_max_days)
-
         #self.bind(update=self.foo)
 
     def foo(self, *args):

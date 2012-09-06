@@ -3,7 +3,8 @@ from museolib.utils import convert_to_key
 class BackendItem(dict):
     @property
     def date(self):
-        return int(self['date_crea'])
+        if 'date_crea' in self:
+            return int(self['date_crea'])
 
     @property
     def id(self):
@@ -11,11 +12,13 @@ class BackendItem(dict):
 
     @property
     def origin(self):
-        return self['orig_geo']
+        if 'orig_geo' in self:
+            return self['orig_geo']
 
     @property
     def origin_ex(self):
-        return self['orig_geo_prec']
+        if 'orig_geo_prec' in self:
+            return self['orig_geo_prec']
 
     @property
     def title(self):
@@ -51,6 +54,8 @@ class BackendItem(dict):
         if nom in self:  # renvoie None sinon
             return self[nom]
         else:
+            if nom == 'description':
+                import pdb; pdb.set_trace()
             raise AttributeError(nom)
 
     def __setattr__(self, nom, val):

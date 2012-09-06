@@ -74,7 +74,7 @@ class ScrollViewItem(Image):
         self.isOrange = False
     
     def updateSize(self, width, height):
-        xOrigin = self.image.texture.width /2 - self.width/2
+        xOrigin = self.image.texture.width /2 - width/2
         self.texture = self.image.texture.get_region(xOrigin, 0, width, height)
 
     def show_object(self):

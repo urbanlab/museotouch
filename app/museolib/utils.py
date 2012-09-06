@@ -56,7 +56,10 @@ class send_mail:  # s'utilise comme une fonction
 
     def send_email(self, req, resp):
         url_mail = self.url + self.api['mail'][0] + self.id_basket + self.api['mail'][1] + self.email_to + self.api['mail'][2] + self.email_from
-        self.rep = UrlRequest(url_mail)
+        self.rep = UrlRequest(url_mail, self.on_success, self.on_error)
+
+    def on_success(self, *args, **kwargs):
+        print '<success SendMail>'
 
     def on_error(self, *args, **kwargs):
         print '<error SendMail>'

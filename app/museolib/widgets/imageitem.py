@@ -123,11 +123,13 @@ class ImageItem(Scatter):
     img_square = ObjectProperty(None)
     
     def __init__(self, *args, **kwargs):
+
         square = False
         if 'square' in kwargs and kwargs['square'] == True:
             square = True
             del kwargs['square']
         super(ImageItem, self).__init__(**kwargs)
+        self.on_start()
         if square:
             # Rognage => maximum square :
             my_ceil = lambda n: 0 if n < 0 else n
@@ -138,6 +140,9 @@ class ImageItem(Scatter):
             h = min(L,H)
             #import pdb; pdb.set_trace()
             self.img_square.texture = self.img_square.texture.get_region(x, y, w, h)
+
+    def on_start(self):
+        print 'start'
 
     def on_touch_down(self, touch):
         ret = super(ImageItem, self).on_touch_down(touch)
