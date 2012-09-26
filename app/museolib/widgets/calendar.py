@@ -85,7 +85,8 @@ class CalendarSlider(FloatLayout):
         print '* calendar widget has been updated'
 
     def accepts(self, strdate):
-        #print strdate
+        if len(strdate) == 0:
+            return True
         if len(strdate) <= 4: # juste une annee
             date = datetime(year=int(strdate), month=7, day=1)
         else:

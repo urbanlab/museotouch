@@ -83,4 +83,4 @@ class ImageMap(FloatLayout):
         get_id = self.get_filename_id
         self.active_ids = [get_id(x.source_original) for x \
                 in self.children if x.active]
-        print 'Image map "orig" changed to', self.active_ids
+        #print 'Image map "orig" changed to', self.active_ids

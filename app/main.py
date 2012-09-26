@@ -227,7 +227,7 @@ class MuseotouchApp(App):
                     images.remove(filename)
                     continue
 
-                x = randint(root.x + 200, root.right - 200)
+                x = randint(self.root_images.x + 200, self.root_images.right - 200)
                 y = randint(root.y + 300, root.top - 100)
                 angle = randint(0, 360)
 
