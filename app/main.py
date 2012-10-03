@@ -923,16 +923,16 @@ class MuseotouchApp(App):
                 items.remove(item)
                 continue
             need_sync = True
-            print 'check', item['id']
+            # print 'check', item['id']
             for fichier in fichiers:
                 fichier = fichier['fichier']
                 if not self._sync_is_filename_of_item(item, fichier):
-                    print ' ### The file <{0}> is not downloaded - yet.'.format(fichier)
+                    # print ' ### The file <{0}> is not downloaded - yet.'.format(fichier)
                     from museolib.utils import no_url
                     filepath = join(self.expo_dir, 'otherfiles', no_url(fichier))
-                    print ' ### It could be downloaded in', filepath
+                    # print ' ### It could be downloaded in', filepath
                     if not isfile(join(self.expo_dir, 'otherfiles', no_url(fichier))):
-                        print ' ### (this file does not exist yet - let"s download it !)'
+                        # print ' ### (this file does not exist yet - let"s download it !)'
 
                         # def chunk_report(here, step, total):
                         #     print here, '/', total, '// +', step
@@ -974,15 +974,15 @@ class MuseotouchApp(App):
                         # output.write(f.read())
                         # output.close()
 
-                    else:
-                        print ' ### (this file already exists)'
+                    # else:
+                    #     print ' ### (this file already exists) : '
 
                     continue
                 item['__item_filename__'] = fichier
                 filename, ext = self._sync_convert_filename(fichier)
                 local_filename = self._sync_get_local_filename(filename)
                 if not exists(local_filename):
-                    print '2'
+                #     print '2'
                     continue
 
                 # now, ensure the md5 is the same

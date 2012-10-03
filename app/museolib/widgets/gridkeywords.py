@@ -14,13 +14,9 @@ from kivy.properties import ListProperty, BooleanProperty, ObjectProperty, \
 class GridKeyword(ToggleButton):
 
     selected = BooleanProperty(False)
-
     controler = ObjectProperty(None)
-
     group = ObjectProperty(None)
-
     text_id = StringProperty(None)
-
     all_keys = ObjectProperty(None)
 
     def on_touch_down(self, touch):
@@ -31,40 +27,40 @@ class GridKeyword(ToggleButton):
 
     def on_selected(self, instance, value):
         keywords = self.controler.selected_keywords
-        unselected_keys = []
-        for key in self.all_keys:
-            if key != self.text_id:
-                unselected_keys.append(key)
+        # unselected_keys = []
+        # for key in self.all_keys:
+        #     if key != self.text_id:
+        #         unselected_keys.append(key)
 
-        key = (self.group, unselected_keys)
-        
+        # key = (self.group, unselected_keys)
+        # for prout in keywords:
+        #     if self.group in prout:
+        #         keywords.remove(prout)
 
-        for prout in keywords:
-            if self.group in prout:
-                keywords.remove(prout)
+        # if key in keywords:
+        #         keywords.remove(key)
 
+        # if self.state == 'down':
+        #     if not key in keywords:
+        #         keywords.append(key)
+
+        key = (self.group, self.text_id)
+
+        for keyw in keywords:
+            if self.group in keyw:
+                keywords.remove(keyw)
+               
         if key in keywords:
-                keywords.remove(key)
+            keywords.remove(key)
 
         if self.state == 'down':
             if not key in keywords:
                 keywords.append(key)
 
 class GridKeywordsGroup(GridLayout):
-
     title = StringProperty('')
-
     accitem = ObjectProperty(None)
-
     count_selected = NumericProperty(0)
-
-    # def on_count_selected(self, instance, value):
-        # text = '%s' % self.title
-        # if value > 0:
-        #     #text += ' (%d)' % value
-        #     text += ' *'
-        # self.accitem.title = text
-
 
 class GridKeywords(GridLayout):
 
@@ -86,13 +82,6 @@ class GridKeywords(GridLayout):
         accgroup = None
         for item in value:
             if item['group'].find('filtre') == -1 : # We don't use groups with "filtre" in the name, -> only for imagebuttons
-                # create new accordion
-                # k = {}
-                # if self.title_template:
-                #     k['title_template'] = self.title_template
-                # accitem = AccordionItem(title=item['group'], **k)
-                # self.add_widget(accitem)
-
                 # create new group
                 accgroup = GridKeywordsGroup(title=item['group'])#, accitem=accitem)
                 self.add_widget(accgroup)
