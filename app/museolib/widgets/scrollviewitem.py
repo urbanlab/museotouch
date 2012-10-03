@@ -34,7 +34,7 @@ class ScrollViewItem(Image):
     source = StringProperty(None)
     itemWidth = NumericProperty(None)
     totalHeight = NumericProperty(None)
-    animOrange = Animation(color = [0.90,0.29,0.157,1], duration=0.1)   
+    animTouch = Animation(color = [0.90,0.29,0.157,1], duration=0.1)   
     animWhite = Animation(color = [1,1,1,1], duration=0.1)
     
     isOrange = False
@@ -51,14 +51,14 @@ class ScrollViewItem(Image):
         if not self.collide_point(*touch.pos):
             return
         touch.grab(self)
-        self.animOrange.bind(on_complete = self.isOrangeAnimationFinished)
+        self.animTouch.bind(on_complete = self.isOrangeAnimationFinished)
         self.animWhite.stop(self)
-        self.animOrange.start(self)        
+        self.animTouch.start(self)        
         return True
  
     def on_touch_up(self,touch):
         if touch.grab_current is self:
-            self.animOrange.stop(self)
+            self.animTouch.stop(self)
         if (self.isOrange == True): 
             self.show_object()
         self.animWhite.bind(on_complete = self.isWhiteAnimationFinished)
