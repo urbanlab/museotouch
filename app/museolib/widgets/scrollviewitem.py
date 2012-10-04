@@ -46,7 +46,6 @@ class ScrollViewItem(Image):
         self.texture = self.image.texture.get_region(xOrigin, 0, self.itemWidth, self.totalHeight)
         self.imgItem = None
 
-    
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
@@ -58,9 +57,9 @@ class ScrollViewItem(Image):
  
     def on_touch_up(self,touch):
         if touch.grab_current is self:
-            self.animTouch.stop(self)
-        if (self.isOrange == True): 
-            self.show_object()
+            self.animTouch.cancel(self)
+            if (self.isOrange == True): 
+                self.show_object()
         self.animWhite.bind(on_complete = self.isWhiteAnimationFinished)
         
         self.animWhite.start(self)      
