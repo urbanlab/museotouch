@@ -77,20 +77,6 @@ class ScrollViewItem(Image):
         self.texture = self.image.texture.get_region(xOrigin, 0, width, height)
 
     def show_object(self):
-        
-        #source = u'expos/4/images/dds/42.dds'
-        #if source not in self.images_displayed:
-        #    return
-        #current_images = [x.source for x in self.root_images.children]
-        #if source in current_images:
-        #    return
-
-        #images_pos = self.images_pos
-        #if source in images_pos:
-        #    p = images_pos[source]
-        #    defs.pop('center', None)
-        #    defs['center'] = p['center']
-        #    defs['rotation'] = p['rotation']
         if self.imgItem is None:
             center = self.center #defs.pop('center')
             rotation = random.randint(0,359) #defs.pop('rotation')
@@ -102,6 +88,3 @@ class ScrollViewItem(Image):
             item.center = center
             item.barre = self
             self.imgItem = item
-        #images_pos[source] = {
-        #    'center': item.center,
-        #    'rotation': item.rotation}

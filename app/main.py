@@ -215,88 +215,89 @@ class MuseotouchApp(App):
 
     def show_objects(self, objects):
         root = self.root
-        if root.type_expo == 'normal':
-            images = [x.source for x in self.root_images.children]
+        if isinstance(self.root_images.x, (int, long)):
+            if root.type_expo == 'normal':
+                images = [x.source for x in self.root_images.children]
 
-            images_to_add = []
-            images_displayed = []
-            for item in objects:
-                # is the current filename is already showed ?
-                filename = item.filename
-                if filename in images:
-                    images.remove(filename)
-                    continue
+                images_to_add = []
+                images_displayed = []
+                for item in objects:
+                    # is the current filename is already showed ?
+                    filename = item.filename
+                    if filename in images:
+                        images.remove(filename)
+                        continue
 
-                x = randint(self.root_images.x + 200, self.root_images.right - 200)
-                y = randint(root.y + 300, root.top - 100)
-                angle = randint(0, 360)
+                    x = randint(self.root_images.x + 200, self.root_images.right - 200)
+                    y = randint(root.y + 300, root.top - 100)
+                    angle = randint(0, 360)
 
-                image = dict(source=filename, rotation=angle + 90,
-                        center=(x, y), item=item, app=self)
-                images_to_add.append(image)
-                images_displayed.append(filename)
+                    image = dict(source=filename, rotation=angle + 90,
+                            center=(x, y), item=item, app=self)
+                    images_to_add.append(image)
+                    images_displayed.append(filename)
 
-            self.images_displayed = images_displayed
-            delayed_work(self.show_object, images_to_add)
+                self.images_displayed = images_displayed
+                delayed_work(self.show_object, images_to_add)
 
-            # remove all the previous images
-            for child in self.root_images.children[:]:
-                for filename in images:
-                    if filename == child.source:
-                        self.images_pos[filename] = {
-                            'center': child.center,
-                            'rotation': child.rotation }
-                        self.root_images.remove_widget(child)
-        elif root.type_expo == 'ns':
-            #rrr()
-            images = [x.source for x in root.scroller.layout.children]
+                # remove all the previous images
+                for child in self.root_images.children[:]:
+                    for filename in images:
+                        if filename == child.source:
+                            self.images_pos[filename] = {
+                                'center': child.center,
+                                'rotation': child.rotation }
+                            self.root_images.remove_widget(child)
+            elif root.type_expo == 'ns':
+                #rrr()
+                images = [x.source for x in root.scroller.layout.children]
 
-            images_to_add = []
-            images_displayed = []
-            for item in objects:
-                # is the current filename already showed ?
-                filename = item.filename
-                if filename in images:
-                    images.remove(filename)
-                    continue
+                images_to_add = []
+                images_displayed = []
+                for item in objects:
+                    # is the current filename already showed ?
+                    filename = item.filename
+                    if filename in images:
+                        images.remove(filename)
+                        continue
 
-                image = dict(source=filename, item=item, app=self)
-                images_to_add.append(image)
-                images_displayed.append(filename)
+                    image = dict(source=filename, item=item, app=self)
+                    images_to_add.append(image)
+                    images_displayed.append(filename)
 
-            self.images_displayed = images_displayed
-            #delayed_work(self.show_object, images_to_add)
+                self.images_displayed = images_displayed
+                #delayed_work(self.show_object, images_to_add)
 
-            # remove all the previous images
-            for child in root.scroller.layout.children[:]:
-                for filename in images:
-                    if filename == child.source:
-                        root.scroller.layout.remove_widget(child)
-                        if child.imgItem is not None:
-                            if hasattr(child.imgItem, 'sound'):
-                                child.imgItem.sound.stop()
-                                child.imgItem.sound.unload()
-                            child.imgItem.parent.remove_widget(child.imgItem)
+                # remove all the previous images
+                for child in root.scroller.layout.children[:]:
+                    for filename in images:
+                        if filename == child.source:
+                            root.scroller.layout.remove_widget(child)
+                            if child.imgItem is not None:
+                                if hasattr(child.imgItem, 'sound'):
+                                    child.imgItem.sound.stop()
+                                    child.imgItem.sound.unload()
+                                child.imgItem.parent.remove_widget(child.imgItem)
 
-            # show_object is not called because we make the display process here
-            winWidth = Window.width
-            totalHeight = Window.height * 0.8
-            try:
-                itemWidth = winWidth / len(objects)
-            except ZeroDivisionError:
-                itemWidth = winWidth
-            
-            if itemWidth < 200:
-                itemWidth = 200
+                # show_object is not called because we make the display process here
+                winWidth = Window.width
+                totalHeight = Window.height * 0.8
+                try:
+                    itemWidth = winWidth / len(objects)
+                except ZeroDivisionError:
+                    itemWidth = winWidth
+                
+                if itemWidth < 200:
+                    itemWidth = 200
 
-            root.scroller.layout.col_default_width = itemWidth
-            root.scroller.layout.bind(minimum_width=root.scroller.layout.setter('width'))
-            
-            for img in images_to_add:
-                item = ScrollViewItem(source = img['source'], itemWidth = itemWidth, totalHeight = totalHeight, app=self)
-                item.db_item = img['item']
-                root.scroller.layout.add_widget(item)
-            root.scroller.updateItemSize()
+                root.scroller.layout.col_default_width = itemWidth
+                root.scroller.layout.bind(minimum_width=root.scroller.layout.setter('width'))
+                
+                for img in images_to_add:
+                    item = ScrollViewItem(source = img['source'], itemWidth = itemWidth, totalHeight = totalHeight, app=self)
+                    item.db_item = img['item']
+                    root.scroller.layout.add_widget(item)
+                root.scroller.updateItemSize()
 
     def update_objects_from_filter(self, *largs):
         '''Update the objects displayed from filters (date range, origin...)
