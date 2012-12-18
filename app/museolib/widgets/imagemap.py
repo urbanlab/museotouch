@@ -41,6 +41,12 @@ class ImageMapItem(Image):
             return False
         if color[-1] == 0:
             return False
+        if self.parent.show_one_cat_only:
+            for child in self.parent.children:
+                if not child == self:
+                    if child.active == True:
+                        child.active = False
+                        child.source = child.source_original
         self.active = not self.active
         self.source = self.source_active if self.active \
                 else self.source_original
@@ -51,6 +57,7 @@ class ImageMap(FloatLayout):
     suffix = StringProperty('')
     sources = ListProperty([])
     active_ids = ListProperty([])
+    show_one_cat_only = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         self._update_images = Clock.create_trigger(self.update_images, -1)
