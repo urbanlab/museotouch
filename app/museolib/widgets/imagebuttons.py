@@ -13,10 +13,12 @@ class ImageButtonItem(Image):
     source_active = StringProperty(None)
     source_original = StringProperty(None)   
 
-    def on_touch_down(self, touch):
+    def on_touch_up(self, touch):
         if not self.collide_point(*touch.pos):
             return
-        return self.toggle_active(touch)
+        delay = touch.time_update - touch.time_start
+        if delay < 0.3:
+            return self.toggle_active(touch)
     
     def texture_update(self, *largs):
         if not self.source:
@@ -29,7 +31,7 @@ class ImageButtonItem(Image):
             self._coreimage = image
     
     def set_active(self):
-	self.active = not self.active
+        self.active = not self.active
         self.source = self.source_active if self.active \
             else self.source_original
 	
@@ -46,6 +48,12 @@ class ImageButtonItem(Image):
             return False
         if color[-1] == 0:
             return False
+        if self.parent.show_one_cat_only:
+            for child in self.parent.children:
+                if not child == self:
+                    if child.active == True:
+                        child.active = False
+                        child.source = child.source_original
         self.active = not self.active
         self.source = self.source_active if self.active \
             else self.source_original
@@ -57,6 +65,7 @@ class ImageButtons(FloatLayout):
     sources = ListProperty([])
     active_ids = ListProperty([])
     show_objects_when_empty = BooleanProperty(False)
+    show_one_cat_only = BooleanProperty(False)
     
     def __init__(self, **kwargs):
         self._update_images = Clock.create_trigger(self.update_images, -1)
@@ -90,4 +99,4 @@ class ImageButtons(FloatLayout):
         get_id = self.get_filename_id
         self.active_ids = [get_id(x.source_original) for x \
                            in self.children if x.active]
-        print 'Image Buttons "key" changed to', self.active_ids
+        # print 'Image Buttons "key" changed to', self.active_ids

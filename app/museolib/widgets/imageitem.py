@@ -9,6 +9,9 @@ from kivy.uix.label import Label
 from os.path import splitext, join, isfile
 from pdb import set_trace as rrr
 
+from kivy.vector import Vector
+import time
+
 try:
     import android
     is_android = True
@@ -157,6 +160,13 @@ class ImageItem(Scatter):
         self.counter += 1
         #remember init pos in case of a drag to basket
         self.last_touch_down_pos = touch.pos
+
+        #### MOMENTUM ####
+        # Animation.stop_all(self, 'pos')
+        # if not hasattr(self, 'isMoving'):
+        #     self.isMoving = False
+        # self.isMoving = False
+        #### MOMENTUM ####
         return True
     
     def on_touch_move(self, touch):
@@ -192,6 +202,30 @@ class ImageItem(Scatter):
 
     def on_touch_up(self, touch):
         ret = super(ImageItem, self).on_touch_up(touch)
+
+        ##### MOMENTUM ######
+        # print touch.px, touch.py, touch.x, touch.y, touch.time_end - touch.time_start, touch.time_update
+
+        # lastPos = (touch.px, touch.py)
+        # currentPos = (touch.x, touch.y)
+        # deltaV = Vector(currentPos) - Vector(lastPos)
+        # nextPos = Vector(self.pos) + (deltaV * 5)
+        # distance = Vector(lastPos).distance(currentPos)
+
+        # if distance > 0:
+        #     length = time.time() - touch.time_update
+        #     if length > 0:
+        #         velocity = distance / length
+        #         duration = 1000/velocity
+        #         if not self.isMoving:
+        #             def reset_on_moving(arg):
+        #                 self.isMoving = False
+        #             anim = Animation(pos = nextPos, duration= duration, t = 'out_cubic')
+        #             anim.on_complete = reset_on_moving
+        #             anim.start(self)
+        #             self.isMoving = True
+
+        ##### MOMENTUM ######
 
         # whatever is happening, if this touch was a touch used for counter,
         # remove it.

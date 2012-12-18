@@ -823,7 +823,7 @@ class MuseotouchApp(App):
         Logger.info('Museotouch: Synchronization part 2')
         # write result to data.zip
         zipfilename = join(self.expo_dir, 'data.zip')
-        with open(zipfilename, 'w') as fd:
+        with open(zipfilename, 'wb') as fd:
             fd.write(result)
 
         # uncompress in current directory
