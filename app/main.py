@@ -39,20 +39,24 @@ from imp import load_source
 from math import ceil
 from functools import partial
 
+from kivy.support import install_twisted_reactor
+install_twisted_reactor()
+
 from pdb import set_trace as rrr
 import time
 
-def delayed_work(func, items, delay=0):
-    if not items:
-        return
-    def _delayed_work(*l):
-        item = items.pop()
-        if func(item) is False or not len(items):
-            return False
-        Clock.schedule_once(_delayed_work, delay)
-    Clock.schedule_once(_delayed_work, delay)
-
 class MuseotouchApp(App):
+
+    def delayed_work(self, func, items, delay=0):
+        if not items:
+            return
+        def _delayed_work(*l):
+            item = items.pop()
+            self.items_to_add = len(items)
+            if func(item) is False or not len(items):
+                return False
+            Clock.schedule_once(_delayed_work, delay)
+        Clock.schedule_once(_delayed_work, delay)
 
     @property
     def mode(self):
@@ -238,7 +242,7 @@ class MuseotouchApp(App):
                     images_displayed.append(filename)
 
                 self.images_displayed = images_displayed
-                delayed_work(self.show_object, images_to_add)
+                self.delayed_work(self.show_object, images_to_add)
 
                 # remove all the previous images
                 for child in self.root_images.children[:]:
@@ -541,6 +545,8 @@ class MuseotouchApp(App):
         # list of removed objects
         self.images_displayed = []
         self.images_pos = {}
+
+        self.items_to_add = 0  #Number of items waiting for display
 
         # add data directory as a resource path
         self.data_dir = data_dir = join(dirname(museolib.__file__), 'data')
@@ -894,7 +900,10 @@ class MuseotouchApp(App):
 
     def aft(self, req, result):
         ''' fonction appelee quand un fichier secondaire a fini son telechargement '''
-        filepath = join(self.expo_dir, 'otherfiles', no_url(req.url))
+        if not exists(join(self.expo_dir, 'otherfiles')):
+            makedirs(join(self.expo_dir, 'otherfiles'))
+        # filepath = join(self.expo_dir, 'otherfiles', no_url(req.url))
+        filepath = join(self.expo_dir, 'otherfiles', basename(req.url))
         output = open(filepath, 'wb')
         output.write(result) # fichier sauvegarde
         output.close()
