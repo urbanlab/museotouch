@@ -141,11 +141,11 @@ class ImageItem(Scatter):
             y = my_ceil(H-L)/2
             w = min(L,H)
             h = min(L,H)
-            #import pdb; pdb.set_trace()
             self.img_square.texture = self.img_square.texture.get_region(x, y, w, h)
 
     def on_start(self):
-        print 'start'
+        #Replace this function in init.py to personnalize dynamically an image item 
+        pass
 
     def on_touch_down(self, touch):
         ret = super(ImageItem, self).on_touch_down(touch)
