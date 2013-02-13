@@ -15,7 +15,7 @@ class ImageButtonItem(Image):
 
     def on_touch_up(self, touch):
         if not self.collide_point(*touch.pos):
-            return
+            return False
         delay = touch.time_update - touch.time_start
         if delay < 0.3:
             return self.toggle_active(touch)
@@ -41,13 +41,16 @@ class ImageButtonItem(Image):
         y -= self.y
         x = int(x)
         y = int(y)
+        y = self.parent.height - y # Because texture is flipped vertically in kivy 1.5.0
         coreimage = self._coreimage
         try:
             color = coreimage.read_pixel(x, y)
         except IndexError:
             return False
+        print color[3]
         if color[-1] == 0:
             return False
+
         if self.parent.show_one_cat_only:
             for child in self.parent.children:
                 if not child == self:

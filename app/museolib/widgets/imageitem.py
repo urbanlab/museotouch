@@ -147,10 +147,11 @@ class ImageItem(Scatter):
         #Replace this function in init.py to personnalize dynamically an image item 
         pass
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch): 
         ret = super(ImageItem, self).on_touch_down(touch)
         if not ret:
             return
+
         if self.counter == 0:
             Animation(alpha_button=1., t='out_quad', d=0.3).start(self)
         if is_android and touch.is_double_tap:
@@ -158,6 +159,7 @@ class ImageItem(Scatter):
         uid = '%s_counter' % self.uid
         touch.ud[uid] = True
         self.counter += 1
+        touch.ud['counter'] = self.counter
         #remember init pos in case of a drag to basket
         self.last_touch_down_pos = touch.pos
 
@@ -175,8 +177,9 @@ class ImageItem(Scatter):
         #check if the item collides with the basket
         #get basket center point
         if self.basket == None : 
-            self.basket = self.app.basket
-        basket = self.basket
+            self.basket = self.app.basket 
+        basket = self.basket 
+
         if basket.active : 
             x,y = basket.center
             #check if collides with the basket
@@ -195,15 +198,15 @@ class ImageItem(Scatter):
                 else :
                     pos = (100,100)  
                 anim = Animation(center = pos, duration = .5, t='out_quad' )
-                anim.start(self)
-                    
-                    
+                anim.start(self)       
         return ret
 
     def on_touch_up(self, touch):
+        if not touch.grab_current == self:
+            return False
         ret = super(ImageItem, self).on_touch_up(touch)
 
-        ##### MOMENTUM ######
+        # ##### MOMENTUM ######
         # print touch.px, touch.py, touch.x, touch.y, touch.time_end - touch.time_start, touch.time_update
 
         # lastPos = (touch.px, touch.py)
@@ -217,13 +220,15 @@ class ImageItem(Scatter):
         #     if length > 0:
         #         velocity = distance / length
         #         duration = 1000/velocity
-        #         if not self.isMoving:
-        #             def reset_on_moving(arg):
-        #                 self.isMoving = False
-        #             anim = Animation(pos = nextPos, duration= duration, t = 'out_cubic')
-        #             anim.on_complete = reset_on_moving
-        #             anim.start(self)
-        #             self.isMoving = True
+
+        #         if hasattr(self, 'isMoving'):
+        #             if not self.isMoving:
+        #                 def reset_on_moving(arg):
+        #                     self.isMoving = False
+        #                 anim = Animation(pos = nextPos, duration= duration, t = 'out_cubic')
+        #                 anim.on_complete = reset_on_moving
+        #                 anim.start(self)
+        #                 self.isMoving = True
 
         ##### MOMENTUM ######
 
@@ -310,12 +315,13 @@ class ImageItem(Scatter):
         parent = self.parent
         if not parent:
             return
-        x, y = value
-        x = max(parent.x, x)
-        y = max(parent.y, y)
-        x = min(parent.right, x)
-        y = min(parent.top, y)
-        self.center = x, y
+        # causing problems when the item scale was too important
+        # x, y = value
+        # x = max(parent.x, x)
+        # y = max(parent.y, y)
+        # x = min(parent.right, x)
+        # y = min(parent.top, y)
+        # self.center = x, y
 
     def on_parent(self, instance, value):
         if value is None and self.content:

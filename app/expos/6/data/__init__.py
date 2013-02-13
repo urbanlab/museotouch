@@ -207,7 +207,7 @@ def build(app):
     #email_send to True activates sending the url of the basket by email
     #url_send to True activates sending the url of the basket to a specific url 
     app.basket = basket = Basket(
-        active = True,
+        active = False,
         background_normal='widgets/corner_topright.png',
         background_down='widgets/corner_topright_down.png',
         email_send = True,

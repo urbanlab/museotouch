@@ -34,6 +34,7 @@ class ImageMapItem(Image):
         y -= self.y
         x = int(x)
         y = int(y)
+        y = self.parent.height - y # Because texture is flipped vertically in kivy 1.5.0
         coreimage = self._coreimage
         try:
             color = coreimage.read_pixel(x, y)
