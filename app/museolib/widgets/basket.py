@@ -16,7 +16,7 @@ from kivy.properties import ObjectProperty, NumericProperty, StringProperty, \
 from kivy.logger import Logger
 from kivy.graphics import Color, Line, Rectangle#, LineWidth
 #from kivy.clock import Clock
-from kivy.core.image import Image
+from kivy.uix.image import Image
 from kivy.animation import Animation
 from kivy.network.urlrequest import UrlRequest
 
@@ -25,6 +25,8 @@ from os import listdir
 from json import loads
 from random import random
 import urllib2, urllib
+
+from kivy.uix.gridlayout import GridLayout
 
 class EmailForm(Widget):
     app = ObjectProperty(None)
@@ -71,14 +73,16 @@ class Basket(Button):
         #counter label
         self.text = '       '+str(self.counter)+'\n  '
         #link action on press
-        self.bind(on_press = self.validate_basket)
+#        self.bind(on_press = self.validate_basket)
         self.url = self.app.config.get('museotouch', 'url')
         self.url_send_url = self.app.config.get('museotouch', 'url_send_url')
         self.email_send = ( self.app.config.get('museotouch', 'email_send') == 'True')
         self.url_send_detailed_item = ( self.app.config.get('museotouch', 'url_send_detailed_item') == 'True')
         self.url_send = ( self.app.config.get('museotouch', 'url_send') == 'True')
-        
-        
+    
+        # Add a layout to display added items
+        self.itemsLayout = GridLayout(cols=4, rows = 6, row_default_height=100, col_default_width = 100, spacing = 20, size_hint=(None,None))
+    
     def update_counter_label(self):
         self.text = '      '+str(self.counter)+'\n    '
 
@@ -96,14 +100,18 @@ class Basket(Button):
         else : 
             return False 
 
-    def add_item(self,id, item):
+    def add_item(self,id, item, imgItem = None):
         if not self.active : return
         self.counter +=1
         self.objects.append(id)
         self.objects_detailed[str(id)] = item
         self.update_counter_label()
         self.url_send_item(id, item)
-        print 'basket : add item '+str(id)
+        print 'basket : add item '+str(id), imgItem.source
+        # Add image from imgItem.source in self.itemsLayout + item.title
+        img = Image(source = imgItem.source, size = (100,100))
+        self.itemsLayout.add_widget(img)
+        
 
     def get_url(self,url):
         page = self.opener.open(url)

@@ -62,7 +62,7 @@ class ExpoSelector(FloatLayout):
             item = Builder.template('ExpoItem', selector=self, **expo)
             layout.add_expo(item)
         self.popup(content=layout, title='Liste des expositions',
-                size=(600, 700))
+                size=(1000, 800))
 
     def get_offline_expos(self):
         # minimal files to check

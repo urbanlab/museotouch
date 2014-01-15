@@ -2,18 +2,20 @@
 
 [ExpoItem@BoxLayout]:
 	size_hint_y: None
-	height: 100
-	orientation: 'horizontal'
+	height: 150
+	width: 150
+	orientation: 'vertical'
 
 	on_touch_down: ctx.selector.select_expo(ctx) if self.collide_point(*args[1].pos) else None
 
 	AsyncImage:
 		source: ctx.get('data', '')[0]
-		size_hint_x: .3
+		# size_hint_x: .3
+		size: 150,150
 
 	Label:
 		text: ctx.get('name', '')
-		size_hint_x: .7
+		size_hint_x: 1
 		text_size: self.width - 10, None
 		halign: 'center'
 
@@ -21,29 +23,30 @@
 	list_expos: list_expos
 	orientation: 'horizontal'
 
-	ScrollView:
-		GridLayout:
-			id: list_expos
-			size_hint_y: None
-			height: self.minimum_height
-			cols: 1
-			spacing: 10
-			padding: 10
+	# ScrollView:
+	GridLayout:
+		id: list_expos
+		size_hint_y: None
+		height: self.minimum_height
+		height: 700
+		cols: 5
+		spacing: 5
+		padding: 5
 
-	AnchorLayout:
-		StackLayout:
-			size_hint: None, None
-			orientation: 'lr-tb'
-			width: 150
+	# AnchorLayout:
+	# 	StackLayout:
+	# 		size_hint: None, None
+	# 		orientation: 'lr-tb'
+	# 		width: 150
 
-			Label:
-				text: 'Code exposition'
-				height: self.texture_size[1] + 10
+	# 		Label:
+	# 			text: 'Code exposition'
+	# 			height: self.texture_size[1] + 10
 
-			TextInput:
-				size_hint_y: None
-				multiline: False
-				height: 30
+	# 		TextInput:
+	# 			size_hint_y: None
+	# 			multiline: False
+	# 			height: 30
 
 		
 <KeywordsGroup>:

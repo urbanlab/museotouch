@@ -6,7 +6,11 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.video import Video
 from kivy.uix.image import AsyncImage
 from kivy.uix.label import Label
-from os.path import splitext
+from os.path import splitext, join, isfile
+from pdb import set_trace as rrr
+
+from kivy.vector import Vector
+import time
 
 try:
     import android
@@ -30,8 +34,17 @@ class ItemMediaBrowser(FloatLayout):
         name, ext = splitext(media)
         ext = ext[1:].lower()
 
+        # convert media url to local media path (all medias are already downloaded)
+        from museolib.utils import no_url
+        media = join(self.parent.parent.parent.parent.app.expo_dir, 'otherfiles', no_url(media))
+        if not isfile(media):
+            print " ### Oops, this media is not downloaded !"
         try:
-            if ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv'):
+            if ext in ('mp3', 'ogg', 'flac', 'wav'):
+                w = Label(text="It's a song : " + media)
+                if not isfile(media):
+                    w = Label(text="Song not downloaded.")
+            elif ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv'):
                 w = Video(source=media, play=True)
             else:
                 w = AsyncImage(source=media)
@@ -108,12 +121,37 @@ class ImageItem(Scatter):
 
     #: Color
     color = ListProperty([1, 1, 1, 1])
-    
 
-    def on_touch_down(self, touch):
+    #: If we want a square img
+    img_square = ObjectProperty(None)
+    
+    def __init__(self, *args, **kwargs):
+
+        square = False
+        if 'square' in kwargs and kwargs['square'] == True:
+            square = True
+            del kwargs['square']
+        super(ImageItem, self).__init__(**kwargs)
+        self.on_start()
+        if square:
+            # Rognage => maximum square :
+            my_ceil = lambda n: 0 if n < 0 else n
+            L,H = self.img_square.texture.size
+            x = my_ceil(L-H)/2
+            y = my_ceil(H-L)/2
+            w = min(L,H)
+            h = min(L,H)
+            self.img_square.texture = self.img_square.texture.get_region(x, y, w, h)
+
+    def on_start(self):
+        #Replace this function in init.py to personnalize dynamically an image item 
+        pass
+
+    def on_touch_down(self, touch): 
         ret = super(ImageItem, self).on_touch_down(touch)
         if not ret:
             return
+
         if self.counter == 0:
             Animation(alpha_button=1., t='out_quad', d=0.3).start(self)
         if is_android and touch.is_double_tap:
@@ -121,42 +159,78 @@ class ImageItem(Scatter):
         uid = '%s_counter' % self.uid
         touch.ud[uid] = True
         self.counter += 1
+        touch.ud['counter'] = self.counter
         #remember init pos in case of a drag to basket
         self.last_touch_down_pos = touch.pos
-        return True
 
+        #### MOMENTUM ####
+        # Animation.stop_all(self, 'pos')
+        # if not hasattr(self, 'isMoving'):
+        #     self.isMoving = False
+        # self.isMoving = False
+        #### MOMENTUM ####
+        return True
+    
     def on_touch_move(self, touch):
         ret = super(ImageItem,self).on_touch_move(touch)
 
         #check if the item collides with the basket
         #get basket center point
         if self.basket == None : 
-            self.basket = self.app.basket
-        basket = self.basket
+            self.basket = self.app.basket 
+        basket = self.basket 
+
         if basket.active : 
             x,y = basket.center
             #check if collides with the basket
-            if self.collide_point(x,y) and self.counter == 1 : 
+#            if self.collide_point(x,y) : 
+            if self.collide_widget(basket):
                 #add itself to the basket
                 item = self.item
                 item_id = int(item['id'])
                 if not basket.already_in( item_id) : 
-                    basket.add_item( item_id, item )
-                    #send back to init position
-                    pos = self.last_touch_down_pos
-                    #avoid a bug when touching the keyboard
-                    if pos is not None :
-                        pos = pos
-                    else :
-                        pos = (100,100)  
-                    anim = Animation(center = pos, duration = .5, t='out_quad' )
-                    anim.start(self)
-                    
-                    
+                    basket.add_item( item_id, item, self )
+                #send back to init position
+                pos = self.last_touch_down_pos
+                #avoid a bug when touching the keyboard
+                if pos is not None :
+                    pos = pos
+                else :
+                    pos = (100,100)  
+                anim = Animation(center = pos, duration = .5, t='out_quad' )
+                anim.start(self)       
         return ret
 
     def on_touch_up(self, touch):
+        if not touch.grab_current == self:
+            return False
         ret = super(ImageItem, self).on_touch_up(touch)
+
+        # ##### MOMENTUM ######
+        # print touch.px, touch.py, touch.x, touch.y, touch.time_end - touch.time_start, touch.time_update
+
+        # lastPos = (touch.px, touch.py)
+        # currentPos = (touch.x, touch.y)
+        # deltaV = Vector(currentPos) - Vector(lastPos)
+        # nextPos = Vector(self.pos) + (deltaV * 5)
+        # distance = Vector(lastPos).distance(currentPos)
+
+        # if distance > 0:
+        #     length = time.time() - touch.time_update
+        #     if length > 0:
+        #         velocity = distance / length
+        #         duration = 1000/velocity
+
+        #         if hasattr(self, 'isMoving'):
+        #             if not self.isMoving:
+        #                 def reset_on_moving(arg):
+        #                     self.isMoving = False
+        #                 anim = Animation(pos = nextPos, duration= duration, t = 'out_cubic')
+        #                 anim.on_complete = reset_on_moving
+        #                 anim.start(self)
+        #                 self.isMoving = True
+
+        ##### MOMENTUM ######
 
         # whatever is happening, if this touch was a touch used for counter,
         # remove it.
@@ -241,12 +315,13 @@ class ImageItem(Scatter):
         parent = self.parent
         if not parent:
             return
-        x, y = value
-        x = max(parent.x, x)
-        y = max(parent.y, y)
-        x = min(parent.right, x)
-        y = min(parent.top, y)
-        self.center = x, y
+        # causing problems when the item scale was too important
+        # x, y = value
+        # x = max(parent.x, x)
+        # y = max(parent.y, y)
+        # x = min(parent.right, x)
+        # y = min(parent.top, y)
+        # self.center = x, y
 
     def on_parent(self, instance, value):
         if value is None and self.content:
