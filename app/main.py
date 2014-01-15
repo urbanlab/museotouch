@@ -331,9 +331,9 @@ class MuseotouchApp(App):
 
     def build_config(self, config):
         config.setdefaults('museotouch', {
-            'url': 'http://museotouch.erasme.org/prive/',
-            'url_api': 'http://museotouch.erasme.org/prive/api/',
-            'url_data': 'http://museotouch.erasme.org/prive/uploads/',
+            'url': 'http://biinlab.com/museotouch/',
+            'url_api': 'http://biinlab.com/museotouch/api/',
+            'url_data': 'http://biinlab.com/museotouch/uploads/',
             'expo': '0',
             'email_send' : 'True',
             'url_send_url' : 'http://urltest.lapin.be',
