@@ -39,8 +39,8 @@ from imp import load_source
 from math import ceil
 from functools import partial
 
-from kivy.support import install_twisted_reactor
-install_twisted_reactor()
+#from kivy.support import install_twisted_reactor
+#install_twisted_reactor()
 
 # from pdb import set_trace as rrr
 import time
