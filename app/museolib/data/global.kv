@@ -23,15 +23,15 @@
 	list_expos: list_expos
 	orientation: 'horizontal'
 
-	# ScrollView:
-	GridLayout:
-		id: list_expos
-		size_hint_y: None
-		height: self.minimum_height
-		height: 700
-		cols: 5
-		spacing: 5
-		padding: 5
+	ScrollView:
+		GridLayout:
+			id: list_expos
+			size_hint_y: None
+			height: self.minimum_height
+			# height: 700
+			cols: 5
+			spacing: 5
+			padding: 5
 
 	# AnchorLayout:
 	# 	StackLayout:
