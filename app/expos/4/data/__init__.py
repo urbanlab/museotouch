@@ -129,7 +129,7 @@ def build(app):
             background_normal='widgets/circle_filter.png',
             background_down='widgets/circle_filter_down.png',
             **kwargs)
-    #ordering_keywords.bind(on_release=app.do_ordering_keywords)
+    ordering_keywords.bind(on_release=app.do_ordering_keywords)
     root.add_widget(ordering_keywords)
 
     def set_ordering_keywords_pos(instance, value):
