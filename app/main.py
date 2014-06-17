@@ -539,8 +539,8 @@ class MuseotouchApp(App):
         self.calendar = None
 
         # set the image type from mode
-        self.imgtype = 'dds'
-        self.imgdir = 'dds'
+        self.imgtype = 'jpg'
+        self.imgdir = 'raw'
 
         # list of removed objects
         self.images_displayed = []
