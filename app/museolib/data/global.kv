@@ -1,37 +1,96 @@
 #:kivy 1.0
+#: import Window kivy.core.window.Window
+#: import random random
+#:set futura 'FuturaLT.ttf'
+#:set futuraBold 'FuturaLT-Bold.ttf'
+#: import os os
+<QuitButton>:
+	size:1200,1200
+	size_hint: None,None
+	scale: .2
+	source: 'quit.png'
+	
+	canvas.before:
+		Color:
+			rgb: (0.224, 0.016, 0.271,1) if self.state == 'down' else (1,1,1,1)
+		Rectangle:
+			pos: self.center_x - 300, self.center_y - 300
+			size: 600,600
+	# Image:
+	# 	size_hint: None, None
+	# 	source: 'quit.png'
+	# 	# background_down: 'quit.png'
+	# 	size: 1200, 1200
 
-[ExpoItem@BoxLayout]:
-	size_hint_y: None
-	height: 150
-	width: 150
-	orientation: 'vertical'
+<ExpoItem>:
+	size_hint: None,None
+	height: Window.width / 7 - 17
+	width: self.height
+	# orientation: 'vertical'
+	# spacing: 0
+	# padding: 0
+	# on_touch_down: ctx.selector.select_expo(ctx) if self.collide_point(*args[1].pos) else None
+	# on_press: self.on_press()
+	# on_release: self.launch_expo()
 
-	on_touch_down: ctx.selector.select_expo(ctx) if self.collide_point(*args[1].pos) else None
+	canvas:
+		Color:
+			rgba: (1,1,1,1) if root.expo.get('no_img', '') else (0,0,0,0)
+		Rectangle:
+			pos: self.center_x - 75, self.center_y - 75
+			size: 150,150
 
-	AsyncImage:
-		source: ctx.get('data', '')[0]
-		# size_hint_x: .3
-		size: 150,150
 
+	Image:
+		id: main_img
+		source: root.expo.get('data', '')
+		size_hint: None, None
+		size: root.width, root.height
+		allow_stretch: True
+		keep_ratio: False
+		center: root.center
+		color: (1,1,1,1)
 	Label:
-		text: ctx.get('name', '')
-		size_hint_x: 1
-		text_size: self.width - 10, None
-		halign: 'center'
+		text: root.expo.get('name', '').upper()
+		size_hint: None,None
+		# size_hint: None, None
+		text_size: self.width, None
+		size: root.width - 20, self.texture_size[1]
+		halign: 'left'
+		valign: 'bottom'
+		markup: True
+		font_name: futuraBold
+		pos: root.x + 10, root.y + 10
+		
+		canvas.before:
+			Color:
+				rgb: root.color
+			Rectangle:
+				pos: root.pos
+				size: root.width, self.height + 20
 
 <ExpoPopupChoice>:
 	list_expos: list_expos
-	orientation: 'horizontal'
+	orientation: 'vertical'
+	size_hint: None, None
+	size: Window.size
 
-	ScrollView:
-		GridLayout:
-			id: list_expos
-			size_hint_y: None
-			height: self.minimum_height
-			# height: 700
-			cols: 5
-			spacing: 5
-			padding: 5
+	canvas:
+		Color: 
+			rgb: 0,0,0
+		Rectangle:
+			pos: self.pos
+			size: self.size
+
+	GridLayout:
+		id: list_expos
+		size_hint: None, None
+		# height: self.minimum_height
+		# height: 700
+		width: Window.width
+		cols: 7
+		spacing: 15
+		padding: 15
 
 	# AnchorLayout:
 	# 	StackLayout:
@@ -49,5 +108,5 @@
 	# 			height: 30
 
 		
-<KeywordsGroup>:
-	cols: 2
+# <KeywordsGroup>:
+# 	cols: 2
