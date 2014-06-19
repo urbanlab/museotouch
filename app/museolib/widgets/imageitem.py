@@ -4,7 +4,7 @@ from kivy.animation import Animation
 from kivy.uix.scatter import Scatter
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.video import Video
-from kivy.uix.image import AsyncImage
+from kivy.uix.image import Image
 from kivy.uix.label import Label
 from os.path import splitext, join, isfile, basename
 from pdb import set_trace as rrr
@@ -48,8 +48,8 @@ class ItemMediaBrowser(FloatLayout):
                     w = Label(text="Song not downloaded.")
             elif ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv'):
                 w = Video(source=media, play=True)
-            else:
-                w = AsyncImage(source=media)
+            else:                
+                w = Image(source=media)
         except:
             w = Label(text='Unable to read that media')
         self.content.clear_widgets()
