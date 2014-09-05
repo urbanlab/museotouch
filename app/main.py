@@ -1026,7 +1026,7 @@ class MuseotouchApp(App):
         items = result['items'][:]
         for item in result['items']:
             fichiers = item['data']
-            if not fichiers:
+            if not item['fichier']:
                 print '===> remove item %r, no data attached' % item['id']
                 items.remove(item)
                 continue
