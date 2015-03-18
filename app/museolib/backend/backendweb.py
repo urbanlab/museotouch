@@ -104,5 +104,6 @@ class BackendWeb(Backend):
 
         Logger.debug('BackendWeb: GET %r' % url)
         self.req = UrlRequest(url, on_success=on_success, on_error=on_error, on_failure=on_error, on_progress=on_progress, timeout=5,
-                chunk_size=32768)
+                    chunk_size=32768)
+
 
