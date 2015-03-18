@@ -17,15 +17,21 @@ from kivy.uix.button import Button
 from kivy.uix.scrollview import ScrollView
 from kivy.core.window import Window
 from kivy.uix.behaviors import ButtonBehavior
+from museolib.widgets.quitbutton import QuitButton
+from museolib.widgets.splashscreen import SplashScreen
 import random, os, time, locale
 from os.path import dirname,abspath, join, isfile
 
 from kivy.clock import Clock
 
 class ExpoPopupChoice(ScrollView):
+    # next_pos = ListProperty([0,0])
 
     def add_expo(self, widget):
         self.list_expos.add_widget(widget)
+        # anim=Animation(pos=self.next_pos)
+        # anim.start(widget)
+        # self.next_pos=[random.randint(0,Window.width),random.randint(0,200)]
 
 Factory.register('ExpoPopupChoice', cls=ExpoPopupChoice)
 
@@ -36,6 +42,7 @@ class ExpoItem(ButtonBehavior, Widget):
     color = (1,1,1,1)
 
     def __init__(self, **kwargs):
+        print "CREATION EXPO ITEM"
         yellow = (0.894, 0.886, 0.133,1)
         cobalt = (0.172, 0.2, 0.219,1)
         violet = (0.223, 0.015, 0.270,1)
@@ -49,18 +56,17 @@ class ExpoItem(ButtonBehavior, Widget):
 
         super(ExpoItem, self).__init__(**kwargs)
 
-
-
-
-
     def launch_expo(self, dt):
         self.selector.select_expo(self.expo)
 
     def on_press(self):    
         img = self.ids['main_img']
+        label = self.ids['main_label']
         Animation.stop_all(img)
-        anim = Animation(color=self.color, d=.2)
+        anim = Animation(color=self.color)
+        anim_label = Animation(opacity=1,duration=0.05)
         anim.start(img)
+        anim_label.start(label)
         anim.on_complete = self.launch_expo
 
     def on_release(self):
@@ -71,12 +77,19 @@ class ExpoItem(ButtonBehavior, Widget):
 class ExpoSelector(FloatLayout):
 
     app = ObjectProperty(None)
-
     def __init__(self, **kwargs):
         self._popup = None
+
+        #Binding on_touch_up and on_touch_down functions to enable splash screen
+        Window.bind(on_touch_down=self.on_touch_down)
+        Window.bind(on_touch_up=self.on_touch_up)
+
         super(ExpoSelector, self).__init__(**kwargs)
-        self.req = self.app.backend.get_expos(on_success=self.on_success,
-                on_error=self.on_error)
+        if self.app.backend:
+            self.req = self.app.backend.get_expos(on_success=self.on_success,
+                    on_error=self.on_error)
+        else :
+            self.load_offline(None)
         # self.load()
         # self.load_offline(None)
 
@@ -90,15 +103,18 @@ class ExpoSelector(FloatLayout):
     def on_success(self, req, result):
         self.show_expos(result)
 
+
     def show_expos(self, online=None):
         # get offline expo
         offline = self.get_offline_expos()
-        if online is not None and type(offline) in (list, tuple):
+        disconnected = not self.app.config.getboolean('museotouch','fast')
+        if online and disconnected == False and type(offline) in (list, tuple):
             # mix with online expo
             result = self.mix_expos(offline, online)
         else:
             result = offline
         # show them.
+        print "IL Y A %s EXPOS"%(len(result))
         layout = ExpoPopupChoice()
         layout.list_expos.bind(minimum_height=layout.list_expos.setter('height'))
 
@@ -106,30 +122,33 @@ class ExpoSelector(FloatLayout):
         result = sorted(result, key=lambda x: x['name'].lower(), cmp=locale.strcoll)
                 
         for expo in result:
-            # convert to string key, python 2.6.
-            expo = dict([(str(x), y) for x, y in expo.iteritems()])
-            zipfiles = [x['fichier'] for x in expo['data'] if
-                    x['fichier'].rsplit('.', 1)[-1] == 'zip']
-            data = [x['fichier'] for x in expo['data'] if
-                    x['fichier'].rsplit('.', 1)[-1].lower() in ('jpg', 'png')]
-            
-            expo_dir = self.app.get_expo_dir(expo['id'])
-            jpg = join(expo_dir, 'thumbnail.jpg')
-            png = join(expo_dir, 'thumbnail.png')
-            no_img = abspath(join(dirname(__file__), os.pardir, 'data/quit.png'))
+            # added a conditional to only show expos that have 'canop' in their name
+            if expo['name'].lower().find('canop') !=-1:
 
-            expo['no_img'] = False
-            if isfile(jpg):
-                expo['data'] = jpg
-            elif isfile(png):
-                expo['data'] = png
-            else:
-                expo['data'] = no_img
-                expo['no_img'] = True
-            expo['__zipfiles__'] = zipfiles
-            # item = Builder.template('ExpoItem', selector=self, **expo)
-            item = ExpoItem(selector=self, expo=expo)
-            layout.add_expo(item)
+                # convert to string key, python 2.6.
+                expo = dict([(str(x), y) for x, y in expo.iteritems()])
+                zipfiles = [x['fichier'] for x in expo['data'] if
+                        x['fichier'].rsplit('.', 1)[-1] == 'zip']
+                data = [x['fichier'] for x in expo['data'] if
+                        x['fichier'].rsplit('.', 1)[-1].lower() in ('jpg', 'png')]
+                
+                expo_dir = self.app.get_expo_dir(expo['id'])
+                jpg = join(expo_dir, 'thumbnail.jpg')
+                png = join(expo_dir, 'thumbnail.png')
+                no_img = abspath(join(dirname(__file__), os.pardir, 'data/quit.png'))
+
+                expo['no_img'] = False
+                if isfile(jpg):
+                    expo['data'] = jpg
+                elif isfile(png):
+                    expo['data'] = png
+                else:
+                    expo['data'] = no_img
+                    expo['no_img'] = True
+                expo['__zipfiles__'] = zipfiles
+                # item = Builder.template('ExpoItem', selector=self, **expo)
+                item = ExpoItem(selector=self, expo=expo)
+                layout.add_expo(item)
         self.popup(content=layout, title='Liste des expositions')
 
     def get_offline_expos(self):
@@ -154,12 +173,13 @@ class ExpoSelector(FloatLayout):
                 Logger.debug('Museotouch: skip, item is not a directory') 
                 continue
             ok = True
-            for fn in files:
-                dfn = join(d, fn)
-                if not exists(dfn):
-                    Logger.debug('Museotouch: skip, missing %r' % fn)
-                    ok = False
-                    break
+            # next section commented out : was preventing assets update
+            # for fn in files:
+            #     dfn = join(d, fn)
+            #     if not exists(dfn):
+            #         Logger.debug('Museotouch: skip, missing %r' % fn)
+            #         ok = False
+            #         break
             if not ok:
                 continue
             try:
@@ -216,3 +236,33 @@ class ExpoSelector(FloatLayout):
         for child in Window.children[:]:
             Window.remove_widget(child)
         self.app.show_expo(expo['id'])
+
+#-----------------------------------------------------------------------
+# Splash screen code :
+    def get_interval(self):
+        #Getting the timer interval from the configuration file
+        return self.app.config.getint('museotouch','splashscreen')
+    def on_size(self,instance,size):
+        self.start_timer(self.get_interval())
+    def on_touch_down(self,arg,touch):
+        self.stop_timer()
+    def on_touch_up(self,arg,touch):
+        self.start_timer(self.get_interval())
+    def start_timer(self,interval):
+        if interval !=0:
+            if self.app.timer == False:
+                self.app.timer=True
+                Clock.schedule_interval(self.screen_saver, interval)
+    def stop_timer(self):
+        self.app.timer=False
+        Clock.unschedule(self.screen_saver)
+    def screen_saver(self,arg):
+        self.stop_timer()
+        for child in Window.children:
+            child.opacity=0
+            child.disabled=True
+        s=SplashScreen(splash_dir=join(self.app.data_dir,'splashscreens'),selector_reference=self,interval=self.app.config.getint('museotouch','splashscreen_interval'))
+        Window.add_widget(s)
+#-----------------------------------------------------------------------
+
+
