@@ -3,10 +3,14 @@ from kivy.properties import StringProperty, ObjectProperty, NumericProperty, \
 from kivy.animation import Animation
 from kivy.uix.scatter import Scatter
 from kivy.uix.floatlayout import FloatLayout
+from kivy.vector import Vector
 from kivy.uix.video import Video
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from os.path import splitext, join, isfile, basename
+from kivy.core.window import Window
+from kivy.clock import Clock
+from museolib.widgets.validation import Valid as Valid
 from pdb import set_trace as rrr
 
 from kivy.vector import Vector
@@ -23,14 +27,18 @@ class ItemMediaBrowser(FloatLayout):
     index = NumericProperty(-1)
     content = ObjectProperty(None)
     media = ObjectProperty(None, allownone=True)
+    medias_sorted = BooleanProperty(False)
 
     def on_index(self, instance, value):
+        if self.medias_sorted ==False :
+            medialist = self.item.medias
+            medialist.sort()
         if self.media:
             if isinstance(self.media, Video):
                 self.media.play = False
             self.media = None
-        value = value % len(self.item.medias)
-        media = self.item.medias[value]
+        value = value % len(medialist)
+        media = medialist[value]
         name, ext = splitext(media)
         ext = ext[1:].lower()
 
@@ -85,8 +93,8 @@ class ImageItemContent(FloatLayout):
         if self.mediacontent:
             self.mediacontent.stop()
 
-class ImageItem(Scatter):
 
+class ImageItem(Scatter):
     #: Reference of the application
     app = ObjectProperty(None)
     
@@ -126,9 +134,16 @@ class ImageItem(Scatter):
 
     #: If we want a square img
     img_square = ObjectProperty(None)
+
+    #: Boolean to activate physics or not
+    physics = BooleanProperty(True)
     
     def __init__(self, *args, **kwargs):
-        
+        self.vector=(0,0)
+        self.previous_position=(0,0)
+        self.current_position=(0,0)
+        self.start=0
+        self.stop=0
         square = False
         if 'square' in kwargs and kwargs['square'] == True:
             square = True
@@ -137,7 +152,7 @@ class ImageItem(Scatter):
         self.on_start()
         if square:
             self.squarize_img()    
-
+    
     def on_start(self):
         #Replace this function in init.py to personnalize dynamically an image item 
         pass
@@ -156,9 +171,9 @@ class ImageItem(Scatter):
         ret = super(ImageItem, self).on_touch_down(touch)
         if not ret:
             return
-
-        if self.counter == 0:
-            Animation(alpha_button=1., t='out_quad', d=0.3).start(self)
+        self.physics = self.app.config.getboolean('museotouch','physics')
+        # if self.counter == 0:
+        Animation(alpha_button=1., t='out_quad', d=0.3).start(self)
         if is_android and touch.is_double_tap:
             self.flip()
         uid = '%s_counter' % self.uid
@@ -168,23 +183,26 @@ class ImageItem(Scatter):
         #remember init pos in case of a drag to basket
         self.last_touch_down_pos = touch.pos
 
-        #### MOMENTUM ####
-        # Animation.stop_all(self, 'pos')
-        # if not hasattr(self, 'isMoving'):
-        #     self.isMoving = False
-        # self.isMoving = False
-        #### MOMENTUM ####
+        if self.collide_point(*touch.pos) and self.physics==True:
+            self.start=time.time()
+            self.vector=Vector(0,0)
+            Clock.unschedule(self.move)
         return True
     
     def on_touch_move(self, touch):
         ret = super(ImageItem,self).on_touch_move(touch)
-
+        Clock.unschedule(self.move)
+        if self.collide_point(*touch.pos) and self.physics == True:
+            self.previous_position = self.current_position
+            self.current_position = self.pos
+            current_vector = Vector(self.current_position)-Vector(self.previous_position)
+            if current_vector != Vector(0,0) and current_vector.length()<100:
+                self.vector=current_vector*2
         #check if the item collides with the basket
         #get basket center point
         if self.basket == None : 
             self.basket = self.app.basket 
         basket = self.basket 
-
         if basket.active : 
             x,y = basket.center
             #check if collides with the basket
@@ -211,31 +229,10 @@ class ImageItem(Scatter):
             return False
         ret = super(ImageItem, self).on_touch_up(touch)
 
-        # ##### MOMENTUM ######
-        # print touch.px, touch.py, touch.x, touch.y, touch.time_end - touch.time_start, touch.time_update
-
-        # lastPos = (touch.px, touch.py)
-        # currentPos = (touch.x, touch.y)
-        # deltaV = Vector(currentPos) - Vector(lastPos)
-        # nextPos = Vector(self.pos) + (deltaV * 5)
-        # distance = Vector(lastPos).distance(currentPos)
-
-        # if distance > 0:
-        #     length = time.time() - touch.time_update
-        #     if length > 0:
-        #         velocity = distance / length
-        #         duration = 1000/velocity
-
-        #         if hasattr(self, 'isMoving'):
-        #             if not self.isMoving:
-        #                 def reset_on_moving(arg):
-        #                     self.isMoving = False
-        #                 anim = Animation(pos = nextPos, duration= duration, t = 'out_cubic')
-        #                 anim.on_complete = reset_on_moving
-        #                 anim.start(self)
-        #                 self.isMoving = True
-
-        ##### MOMENTUM ######
+        if self.collide_point(*touch.pos) and self.physics == True:
+            self.stop=time.time()
+            if self.stop-self.start >0.05:
+                Clock.schedule_interval(self.move,1./60.)
 
         # whatever is happening, if this touch was a touch used for counter,
         # remove it.
@@ -243,13 +240,14 @@ class ImageItem(Scatter):
         if uid in touch.ud:
             del touch.ud[uid]
             self.counter = max(0, self.counter - 1)
-            if self.counter == 0:
-                Animation(alpha_button=0., t='out_quad', d=0.3).start(self)
-
+            # if self.counter == 0:
+            Animation(alpha_button=0., t='out_quad', d=0.3).start(self)
+            self.check_valid(touch.pos)
         return ret
 
     def flip(self):
         self.flip_front = not self.flip_front
+        Animation(alpha_button=0., t='out_quad', d=0.3).start(self)
         # first time ? create content
 
     def on_flip_front(self, instance, value):
@@ -266,14 +264,27 @@ class ImageItem(Scatter):
             k['scale'] = scale
         else:
             if not self.flip_front:
-                scale = max(1., self.scale)
-                k['scale'] = scale
+                if not isinstance(self.parent.parent,Valid):
+                    scale = max(1., self.scale)
+                    k['scale'] = scale
         if is_android:
             k['rotation'] = 0.
         Animation(flip_alpha=alpha,
             t='out_quad', d=0.3, **k).start(self)
+        self.image_opacity("up")
+
+    def image_opacity(self,go_up_down):
+        try :
+            self.ids['img_front']
+            if go_up_down=="down":
+                Animation(opacity=0.2).start(self.ids.img_front)
+            else :
+                Animation(opacity=1).start(self.ids.img_front)
+        except:
+            pass
 
     def ensure_content(self):
+
         if self.content is not None:
             return
         self.content = ImageItemContent(item=self.item,
@@ -331,3 +342,45 @@ class ImageItem(Scatter):
     def on_parent(self, instance, value):
         if value is None and self.content:
             self.content.stop()
+
+    def move(self,arg):
+        self.pos = Vector(self.pos) + self.vector*0.5
+        self.vector*=0.95
+        if abs(self.vector[0]+self.vector[1])<0.001:
+            Clock.unschedule(self.move)
+    def on_pos(self,instance,position):
+        self.check_boundaries()
+    def check_valid(self,touch):
+        if self.parent :
+            for wid in self.parent.parent.children :
+                if isinstance(wid,Valid) and wid.collide_point(*touch):
+                    Animation(color=(0,0,1,0.9),d=0.3).start(wid)
+                    nbr_valid = len(wid.ids['my_layout'].children)
+                    if nbr_valid <=3:
+                        temp = self
+                        temp.do_scale=False
+                        temp.do_translation = False
+                        temp.do_rotation=False
+                        temp.vector=Vector(0,0)
+                        temp.pos=(0,0)
+                        self.parent.remove_widget(self)
+                        wid.ids['my_layout'].add_widget(temp)
+                        anim=Animation(pos=wid.children_pos[str(nbr_valid)], rotation=0,d=0.2,scale=wid.width*0.00095)
+                        anim.start(self)
+
+    def check_boundaries(self):
+        #change direction
+        if self.x+(self.width*self.scale)>Window.width or self.x < 0 :
+            self.vector=Vector(-self.vector[0],self.vector[1])*0.05
+        if self.y+(self.height*self.scale)>Window.height or self.y < 0 :
+            self.vector=Vector(self.vector[0],-self.vector[1])*0.05
+        #prevent from going off the screen
+        if self.scale <1 :
+            if self.x < 0:
+                self.x=0
+            if self.y < 0:
+                self.y=0
+            if self.x + (self.width*self.scale) > Window.width:
+                self.x = Window.width -(self.width*self.scale)
+            if self.y + (self.height*self.scale) > Window.height:
+                self.y = Window.height -(self.height*self.scale)
