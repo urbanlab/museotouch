@@ -1,0 +1,270 @@
+#:kivy 1.0
+#:import math math
+#:set petita 'widgets/PetitaLight.ttf'
+#:set petita_medium 'widgets/PetitaMedium.ttf'
+#:set petita_bold 'widgets/PetitaBold.ttf'
+#:set color_keyword_hi [192./255., 180./255., 22./255, 1] 
+#get_color_from_hex('#C0B416')
+#:set color_title_hi [0, 0, 0, 1] 
+#get_color_from_hex('#e23127')
+#:set color_normal [1, 1, 1, 1] #get_color_from_hex('#ffffff')
+#:set title_color [192./255., 180./255., 22./255, 1]
+
+<ImageItem>:
+	border: 2 / self.scale
+	size_hint: None, None
+	size: 512, 512
+	scale: 0.5
+	container: container
+	scale_min: .5
+	scale_max: 15
+	canvas:
+		Color:
+			rgb: 1, 1, 1
+		Rectangle:
+			pos: -self.border, -self.border
+			size: self.width + self.border * 2, self.height + self.border * 2
+		Color:
+			rgb: 0, 0, 0
+		Rectangle:
+			size: self.size
+
+	FloatLayout:
+		size: root.size
+
+		FloatLayout:
+			id: container
+
+		Image:
+			id:img_front
+			source: root.source
+			size_hint: (1 * (0.3+0.7 * root.flip_alpha), 1 * (0.3+0.7 * root.flip_alpha))
+			pos_hint: {'top': 1}
+
+	Button:
+		background_color: (1, 1, 1, root.alpha_button)
+		size: (64, 64)
+		pos: 512 - 70, 512 - 70
+		background_down: 'widgets/btn_close_down.png'
+		background_normal: 'widgets/btn_close.png'
+		on_release: root.on_btn_moreinfo()
+
+
+<ImageItemContent>:
+	GridLayout:
+		cols: 1
+		rows_default_height: 30
+		pos_hint: {'top': 0.7}
+		size_hint_x: 0.3
+		padding: 5
+		Label:
+			text: root.item.datation if root.item.datation.strip() != '' else root.item.date_crea
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] + 10
+			font_name: petita_bold
+			font_size: 14		
+		Label:
+			text: u'%s' % (root.item.origin_ex)
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] + 10
+			font_name: petita_bold
+			font_size: 14
+		Label:
+			text: 'Cote : %s' % (root.item.date_acqui)
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] + 10
+			font_name: petita_bold
+			font_size: 14
+		Button:
+			text: 'Voir les médias' if len(root.item.medias) else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] + 10
+			font_name: petita_bold
+			font_size: 14
+			on_press: root.parent.parent.parent.image_opacity('down')
+			on_release: root.toggle_media() if len(root.item.medias) else None
+			background_color: (0, 0, 0, 0)
+			color: (.8, .8, .8, 1)
+
+	GridLayout:
+		cols: 1
+		pos_hint: {'x': 0.3}
+		size_hint_x: 0.7
+
+		canvas.before:
+			Color:
+				rgb: .1, .1, .1
+			Rectangle:
+				pos: self.x, self.top - self.height * (1 - root.flip_alpha)
+				size: self.width, self.height * (1 - root.flip_alpha)
+
+		Label:
+			text: root.item.title
+			text_size: (self.width - 20, None)
+			valign: 'middle'
+			font_size: 14
+			font_name: petita_bold
+			size_hint_y: None
+			height: max(102, self.texture_size[1])
+			color: (1, 1, 1, 1 - root.flip_alpha)
+
+		Label:
+			text: root.item.description.replace('\r','')
+			text_size: (self.width - 20, None)
+			size_hint_y: None
+			font_name: petita
+			font_size: 14
+			height: self.texture_size[1]
+			color: (1, 1, 1, 1 - root.flip_alpha)
+
+
+<ItemMediaBrowser>:
+	content: content
+	canvas:
+		Color:
+			rgb: 0, 0, 0
+		Rectangle:
+			size: self.size
+	BoxLayout:
+		orientation: 'vertical'
+		BoxLayout:
+			id: content
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint_y: None
+			spacing: 10
+			padding: 10
+			height: 64
+			Button:
+				text: '<'
+				on_release: root.index -= 1
+				font_name: petita_bold
+				background_color: (.1, .1, .1, .5)
+				font_size: 14
+			Button:
+				text: 'Fermer'
+				on_press: root.parent.parent.parent.parent.image_opacity('up')
+				on_release: root.parent.toggle_media() if root.parent else None
+				font_name: petita_bold
+				background_color: (.1, .1, .1, .5)
+				font_size: 14
+			Button:
+				text: '>'
+				on_release: root.index += 1
+				font_name: petita_bold
+				background_color: (.1, .1, .1, .5)
+				font_size: 14
+
+
+<CircularSlider>:
+    angle_min: self.value_min * 180
+    angle_max: self.value_max * 180
+
+    canvas:
+        Color:
+            rgb: title_color
+        Ellipse:
+            pos: self.right - self.outer_radius, self.center_y - self.outer_radius
+            size: self.outer_radius * 2, self.outer_radius * 2
+            angle_start: (root.angle_min + 180) % 360
+            angle_end: ((root.angle_max + 180 - 0.00001) % 360)
+        Color:
+            rgb: 0, 0, 0
+        Ellipse:
+            pos: self.right - self.inner_radius + 50, self.center_y - self.inner_radius + 50
+            size: (self.inner_radius - 50) * 2, (self.inner_radius - 50) * 2
+        Color:
+            rgb: 1, 1, 1
+        Rectangle:
+            source: 'widgets/timeline.png'
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: title_color
+        Line:
+            points: (self.right - math.sin(math.radians(self.angle_min)) * self.outer_radius, self.center_y -math.cos(math.radians(self.angle_min)) * self.outer_radius, self.right - math.sin(math.radians(self.angle_min)) * (self.inner_radius - 50), self.center_y -math.cos(math.radians(self.angle_min)) * (self.inner_radius - 50))
+        Line:
+            points: (self.right - math.sin(math.radians(self.angle_max)) * self.outer_radius, self.center_y -math.cos(math.radians(self.angle_max)) * self.outer_radius, self.right - math.sin(math.radians(self.angle_max)) * (self.inner_radius - 50), self.center_y -math.cos(math.radians(self.angle_max)) * (self.inner_radius - 50))
+
+    BoxLayout:
+        size_hint: None, None
+        size: (150, 80)
+        pos_hint: {'center_x': 0.5, 'center_y': 0.38}
+        orientation: 'vertical'
+        canvas.before:
+            PushMatrix
+            Translate:
+                xy: root.center_x, root.center_y
+            Rotate:
+                angle: 90
+                axis: 0., 0., 1.
+            Translate:
+                xy: -root.center_x, -root.center_y
+        canvas.after:
+            PopMatrix
+
+        Label:
+            font_size: 16
+            color: (title_color)
+            text: root.text_min
+        Label:
+            font_size: 16
+            color: (title_color)
+            text: root.text_max
+
+
+<SizeSlider>:
+	canvas:
+		Color:
+			rgb: 1, 1, 1
+		Rectangle:
+			pos: self.x, self.y
+			size: (420, 120)
+			source: 'widgets/chrono55.png'
+        Color:
+            rgb: 0.34, 0.45, 0.45
+		Rectangle:
+			pos: self.x + self.value_min * self.width, self.center_y - 39
+			size: self.width * (self.value_max - self.value_min), 4
+
+
+<Keyword>:
+	color: title_color if self.selected else color_normal
+	font_size: 20
+	font_name: petita_medium
+	text_size: (self.width, None)
+
+# Template used for Keyword item in accordion.
+<KeywordsGroup>:
+	cols: 1
+
+[KeywordItemTitle_INITIALPRESENTATION@Label]:
+	text: ctx.title
+	font_size: 20
+	font_name: petita_medium
+	text_size: (self.height - 20, None)
+	color: (title_color) if not ctx.item.collapse else (192/255., 180/255., 22/255., 1)
+	canvas.before:
+		PushMatrix
+		Translate:
+			xy: self.center_x, self.center_y
+		Rotate:
+			angle: 90 if ctx.item.orientation == 'horizontal' else 0
+			axis: 0, 0, 1
+		Translate:
+			xy: -self.center_x, -self.center_y
+	canvas.after:
+		PopMatrix
+
+[KeywordItemTitle@Label]:
+	text: ctx.title
+	font_size: 25
+	font_name: petita_medium
+	text_size: (self.width, None)
+	size_hint_y: 2
+	color: color_title_hi if not ctx.item.collapse else color_normal
+	#on_size: self.parent.minimum_size = (self.size)
