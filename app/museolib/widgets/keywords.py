@@ -61,6 +61,10 @@ class Keywords(Accordion):
 
     title_template = StringProperty(None)
 
+    color_file=StringProperty(None)
+
+    color_file_selected=StringProperty(None)
+
     def __init__(self, **kwargs):
         super(Keywords, self).__init__(**kwargs)
 
@@ -69,13 +73,18 @@ class Keywords(Accordion):
 
         accitem = None
         accgroup = None
+        
         for item in value:
             if item['group'].find('filtre') == -1: # We don't use groups with "filtre" in the name, -> only for imagebuttons
                 # create new accordion
                 k = {}
                 if self.title_template:
                     k['title_template'] = self.title_template
-                accitem = AccordionItem(title=item['group'], **k)
+                if self.color_file :
+                    k['background_normal'] = self.color_file
+                if self.color_file_selected :
+                    k['background_selected'] = self.color_file_selected
+                accitem = AccordionItem(title=item['group'],**k)
                 self.add_widget(accitem)
                 # create new group
                 accgroup = KeywordsGroup(title=item['group'], accitem=accitem)
