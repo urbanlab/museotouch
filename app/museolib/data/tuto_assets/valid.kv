@@ -1,0 +1,28 @@
+<Valid>:
+	size_hint:(None,None)
+	FloatLayout:
+		id:my_layout
+		canvas.after:
+			Color:
+				rgba:root.color
+			Rectangle:
+				size:root.size
+				source:('validation.png')
+	Button:
+		id: btn_valid
+		size_hint:(None,None)
+		size: (48, 48)
+		pos:((root.width-self.width)/2,(root.height-self.height)/2)
+		background_down: 'next_down.png'
+		background_normal: 'next.png'
+		opacity:0
+		on_release:root.anim_valid(root.validation('taille'))
+	Button:
+		id: btn_close
+		size_hint:(None,None)
+		size:(48,48)
+		pos:(root.width-self.width-20,root.height-self.height-20)
+		background_down: 'btn_close_down.png'
+		background_normal: 'btn_close.png'
+		opacity:0
+		on_release:root.close()
