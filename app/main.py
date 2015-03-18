@@ -1,15 +1,16 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import kivy
 #kivy.require('1.0.8-dev')
 kivy.require('1.1.1')
 
 from kivy.config import Config
 Config.set('kivy', 'log_level', 'debug')
-
+Config.set('graphics','fullscreen','auto')
+# Config.set('graphics','size','1920x1200')
 from random import random, randint
-from os.path import join, dirname, exists, basename, isfile
-from os import makedirs, remove, walk
+from os.path import join, dirname, exists, basename,isfile
+from os import makedirs, remove, walk, listdir
 from zipfile import ZipFile
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -27,6 +28,7 @@ from kivy.uix.image import Image
 from kivy.utils import format_bytes_to_human, platform
 from kivy.core.window import Window
 from kivy.properties import BooleanProperty, NumericProperty
+from kivy.cache import Cache
 
 from kivy.loader import Loader
 
@@ -68,7 +70,7 @@ class MuseotouchApp(App):
         if platform() in ('android', 'ios'):
             return 'mobile'
         return 'table'
-
+    
     def do_reset_item_position(self, *largs):
         self.images_pos = {}
         root = self.root_images     
@@ -313,7 +315,6 @@ class MuseotouchApp(App):
         # start from all items
         items = self.db.items
         result = []
-
         # update date range from slider value
         if self.date_slider:
             ma, mb = self.date_slider.value_range
@@ -338,16 +339,32 @@ class MuseotouchApp(App):
         if self.size_slider:
             # reorder item by taille
             items.sort(key=lambda x: x.taille)
-            ma, mb = self.size_slider.value_range
-            count = len(items)
-            item_min = int(ma * count)
-            item_max = max(item_min + 1, int(mb * count))
-
-            # adjust item selection
-            items = result = items[item_min:item_max]
+            # added another drawing system
+            # more precise and reliable 
+            # but certainly slower
+            try:
+                taille_max = float(items[-1]['taille'])
+                borne_max = taille_max*self.size_slider.value_max
+                borne_min = taille_max*self.size_slider.value_min
+                items = [x for x in items if (float(x['taille']) <= borne_max) and (float(x['taille']) >= borne_min)]
+            # fallback to the old system
+            # in case 'taille' field has been filled up with a non digit string in the backoffice
+            except:
+                ma, mb = self.size_slider.value_range
+                count = len(items)
+                item_min = int(ma * count)
+                item_max = max(item_min + 1, int(mb * count))
+                # adjust item selection
+                items = result = items[item_min:item_max]
             if len(items) == 0:
                 self.show_objects(items)
                 return
+
+        # # filter from size but with dropdown menu
+        if self.dropdown:
+            if self.dropdown.ids.mainbutton.text.lower() != 'valider un lot' and self.dropdown.ids.mainbutton.text.lower() !='tous les lots':
+                items = [x for x in items if x['taille'].lower()==self.dropdown.ids.mainbutton.text.lower()]
+            
 
         # filter from origin
         if self.imagemap:
@@ -358,7 +375,7 @@ class MuseotouchApp(App):
             if self.keywords and self.keywords.selected_keywords and not origin_ids:
                 pass
             else:
-                items = result = [x for x in items if x.origin_key in origin_ids]
+                items = result = [x for x in items if x.origin_key in origin_ids or x.origin_key==""]
 
         # filter from keywords but with image buttons, only if there is group of keyword with 'filtre' in the group's name
         if self.imageButtons:
@@ -481,10 +498,16 @@ class MuseotouchApp(App):
 
     def build_config(self, config):
         config.setdefaults('museotouch', {
-            'url': 'http://museotouch.erasme.org/prive/',
-            'url_api': 'http://museotouch.erasme.org/prive/api/',
-            'url_data': 'http://museotouch.erasme.org/prive/uploads/',
+            'url': 'http://ns318835.ip-91-121-122.eu/museotouch/',
+            'url_api': 'http://ns318835.ip-91-121-122.eu/museotouch/api/',
+            'url_data': 'http://ns318835.ip-91-121-122.eu/museotouch/uploads/',
             'expo': '0',
+            'demo':'1',
+            'splashscreen':'60',
+            'splashscreen_interval':'15',
+            'fast':'1',
+            'validation':'1',
+            'physics':'1',
             'email_send' : 'True',
             'url_send_url' : 'http://urltest.lapin.be',
             'url_send' : 'True',
@@ -517,6 +540,38 @@ class MuseotouchApp(App):
                 "desc": "Url vers les datas (scenarios et objets)",
                 "section": "museotouch",
                 "key": "url_data"
+            }, {
+                "type": "bool",
+                "title": "Physics",
+                "desc": "Activer ou désactiver l'inertie des fiches",
+                "section": "museotouch",
+                "key": "physics"
+            }, {
+                "type": "bool",
+                "title": "Connexion au back-office",
+                "desc": "Activer ou désactiver la synchronisation avec le backoffice",
+                "section": "museotouch",
+                "key": "fast"
+            }, {
+                "type": "bool",
+                "title": "Widget validation",
+                "desc": "Activer ou désactiver le widget de validation (si disponible pour ce scénario)",
+                "section": "museotouch",
+                "key": "validation"
+            }, {
+                "type": "options",
+                "title": "Ecran de veille",
+                "desc": "Permet de régler le temps (en secondes) de déclenchement de l'écran de veille (0 pour désactiver)",
+                "section": "museotouch",
+                "options":["0","15","30","60","90","120"],
+                "key": "splashscreen"
+            }, {
+                "type": "options",
+                "title": "Intervalle de l'écran de veille",
+                "desc": "Permet de régler l'intervalle de temps (en secondes) entre les images de l'écran de veille (0 pour désactiver)",
+                "section": "museotouch",
+                "options":["0","5","15","30","60","90","120"],
+                "key": "splashscreen_interval"
             }]'''
         settings.add_json_panel('Museotouch', self.config, data=jsondata)
         if platform() not in ('ios', 'android'):
@@ -543,6 +598,7 @@ class MuseotouchApp(App):
             settings.add_json_panel('Rfid', self.config, data=jsondata)
 
     def build(self):
+
         config = self.config
 
         #: imagemap widget. If set, it will be used to filter items from
@@ -556,9 +612,12 @@ class MuseotouchApp(App):
         #: keywords widget. If set, it will be used to show keywords
         self.keywords = None
 
-        #: size slider. If set, it will be used to show all size
+        #: size slider. If set, it will be used to show all sizes
         self.size_slider = None
         
+        #: drop down menu. If set, it will be used to show all sizes
+        self.dropdown = None
+
         #:Image buttons. 
         self.imageButtons = None
 
@@ -585,6 +644,8 @@ class MuseotouchApp(App):
         self.data_dir = data_dir = join(dirname(museolib.__file__), 'data')
         resource_add_path(data_dir)
 
+        # timer for splashscreen
+        self.timer=False
         # add kv file
         Builder.load_file(join(data_dir, 'global.kv'))
 
@@ -597,9 +658,15 @@ class MuseotouchApp(App):
             self.update_objects_from_filter, 0)
 
         # web backend
-        self.backend = BackendWeb(
-                url=config.get('museotouch', 'url_api'),
-                data_url=config.get('museotouch', 'url_data'))
+        disconnected = not self.config.getboolean('museotouch','fast')
+        if disconnected == False :
+            self.backend = BackendWeb(
+                    url=config.get('museotouch', 'url_api'),
+                    data_url=config.get('museotouch', 'url_data'))
+        else :
+            self.backend=BackendWeb(
+                    url='',
+                    data_url='')
 
         # rfid daemon
         self.rfid_daemon = None
@@ -656,13 +723,13 @@ class MuseotouchApp(App):
         return ExpoSelector(app=self)
 
     def build_app(self):
-        try:
-            self._build_app()
-        except Exception, e:
-            self.error(e)
+        # try:
+        self._build_app()
+        # except Exception, e:
+        #     self.error(e)
+
 
     def _build_app(self):
-        # Import the module
         if '__expo__'+self.expo_id not in sys.modules:
             modexpo = load_source('__expo__'+self.expo_id, join(
                 self.expo_data_dir, '__init__.py'))
@@ -675,20 +742,21 @@ class MuseotouchApp(App):
         self.db = db = BackendJSON(filename=join(
             self.expo_dir, 'objects.json'))
         Logger.info('Museotouch: loaded %d items' % len(db.items))
-
         # resolving filename for all item
         items = db.items[:]
         imgtype = self.imgtype
         for item in items[:]:
             if imgtype == 'raw':
                 directory, ext = 'raw', 'png'
+            if imgtype == 'jpg':
+                directory, ext = 'raw', 'jpg'
             else:
                 directory, ext = self.imgdir, imgtype
             filename = join(self.expo_img_dir,  directory, '%d.%s' % (item.id, ext))
-            if not exists(filename):
-                Logger.error('Museolib: Unable to found image %s' % filename)
-                items.remove(item)
-                continue
+            # if not exists(filename):
+            #     Logger.error('Museolib: Unable to found image %s' % filename)
+            #     items.remove(item)
+            #     continue
             #rrr()
             item.filename = filename
 
@@ -731,6 +799,14 @@ class MuseotouchApp(App):
 
         if self.calendar:
             self.calendar.bind(update=self.trigger_objects_filtering)
+
+        if self.dropdown:
+            batch_list=[]
+            for i in items:
+                if i['taille'].capitalize() not in batch_list:
+                    batch_list.append(i['taille'].capitalize())
+            self.dropdown.populate_drop_down(batch_list)
+            self.dropdown.bind(button_text=self.trigger_objects_filtering)
         
         if not hasattr(root, 'hide_items'):
             self.trigger_objects_filtering()
@@ -744,19 +820,31 @@ class MuseotouchApp(App):
             parent = Window
         self.root = root
         parent.add_widget(self.root)
-
-        
         demo = self.config.getboolean('museotouch', 'demo')
-        if demo: 
+        self.update_error_log()
+        if demo==True: 
             button_inst = QuitButton()
             from kivy.uix.scatter import Scatter
-            scat = Scatter(size=(1200,1200), pos=(0,0), size_hint=(None, None), scale=.1 )
+            scat = Scatter(size=(1200,1200),pos_hint={'right': 1, 'top': 1}, size_hint=(None, None), scale=.05,do_translation=False,do_rotation=False,do_scale=False)
             scat.add_widget(button_inst)
             parent.add_widget(scat)
             def restart():
                 self.reset(go_to_menu=True)
             button_inst.do_action = restart
         return root
+    def update_error_log(self):
+        errors = self.backend.get_errors()
+        logpath = join(self.expo_dir,'error.log')
+        logfile = open(logpath,'w')
+        if errors == []:
+            remove(logpath)
+        else:
+            Logger.error("Some fields aren't filled properly in the back-office. See %s for more information"%logpath)
+            for error in errors:
+                logfile.write('Au moins un champs mal rempli pour la fiche "%s"\n'%(error))
+        logfile.close()
+
+
 
     def change_expo(self, expo_id):
         self.reset(go_to_menu=False)
@@ -854,8 +942,8 @@ class MuseotouchApp(App):
         # get the initial json
         self.backend.set_expo(expo_id)
 
-        fast = False
-        if fast:
+        disconnected = not self.config.getboolean('museotouch','fast')
+        if disconnected == True:
             print 'building fast'
             self._sync_popup.dismiss()
             self.build_app()
@@ -968,7 +1056,7 @@ class MuseotouchApp(App):
         Logger.info('Museotouch: Synchronization part 4')
         ext = req.url.rsplit('.', 1)[-1]
         thumbnailfn = join(self.expo_dir, 'thumbnail.%s' % ext)
-        with open(thumbnailfn, 'w') as fd:
+        with open(thumbnailfn, 'wb') as fd:
             fd.write(result)
 
         # all ok, write original filename
@@ -1045,52 +1133,12 @@ class MuseotouchApp(App):
                     filepath = join(self.expo_dir, 'otherfiles', filename)
 
                     # if not isfile(join(self.expo_dir, 'otherfiles', no_url(fichier))):
+                    # TEMPORARY Next lines commented out : was preventing "otherfiles" to update if a file with the same name was already here
+                    # UPDATE : uncommented : was causing other (big) problems
                     if not isfile(filepath):
-                        # print ' ### (this file does not exist yet - let"s download it !)'
-
-                        # def chunk_report(here, step, total):
-                        #     print here, '/', total, '// +', step
-
-                        # def chunk_read(url, chunk_size=8192, on_progress=None):
-                        #     import urllib2
-                        #     response = urllib2.urlopen(url);
-                        #     total_size = response.info().getheader('Content-Length').strip()
-                        #     total_size = int(total_size)
-                        #     bytes_so_far = 0
-
-                        #     while 1:
-                        #         chunk = response.read(chunk_size)
-                        #         bytes_so_far += len(chunk)
-
-                        #         if not chunk:
-                        #             print 'end'
-                        #             break
-
-                        #         if on_progress:
-                        #             class fooo(object): pass
-                        #             req = fooo()
-                        #             req.url = url
-                        #             req.chunk_size = chunk_size
-                        #             on_progress(req, bytes_so_far, total_size)
-
-                        #     return bytes_so_far
-
-                        # self._sync_popup_text(u'Téléchargement de '+fichier)
-                        # chunk_read(fichier, on_progress=self._sync_progress)
-                        # print ' &&&& END of', fichier
-
                         from kivy.network.urlrequest import UrlRequest
                         req = UrlRequest(fichier, on_success=self.aft, on_error=self.aft)
                         self.url_requests.append(req)
-                        # import urllib2
-                        # f = urllib2.urlopen(fichier)
-                        # output = open(filepath, 'wb')
-                        # output.write(f.read())
-                        # output.close()
-
-                    # else:
-                    #     print ' ### (this file already exists) : '
-
                     continue
                 item['__item_filename__'] = fichier
                 filename, ext = self._sync_convert_filename(fichier)
@@ -1260,18 +1308,21 @@ class MuseotouchApp(App):
         from kivy.core.window import Window
         for child in Window.children[:]:
             Window.remove_widget(child)
-        print 'reset 0'
+        self.dropdown=None
+        self.size_slider=None
+        self.date_slider=None
+        Cache.remove('kv.texture')
         # remove everything from the current expo
         if hasattr(self, 'expo_data_dir'):
             resource_remove_path(self.expo_data_dir)
             Builder.unload_file(join(self.expo_data_dir, 'museotouch.kv'))
-            self.expo_dir = self.expo_data_dir = self.expo_img_dir = None
+            self.expo_dir = self.expo_data_dir = self.expo_img_dir = None  
 
         if go_to_menu == True:
             print 'reset'
             # restart with selector.
             Window.add_widget(self.build_selector())
-        
+
 import sys, traceback
 if __name__ in ('__main__', '__android__'):
     # MuseotouchApp().run()
