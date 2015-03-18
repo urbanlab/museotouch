@@ -1,10 +1,13 @@
 from museolib.utils import convert_to_key
-
+error_log = []
 class BackendItem(dict):
     @property
     def date(self):
         if 'date_crea' in self:
-            return int(self['date_crea'])
+            try :
+                return int(self['date_crea'])
+            except:
+                return self.error_logger('Date')
 
     @property
     def id(self):
@@ -12,8 +15,11 @@ class BackendItem(dict):
 
     @property
     def origin(self):
-        if 'orig_geo' in self:
-            return self['orig_geo']
+        if 'orig_geo' !='' or orig_geo != None:
+            if 'orig_geo' in self:
+                return self['orig_geo']
+        else:
+            return self.error_logger('Origine geographique')
 
     @property
     def origin_ex(self):
@@ -47,7 +53,7 @@ class BackendItem(dict):
         try:
             return int(self['taille'])
         except:
-            return 0
+            return self.error_logger('Taille')
 
     def __getattr__(self, nom):
         """ Si l'attribut n'est pas dans ceux ci dessus, c'est un item du JSON : """
@@ -60,6 +66,11 @@ class BackendItem(dict):
 
     def __setattr__(self, nom, val):
         self[nom] = val
+    def error_logger(self,prop):
+        # print 'Champ %s mal rempli pour la fiche : %s'%(prop,self.title)
+        if self.title not in error_log:
+            error_log.append(self.title)
+        return 'Champ non ou mal rempli dans le back-office'
 
 class Backend(object):
     def __init__(self, **options):
@@ -69,7 +80,8 @@ class Backend(object):
         for item in self.load_items():
             self.add_item(item)
         self.items = sorted(self.items, key=lambda x: x.date)
-
+    def get_errors(self):
+        return error_log
     def add_item(self, item):
         assert(isinstance(item, BackendItem))
         self.items.append(item)
