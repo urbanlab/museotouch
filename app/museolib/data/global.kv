@@ -7,12 +7,13 @@
 <QuitButton>:
 	size:1200,1200
 	size_hint: None,None
+	pos_hint:{'right': 1, 'top': 1}
 	scale: .2
 	source: 'quit.png'
 	
 	canvas.before:
 		Color:
-			rgb: (0.224, 0.016, 0.271,1) if self.state == 'down' else (1,1,1,1)
+			rgb: (0.224, 0.016, 0.271,1)
 		Rectangle:
 			pos: self.center_x - 300, self.center_y - 300
 			size: 600,600
@@ -24,7 +25,7 @@
 
 <ExpoItem>:
 	size_hint: None,None
-	height: Window.width / 7 - 17
+	height: Window.width/9
 	width: self.height
 	# orientation: 'vertical'
 	# spacing: 0
@@ -43,6 +44,7 @@
 
 	Image:
 		id: main_img
+		pos:root.pos
 		source: root.expo.get('data', '')
 		size_hint: None, None
 		size: root.width, root.height
@@ -51,9 +53,9 @@
 		center: root.center
 		color: (1,1,1,1)
 	Label:
+		id:main_label
 		text: root.expo.get('name', '').upper()
 		size_hint: None,None
-		# size_hint: None, None
 		text_size: self.width, None
 		size: root.width - 20, self.texture_size[1]
 		halign: 'left'
@@ -61,20 +63,20 @@
 		markup: True
 		font_name: futuraBold
 		pos: root.x + 10, root.y + 10
+		opacity:0
+		on_touch_up:self.opacity=0
 		
 		canvas.before:
 			Color:
-				rgb: root.color
+				rgba: root.color
 			Rectangle:
-				pos: root.pos
-				size: root.width, self.height + 20
-
+				pos: main_img.pos
+				size: main_img.width, main_img.height
 <ExpoPopupChoice>:
 	list_expos: list_expos
 	orientation: 'vertical'
 	size_hint: None, None
 	size: Window.size
-
 	canvas:
 		Color: 
 			rgb: 0,0,0
@@ -88,7 +90,7 @@
 		# height: self.minimum_height
 		# height: 700
 		width: Window.width
-		cols: 7
+		cols: 8
 		spacing: 15
 		padding: 15
 
@@ -110,3 +112,49 @@
 		
 <KeywordsGroup>:
 	cols: 2
+
+<SplashScreen>:
+	Image:
+		id:img
+		size_hint: None, None
+		source:'splash.png'
+		size:root.size
+	Button:
+		on_release: root.quit()
+		size:64,64
+		size_hint: None,None
+		pos_hint:{'right': 1, 'top': 1}
+		background_normal: 'quit.png'
+		background_down:'quit_down.png'
+	Button:
+		on_release: root.previous()
+		size:48,48
+		size_hint: None,None
+		pos_hint:{'left': 1, 'top': 0.5}
+		background_normal: 'previous.png'
+		background_down:'previous_down.png'
+	Button:
+		on_release: root.next()
+		size:48,48
+		size_hint: None,None
+		pos_hint:{'right': 1, 'top': 0.5}
+		background_normal: 'next.png'
+		background_down:'next_down.png'
+
+<Tutorial>:
+	# pos:(0,Window.height*0.5)
+	pos_hint:{'y':0,'x':0.1}
+	Image:
+		id:tuto
+		size:(Window.height*0.7,Window.height)
+		# pos:(500,300)
+		size_hint: None, None
+		source:root.img_path
+		# size:root.img_size
+	FloatLayout:
+		id:tuto_container
+		Label:
+			id:label
+			font_size:Window.width*0.02
+			text:root.text
+			pos:(self.parent.x,Window.height*0.25)
