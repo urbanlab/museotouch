@@ -9,7 +9,7 @@ class Tutorial(BoxLayout):
 	def __init__(self,image,**kwargs):
 		super(Tutorial,self).__init__()
 		self.img_path = image
-		self.number = image.split('-')[1].split('.')[0]
+		self.number = image.split('/')[-1].split('-')[-1].split('.')[0]
 		self.tuto = self.get_tuto_widget()
 		self.ids.tuto_container.add_widget(self.tuto)
 		self.text=self.tuto.text
