@@ -1,7 +1,8 @@
+from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scatter import Scatter
 from kivy.animation import Animation
-from kivy.properties import ListProperty,BooleanProperty
+from kivy.properties import ListProperty,BooleanProperty,ObjectProperty
 from kivy.core.window import Window
 from random import randint
 
@@ -10,8 +11,8 @@ class Valid(Scatter):
     valid=BooleanProperty()
     def __init__(self,**kwargs):
         super(Valid,self).__init__(**kwargs)
-        self.children_pos={"0":[2,2],"1":[self.width/2,2],"2":[2,self.width/2],"3":[self.width/2,self.width/2],}
-        
+        self.children_pos={"2":[2,2],"3":[self.width/2,2],"0":[2,self.width/2],"1":[self.width/2,self.width/2],}
+        self.app = App.get_running_app()
     def on_touch_down(self,touch):
     	super(Valid,self).on_touch_down(touch)
     	if self.collide_point(*touch.pos):
@@ -76,5 +77,10 @@ class Valid(Scatter):
                     break
             anim=Animation(pos=(randint(int(0.5*Window.width-300),int(0.5*Window.width+100)),randint(int(0.5*Window.height-300),int(0.5*Window.height+100))),rotation=randint(0,360),d=0.2,scale=0.5)
             anim.start(temp)
+            try :
+                self.app.db.items.append(i.item)
+                self.app.valid_list.remove(i.item.id)
+            except:
+                pass
             
 

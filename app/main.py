@@ -315,6 +315,11 @@ class MuseotouchApp(App):
         # start from all items
         items = self.db.items
         result = []
+        # print self.valid_list
+        # avoid bad interactions with validation widget
+        for item in items[:] :
+            if item.id in self.valid_list :
+                items.remove(item)
         # update date range from slider value
         if self.date_slider:
             ma, mb = self.date_slider.value_range
@@ -644,6 +649,10 @@ class MuseotouchApp(App):
         self.data_dir = data_dir = join(dirname(museolib.__file__), 'data')
         resource_add_path(data_dir)
 
+        # list of imageitems currently inside validation widgets
+        # avoids those items to be impacted by sorting function
+        self.valid_list = []
+
         # timer for splashscreen
         self.timer=False
         # add kv file
@@ -841,7 +850,7 @@ class MuseotouchApp(App):
         else:
             Logger.error("Some fields aren't filled properly in the back-office. See %s for more information"%logpath)
             for error in errors:
-                logfile.write('Au moins un champs mal rempli pour la fiche "%s"\n'%(error))
+                logfile.write('Au moins un champ mal rempli pour la fiche "%s"\n'%(error))
         logfile.close()
 
 
