@@ -19,29 +19,19 @@ def build(app):
     root = FloatLayout()
 
     # -------------------------------------------------------------------------
-    # Size slider
-    app.size_slider = slider = SizeSlider(
-        size=(500, 150), size_hint=(None, None))
-    scatter = size_slider_scatter = Scatter(size=app.size_slider.size,
-            auto_bring_to_front=False,
-            pos_hint={'top': 0.98, 'center_x': .5},
-            size_hint=(None, None), rotation=-180,
-            do_translate=False, do_rotate=False, do_scale=False)
-    scatter.add_widget(app.size_slider)
-    root.add_widget(scatter)
-
-    # -------------------------------------------------------------------------
     # Create an image map widget
     # search image for map (exclude _active) files
     sources = glob(join(app.expo_data_dir, 'widgets', 'map', '*.png'))
     sources = [x for x in sources if '_active' not in x]
     app.imagemap = imagemap = ImageMap(
-            pos_hint={'center_x': 0.5, 'y': 0},
+            pos_hint={'right': 1, 'y': 0},
             size_hint=(None, None),
             size=(840, 175),
             sources=sources,
             suffix='_active')
-    root.add_widget(imagemap)
+    s = Scatter(rotation=90,pos_hint=app.imagemap.pos_hint,size=app.imagemap.size,size_hint=(None,None))
+    s.add_widget(app.imagemap)
+    root.add_widget(s)
 
     # -------------------------------------------------------------------------
     # Create a widget for keywords
@@ -82,24 +72,9 @@ def build(app):
     root.add_widget(ordering_origin)
 
     def set_ordering_origin_pos(instance, value):
-        ordering_origin.y = instance.y + 20
-        ordering_origin.x = instance.right + 20
-    imagemap.bind(pos=set_ordering_origin_pos)
-
-    # -------------------------------------------------------------------------
-    # Create a button to order by size
-    ordering_size = Button(
-            background_normal='widgets/circle_filter.png',
-            background_down='widgets/circle_filter_down.png',
-            **kwargs)
-    ordering_size.bind(on_release=app.do_ordering_size)
-    root.add_widget(ordering_size)
-
-    def set_ordering_size_pos(instance, value):
-        ordering_size.y = instance.top - 35
-        ordering_size.right = instance.x - 70
-    size_slider_scatter.bind(pos=set_ordering_size_pos)
-
+        ordering_origin.y = instance.width +20
+        ordering_origin.x = instance.x + 50
+    s.bind(pos=set_ordering_origin_pos)
 
     # -------------------------------------------------------------------------
     # Create a button to order by keywords

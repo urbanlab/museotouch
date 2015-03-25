@@ -38,7 +38,6 @@ Factory.register('ExpoPopupChoice', cls=ExpoPopupChoice)
 class ExpoItem(ButtonBehavior, Widget):
     expo = ObjectProperty(None)
     selector = ObjectProperty(None)
-
     color = (1,1,1,1)
 
     def __init__(self, **kwargs):
@@ -252,7 +251,7 @@ class ExpoSelector(FloatLayout):
         if interval !=0:
             if self.app.timer == False:
                 self.app.timer=True
-                Clock.schedule_interval(self.screen_saver, interval)
+                Clock.schedule_interval(self.screen_saver,interval)
     def stop_timer(self):
         self.app.timer=False
         Clock.unschedule(self.screen_saver)

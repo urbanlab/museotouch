@@ -9,7 +9,6 @@
 	container: container
 	scale_min: .5
 	scale_max: 10
-	on_scale: print self.item.description
 	canvas:
 		Color:
 			rgb: 1, 1, 1
@@ -98,6 +97,16 @@
 			size_hint_y: None
 			height: self.texture_size[1] + 10
 			font_size: 12
+		Button:
+			text:"Récupérer l\'image"
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] + 10
+			font_size: 14
+			on_release: root.get_qr_code()
+			background_color: (0, 0, 0, 0)
+			# Etat normal : couleur blanche (1,1,1,1). Etat appuyé : couleur rgba : (r/255, g/255, b/255, 1) (a = alpha = opacité = 1)
+			color: (0, 0.45, 0.73, 1) if self.state == 'normal' else (0.5490, 1, 1, 1)
 
 	GridLayout:
 		cols: 1
