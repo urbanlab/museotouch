@@ -12,7 +12,7 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from museolib.widgets.validation import Valid as Valid
 from pdb import set_trace as rrr
-
+from kivy.network.urlrequest import UrlRequest
 from kivy.vector import Vector
 import time
 
@@ -28,7 +28,6 @@ class ItemMediaBrowser(FloatLayout):
     content = ObjectProperty(None)
     media = ObjectProperty(None, allownone=True)
     medias_sorted = BooleanProperty(False)
-
     def on_index(self, instance, value):
         if self.medias_sorted ==False :
             medialist = self.item.medias
@@ -75,7 +74,7 @@ class ImageItemContent(FloatLayout):
     imageitem = ObjectProperty(None)
     flip_alpha = NumericProperty(1.)
     mediacontent = ObjectProperty(None, allownone=True)
-
+    qr = BooleanProperty(False)
     def toggle_media(self):
         '''Toggle display of medias if exist
         '''
@@ -92,6 +91,31 @@ class ImageItemContent(FloatLayout):
     def stop(self):
         if self.mediacontent:
             self.mediacontent.stop()
+
+    def get_file_url(self):
+        return self.item['fichier']
+    def get_qr_code(self):
+        self.qr_path = join(join(*self.item['filename'].split('/')[:-1]),'%s.png'%self.item['id'])
+        if isfile(self.qr_path) == False :
+            UrlRequest(url='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s'%self.get_file_url(),on_success=self.write_qr)
+        else:
+            self.toggle_image()
+    def write_qr(self,arg,result):
+        with open(self.qr_path, 'wb') as fd:
+            fd.write(result)
+        self.toggle_image()
+    def toggle_image(self):
+        if self.qr == False :
+            self.qr_image = Image(source=self.qr_path,id="qr_code")
+            self.parent.add_widget(self.qr_image)
+            self.qr_image.pos=(-200,0)
+            self.qr_image.opacity=0
+            Animation(pos=(0,0),opacity=1,d=0.3).start(self.qr_image)
+            self.qr=True
+        else:
+            self.parent.remove_widget(self.qr_image)
+            self.qr=False
+
 
 
 class ImageItem(Scatter):
@@ -367,7 +391,8 @@ class ImageItem(Scatter):
                         wid.ids['my_layout'].add_widget(temp)
                         anim=Animation(pos=wid.children_pos[str(nbr_valid)], rotation=0,d=0.2,scale=wid.width*0.00095)
                         anim.start(self)
-
+                        if self.item.id not in self.app.valid_list:
+                            self.app.valid_list.append(self.item.id)
     def check_boundaries(self):
         #change direction
         if self.x+(self.width*self.scale)>Window.width or self.x < 0 :
