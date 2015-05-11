@@ -5,6 +5,7 @@ from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import ListProperty, BooleanProperty, ObjectProperty, \
         NumericProperty, StringProperty
+import textwrap
 
 
 class Keyword(Label):
@@ -93,7 +94,7 @@ class Keywords(Accordion):
                 if self.alphabetical_sort:
                     children.sort(key=lambda x: x['name'])
                 for child in children:
-                    keyword = Keyword(text=child['name'], text_id=child['id'],
+                    keyword = Keyword(text=textwrap.fill(child['name'],20), text_id=child['id'],
                             controler=self, group=accgroup)
                     accgroup.add_widget(keyword)
 
