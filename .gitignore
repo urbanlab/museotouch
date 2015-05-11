@@ -12,8 +12,7 @@ Kivy.egg-info
 app/expos/*/data.zip
 app/expos/*/data.checksum
 app/expos/*/objects.json
-app/expos/*/images
-app/expos/*/otherfiles
+app/museotouch.ini
 cron/config.ini
 tools/*.zip
 build/*

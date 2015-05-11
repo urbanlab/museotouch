@@ -348,9 +348,9 @@ class MuseotouchApp(App):
             # more precise and reliable 
             # but certainly slower
             try:
-                taille_max = float(items[-1]['taille'])
-                borne_max = taille_max*self.size_slider.value_max
-                borne_min = taille_max*self.size_slider.value_min
+                self.taille_max = float(items[-1]['taille'])
+                borne_max = self.taille_max*self.size_slider.value_max
+                borne_min = self.taille_max*self.size_slider.value_min
                 items = [x for x in items if (float(x['taille']) <= borne_max) and (float(x['taille']) >= borne_min)]
             # fallback to the old system
             # in case 'taille' field has been filled up with a non digit string in the backoffice
@@ -503,11 +503,12 @@ class MuseotouchApp(App):
 
     def build_config(self, config):
         config.setdefaults('museotouch', {
-            'url': 'http://ns318835.ip-91-121-122.eu/museotouch/',
-            'url_api': 'http://ns318835.ip-91-121-122.eu/museotouch/api/',
-            'url_data': 'http://ns318835.ip-91-121-122.eu/museotouch/uploads/',
+            'url': 'http://www.crdp-lyon.fr/educatouch/',
+            'url_api': 'http://www.crdp-lyon.fr/educatouch/api/',
+            'url_data': 'http://www.crdp-lyon.fr/educatouch/uploads/',
             'expo': '0',
             'demo':'1',
+            'more_info':'1',
             'splashscreen':'60',
             'splashscreen_interval':'15',
             'fast':'1',
@@ -563,6 +564,12 @@ class MuseotouchApp(App):
                 "desc": "Activer ou désactiver le widget de validation (si disponible pour ce scénario)",
                 "section": "museotouch",
                 "key": "validation"
+            }, {
+                "type": "bool",
+                "title": "Activer ou désactiver le retournement des fiches",
+                "desc": "Permet d'empêcher ou d'autoriser les utilisateurs à retourner les fiches (flèche en haut à droite de chaque fiche)",
+                "section": "museotouch",
+                "key": "more_info"
             }, {
                 "type": "options",
                 "title": "Ecran de veille",

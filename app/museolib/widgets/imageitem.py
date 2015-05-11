@@ -3,6 +3,8 @@ from kivy.properties import StringProperty, ObjectProperty, NumericProperty, \
 from kivy.animation import Animation
 from kivy.uix.scatter import Scatter
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.button import Button
+from kivy.core.audio import SoundLoader
 from kivy.vector import Vector
 from kivy.uix.video import Video
 from kivy.uix.image import Image
@@ -29,28 +31,30 @@ class ItemMediaBrowser(FloatLayout):
     media = ObjectProperty(None, allownone=True)
     medias_sorted = BooleanProperty(False)
     def on_index(self, instance, value):
+        if self.parent.qr == True:
+            self.parent.remove_qr()
         if self.medias_sorted ==False :
             medialist = self.item.medias
             medialist.sort()
-        if self.media:
-            if isinstance(self.media, Video):
-                self.media.play = False
-            self.media = None
+        self.stop()
+        # if self.media:
+        #     if isinstance(self.media, Video):
+        #         self.media.play = False
+        #     self.media = None
         value = value % len(medialist)
-        media = medialist[value]
+        media =self.media_url= medialist[value]
         name, ext = splitext(media)
         ext = ext[1:].lower()
 
         # convert media url to local media path (all medias are already downloaded)
         # from museolib.utils import no_url
-        
         media = join(self.parent.parent.parent.parent.app.expo_dir, 'otherfiles', basename(media))
-        
         if not isfile(media):
             print " ### Oops, this media is not downloaded !"
         try:
             if ext in ('mp3', 'ogg', 'flac', 'wav'):
-                w = Label(text="It's a song : " + media)
+                self.song = SoundLoader.load(media)
+                w = Button(text="Jouer le son",on_release=self.play_song,size=(self.width*0.5,self.height*0.1))
                 if not isfile(media):
                     w = Label(text="Song not downloaded.")
             elif ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv'):
@@ -58,15 +62,23 @@ class ItemMediaBrowser(FloatLayout):
             else:                
                 w = Image(source=media)
         except:
-            w = Label(text='Unable to read that media')
+            w = Label(text='Impossible de lire ce fichier')
         self.content.clear_widgets()
         self.content.add_widget(w)
         self.media = w
-
+    def play_song(self,instance):
+        self.song.play()
+    def stop_song(self):
+        self.song.stop()
+        self.song.unload()
     def stop(self):
         if self.media:
+            print self.media
+            print type(self.media)
             if isinstance(self.media, Video):
                 self.media.play = False
+            if isinstance(self.media, Button):
+                self.stop_song()
             self.media = None
 
 class ImageItemContent(FloatLayout):
@@ -78,6 +90,8 @@ class ImageItemContent(FloatLayout):
     def toggle_media(self):
         '''Toggle display of medias if exist
         '''
+        if self.qr==True:
+            self.remove_qr()
         if not self.mediacontent:
             self.mediacontent = ItemMediaBrowser(item=self.item)
             self.add_widget(self.mediacontent)
@@ -91,13 +105,17 @@ class ImageItemContent(FloatLayout):
     def stop(self):
         if self.mediacontent:
             self.mediacontent.stop()
-
-    def get_file_url(self):
-        return self.item['fichier']
-    def get_qr_code(self):
-        self.qr_path = join(join(*self.item['filename'].split('/')[:-1]),'%s.png'%self.item['id'])
+    def get_edit_url(self):
+        self.get_qr_code(edit=True,url='http://www.crdp-lyon.fr/educatouch/expo.php?act=aitems%%26expo=%s%%26edit=%s%%26lang=1'%(self.imageitem.app.expo_id,self.item['id']))
+    def get_file_url(self,fi):
+        self.get_qr_code(url=fi)
+    def get_qr_code(self,edit=False,url=''):
+        if edit == False:
+            self.qr_path = join(join(*self.item['filename'].split('/')[:-3]),'otherfiles','qr_%s.png'%url.split('/')[-1].split('.')[0])
+        else :
+            self.qr_path = join(join(*self.item['filename'].split('/')[:-1]),'qr_%s_edit.png'%self.item['id'])
         if isfile(self.qr_path) == False :
-            UrlRequest(url='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s'%self.get_file_url(),on_success=self.write_qr)
+            UrlRequest(url='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s'%url,on_success=self.write_qr)
         else:
             self.toggle_image()
     def write_qr(self,arg,result):
@@ -106,15 +124,19 @@ class ImageItemContent(FloatLayout):
         self.toggle_image()
     def toggle_image(self):
         if self.qr == False :
-            self.qr_image = Image(source=self.qr_path,id="qr_code")
-            self.parent.add_widget(self.qr_image)
-            self.qr_image.pos=(-200,0)
-            self.qr_image.opacity=0
-            Animation(pos=(0,0),opacity=1,d=0.3).start(self.qr_image)
-            self.qr=True
+            self.add_qr()
         else:
-            self.parent.remove_widget(self.qr_image)
-            self.qr=False
+            self.remove_qr()
+    def add_qr(self):
+        self.qr_image = Image(source=self.qr_path,id="qr_code")
+        self.parent.add_widget(self.qr_image)
+        self.qr_image.pos=(-200,0)
+        self.qr_image.opacity=0
+        Animation(pos=(0,0),opacity=1,d=0.3).start(self.qr_image)
+        self.qr=True
+    def remove_qr(self):
+        self.parent.remove_widget(self.qr_image)
+        self.qr=False
 
 
 
@@ -161,7 +183,7 @@ class ImageItem(Scatter):
 
     #: Boolean to activate physics or not
     physics = BooleanProperty(True)
-    
+   
     def __init__(self, *args, **kwargs):
         self.vector=(0,0)
         self.previous_position=(0,0)
@@ -180,6 +202,14 @@ class ImageItem(Scatter):
     def on_start(self):
         #Replace this function in init.py to personnalize dynamically an image item 
         pass
+    def toggle_more_info(self,more_info):
+        if more_info == 1 :
+            self.children[0].opacity = 1
+            self.children[0].disabled = False
+        if more_info == 0 :
+            self.children[0].disabled = True
+            self.children[0].opacity = 0
+        return
 
     def squarize_img(self):
         # Rognage => maximum square :
@@ -191,7 +221,8 @@ class ImageItem(Scatter):
         h = min(L,H)
         self.img_square.texture = self.img_square.texture.get_region(x, y, w, h)
 
-    def on_touch_down(self, touch): 
+    def on_touch_down(self, touch):
+        self.toggle_more_info(self.app.config.getboolean('museotouch','more_info'))
         ret = super(ImageItem, self).on_touch_down(touch)
         if not ret:
             return
@@ -379,8 +410,8 @@ class ImageItem(Scatter):
             for wid in self.parent.parent.children :
                 if isinstance(wid,Valid) and wid.collide_point(*touch):
                     Animation(color=(0,0,1,0.9),d=0.3).start(wid)
-                    nbr_valid = len(wid.ids['my_layout'].children)
-                    if nbr_valid <=3:
+                    available_pos = self.check_availability(wid)
+                    if available_pos != None :
                         temp = self
                         temp.do_scale=False
                         temp.do_translation = False
@@ -389,10 +420,17 @@ class ImageItem(Scatter):
                         temp.pos=(0,0)
                         self.parent.remove_widget(self)
                         wid.ids['my_layout'].add_widget(temp)
-                        anim=Animation(pos=wid.children_pos[str(nbr_valid)], rotation=0,d=0.2,scale=wid.width*0.00095)
+                        anim=Animation(pos=wid.children_pos[str(available_pos)]['pos'], rotation=0,d=0.2,scale=wid.width*0.00095)
                         anim.start(self)
                         if self.item.id not in self.app.valid_list:
                             self.app.valid_list.append(self.item.id)
+    def check_availability(self,validation_widget):
+        for pos in range(0,4):
+            if validation_widget.children_pos[str(pos)]['available'] == True:
+                validation_widget.children_pos[str(pos)]['available'] = False
+                return pos
+        return None
+
     def check_boundaries(self):
         #change direction
         if self.x+(self.width*self.scale)>Window.width or self.x < 0 :

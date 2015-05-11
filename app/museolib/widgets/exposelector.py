@@ -121,33 +121,30 @@ class ExpoSelector(FloatLayout):
         result = sorted(result, key=lambda x: x['name'].lower(), cmp=locale.strcoll)
                 
         for expo in result:
-            # added a conditional to only show expos that have 'canop' in their name
-            if expo['name'].lower().find('canop') !=-1:
+            # convert to string key, python 2.6.
+            expo = dict([(str(x), y) for x, y in expo.iteritems()])
+            zipfiles = [x['fichier'] for x in expo['data'] if
+                    x['fichier'].rsplit('.', 1)[-1] == 'zip']
+            data = [x['fichier'] for x in expo['data'] if
+                    x['fichier'].rsplit('.', 1)[-1].lower() in ('jpg', 'png')]
+            
+            expo_dir = self.app.get_expo_dir(expo['id'])
+            jpg = join(expo_dir, 'thumbnail.jpg')
+            png = join(expo_dir, 'thumbnail.png')
+            no_img = abspath(join(dirname(__file__), os.pardir, 'data/quit.png'))
 
-                # convert to string key, python 2.6.
-                expo = dict([(str(x), y) for x, y in expo.iteritems()])
-                zipfiles = [x['fichier'] for x in expo['data'] if
-                        x['fichier'].rsplit('.', 1)[-1] == 'zip']
-                data = [x['fichier'] for x in expo['data'] if
-                        x['fichier'].rsplit('.', 1)[-1].lower() in ('jpg', 'png')]
-                
-                expo_dir = self.app.get_expo_dir(expo['id'])
-                jpg = join(expo_dir, 'thumbnail.jpg')
-                png = join(expo_dir, 'thumbnail.png')
-                no_img = abspath(join(dirname(__file__), os.pardir, 'data/quit.png'))
-
-                expo['no_img'] = False
-                if isfile(jpg):
-                    expo['data'] = jpg
-                elif isfile(png):
-                    expo['data'] = png
-                else:
-                    expo['data'] = no_img
-                    expo['no_img'] = True
-                expo['__zipfiles__'] = zipfiles
-                # item = Builder.template('ExpoItem', selector=self, **expo)
-                item = ExpoItem(selector=self, expo=expo)
-                layout.add_expo(item)
+            expo['no_img'] = False
+            if isfile(jpg):
+                expo['data'] = jpg
+            elif isfile(png):
+                expo['data'] = png
+            else:
+                expo['data'] = no_img
+                expo['no_img'] = True
+            expo['__zipfiles__'] = zipfiles
+            # item = Builder.template('ExpoItem', selector=self, **expo)
+            item = ExpoItem(selector=self, expo=expo)
+            layout.add_expo(item)
         self.popup(content=layout, title='Liste des expositions')
 
     def get_offline_expos(self):

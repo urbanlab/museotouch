@@ -60,8 +60,8 @@ class TutoItem(Scatter):
 				if wid.collide_point(*touch):
 					Animation(color=(0,0,1,0.9),d=0.3).start(wid)
 					nbr_valid = len(wid.ids['my_layout'].children)
-
-					if nbr_valid <=3:
+					available_pos = self.check_availability(wid)
+					if available_pos != None :
 						temp = self
 						temp.do_scale=False
 						temp.do_translation = False
@@ -69,7 +69,13 @@ class TutoItem(Scatter):
 						temp.pos=(0,0)
 						self.parent.remove_widget(self)
 						wid.ids['my_layout'].add_widget(temp)
-						anim=Animation(pos=wid.children_pos[str(nbr_valid)], rotation=0,d=0.2,scale=wid.width*0.00190)
+						anim=Animation(pos=wid.children_pos[str(available_pos)]['pos'], rotation=0,d=0.2,scale=wid.width*0.00190)
 						anim.start(self)
 			except:
 				pass
+	def check_availability(self,validation_widget):
+		for pos in range(0,4):
+			if validation_widget.children_pos[str(pos)]['available'] == True:
+				validation_widget.children_pos[str(pos)]['available'] = False
+				return pos
+		return None
