@@ -849,16 +849,17 @@ class MuseotouchApp(App):
             button_inst.do_action = restart
         return root
     def update_error_log(self):
-        errors = self.backend.get_errors()
-        logpath = join(self.expo_dir,'error.log')
-        logfile = open(logpath,'w')
-        if errors == []:
-            remove(logpath)
-        else:
-            Logger.error("Some fields aren't filled properly in the back-office. See %s for more information"%logpath)
-            for error in errors:
-                logfile.write('Au moins un champ mal rempli pour la fiche "%s"\n'%(error))
-        logfile.close()
+        # errors = self.backend.get_errors()
+        # logpath = join(self.expo_dir,'error.log')
+        # logfile = open(logpath,'w')
+        # if errors == []:
+        #     remove(logpath)
+        # else:
+        #     Logger.error("Some fields aren't filled properly in the back-office. See %s for more information"%logpath)
+        #     for error in errors:
+        #         logfile.write('Au moins un champ mal rempli pour la fiche "%s"\n'%(error))
+        # logfile.close()
+        pass
 
 
 
