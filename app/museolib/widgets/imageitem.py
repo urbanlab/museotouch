@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty, \
         BooleanProperty, ListProperty
 from kivy.animation import Animation
@@ -37,10 +39,10 @@ class ItemMediaBrowser(FloatLayout):
             medialist = self.item.medias
             medialist.sort()
         self.stop()
-        # if self.media:
-        #     if isinstance(self.media, Video):
-        #         self.media.play = False
-        #     self.media = None
+        if self.media:
+            if isinstance(self.media, Video):
+                self.media.play = False
+            self.media = None
         value = value % len(medialist)
         media =self.media_url= medialist[value]
         name, ext = splitext(media)
@@ -54,9 +56,12 @@ class ItemMediaBrowser(FloatLayout):
         try:
             if ext in ('mp3', 'ogg', 'flac', 'wav'):
                 self.song = SoundLoader.load(media)
-                w = Button(text="Jouer le son",on_release=self.play_song,size=(self.width*0.5,self.height*0.1))
+                if self.parent.parent.parent.parent.app.media_playing == False:
+                    w = Button(text="Jouer le son",on_release=self.play_song,size=(self.width*0.5,self.height*0.1))
+                else:
+                    w = Label(text="Un autre son est déjà en cours de lecture.")
                 if not isfile(media):
-                    w = Label(text="Song not downloaded.")
+                    w = Label(text="Son en cours de téléchargement")
             elif ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv'):
                 w = Video(source=media, play=True)
             else:                
@@ -67,19 +72,22 @@ class ItemMediaBrowser(FloatLayout):
         self.content.add_widget(w)
         self.media = w
     def play_song(self,instance):
-        self.song.play()
+        if self.parent.parent.parent.parent.app.media_playing == False:
+            self.song.play()
+            self.parent.parent.parent.parent.app.media_playing = True
+            self.content.children[0].text='Son en cours de lecture'
+            self.content.children[0].disabled=True
     def stop_song(self):
         self.song.stop()
         self.song.unload()
     def stop(self):
         if self.media:
-            print self.media
-            print type(self.media)
             if isinstance(self.media, Video):
                 self.media.play = False
             if isinstance(self.media, Button):
                 self.stop_song()
             self.media = None
+            self.parent.parent.parent.parent.app.media_playing = False
 
 class ImageItemContent(FloatLayout):
     item = ObjectProperty(None)
@@ -98,6 +106,7 @@ class ImageItemContent(FloatLayout):
             self.mediacontent.index = 0
             self.imageitem.color[3] = 0
         else:
+            self.stop()
             self.remove_widget(self.mediacontent)
             self.mediacontent = None
             self.imageitem.color[3] = 1

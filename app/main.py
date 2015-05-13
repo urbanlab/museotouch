@@ -662,6 +662,9 @@ class MuseotouchApp(App):
 
         # timer for splashscreen
         self.timer=False
+
+        # Boolean to check if a media is already playing
+        self.media_playing = False
         # add kv file
         Builder.load_file(join(data_dir, 'global.kv'))
 
