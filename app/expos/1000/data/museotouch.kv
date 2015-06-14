@@ -1,0 +1,254 @@
+#:kivy 1.0
+#:import math math
+#:set petita 'widgets/PetitaLight.ttf'
+#:set petita_medium 'widgets/PetitaMedium.ttf'
+#:set petita_bold 'widgets/PetitaBold.ttf'
+#:set color_keyword_hi [0.259, 0.728, 0.901, 1] #get_color_from_hex('#32a4ce')
+#:set color_keyword_hi [0.9098039215686274, 0.34509803921568627, 0.06666666666666667, 1] #get_color_from_hex('#e85811')
+#:set color_keyword_hi [0.196850394, 0.645669291, 0.811023622, 1] #get_color_from_hex('#32a4ce')
+#:set color_title_hi [0.8862745098039215, 0.19215686274509805, 0.15294117647058825, 1] #get_color_from_hex('#e23127')
+#:set color_normal [0.7764705882352941, 0.7764705882352941, 0.7764705882352941, 1] #get_color_from_hex('#c6c6c6')
+
+<ImageItem>:
+	border: 2 / self.scale
+	size_hint: None, None
+	size: 512, 512
+	scale: 0.50
+	container: container
+	scale_min: .5
+	scale_max: 10
+	canvas:
+		Color:
+			rgb: 1, 1, 1
+		Rectangle:
+			pos: -self.border, -self.border
+			size: self.width + self.border * 2, self.height + self.border * 2
+		Color:
+			rgb: 0, 0, 0
+		Rectangle:
+			size: self.size
+
+	FloatLayout:
+		size: root.size
+
+		FloatLayout:
+			id: container
+
+		Image:
+			source: root.source
+			size_hint: (1 * (0.3 + 0.7 * root.flip_alpha), 1 * (0.3 + 0.7 * root.flip_alpha))
+			pos_hint: {'top': 1}
+
+	Button:
+		background_color: (1, 1, 1, root.alpha_button)
+		size: (64, 64)
+		pos: 512 - 70, 512 - 70
+		background_down: 'widgets/btn_moreinfo_down.png'
+		background_normal: 'widgets/btn_moreinfo.png'
+		on_release: root.on_btn_moreinfo()
+
+	Label:
+		text: (root.item.title or '') if root.flip_front else ''
+		font_name: petita_medium
+		size_hint_y: None
+		height: self.texture_size[1] + 20
+		width: self.texture_size[0] + 20
+		font_size: 25
+
+<ImageItemContent>:
+	GridLayout:
+		cols: 1
+		rows_default_height: 30
+		pos_hint: {'top': 0.7}
+		size_hint_x: 0.3
+		padding: 5
+		
+		Label:
+			text: 'Institution' if root.item.organisation else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1]
+			font_size: 16
+			font_name: petita_medium
+		Label:
+			text: root.item.organisation if root.item.organisation else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] 
+			font_size: 12
+			font_name: petita_medium
+
+		Label:
+			text: '\nCatégorie' if root.item.cat1 else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1]
+			font_size: 16
+			font_name: petita_medium
+		Label:
+			text: root.item.cat1 if root.item.cat1 else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1]
+			font_size: 12
+			font_name: petita_medium
+		Label:
+			text: root.item.cat2 if root.item.cat2 else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1]
+			font_size: 12
+			font_name: petita_medium
+		Label:
+			text: root.item.cat3 if root.item.cat3 else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1]
+			font_size: 12
+			font_name: petita_medium
+
+
+		Label:
+			text: '\nIntention' if root.item.intention else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1]
+			font_size: 16
+			font_name: petita_medium
+		Label:
+			text: root.item.intention if root.item.intention else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] 
+			font_size: 12
+			font_name: petita_medium
+
+
+		Label:
+			text: '\nMotivation' if root.item.motivation else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1]
+			font_size: 16
+			font_name: petita_medium
+		Label:
+			text: root.item.motivation if root.item.motivation else ''
+			text_size: (self.width, None)
+			size_hint_y: None
+			height: self.texture_size[1] 
+			font_size: 12
+			font_name: petita_medium
+
+	GridLayout:
+		cols: 1
+		pos_hint: {'x': 0.3}
+		size_hint_x: 0.7
+
+		canvas.before:
+			Color:
+				rgb: .1, .1, .1
+			Rectangle:
+				pos: self.x, self.top - self.height * (1 - root.flip_alpha)
+				size: self.width, self.height * (1 - root.flip_alpha)
+
+		Label:
+			text: root.item.title
+			text_size: (self.width - 20, None)
+			valign: 'middle'
+			font_size: 18
+			font_name: petita_medium
+			size_hint_y: None
+			height: max(102, self.texture_size[1])
+			color: (1, 1, 1, 1 - root.flip_alpha)
+
+		Label:
+			text: root.item.description
+			text_size: (self.width - 20, None)
+			size_hint_y: None
+			height: self.texture_size[1]
+			color: (1, 1, 1, 1 - root.flip_alpha)
+
+
+<CircularSlider>:
+    angle_min: self.value_min * 180
+    angle_max: self.value_max * 180
+
+    canvas:
+        Color:
+            rgb: color_keyword_hi
+        Ellipse:
+            pos: self.right - self.outer_radius, self.center_y - self.outer_radius
+            size: self.outer_radius * 2, self.outer_radius * 2
+            angle_start: (root.angle_min + 180) % 360
+            angle_end: ((root.angle_max + 180 - 0.00001) % 360)
+        Color:
+            rgb: 0, 0, 0
+        Ellipse:
+            pos: self.right - self.inner_radius + 50, self.center_y - self.inner_radius + 50
+            size: (self.inner_radius - 50) * 2, (self.inner_radius - 50) * 2
+        Color:
+            rgb: 1, 1, 1
+        Rectangle:
+            source: 'widgets/timeline.png'
+            pos: self.pos
+            size: self.size
+        Color:
+            rgb: color_keyword_hi
+        Line:
+            points: (self.right - math.sin(math.radians(self.angle_min)) * self.outer_radius, self.center_y -math.cos(math.radians(self.angle_min)) * self.outer_radius, self.right - math.sin(math.radians(self.angle_min)) * (self.inner_radius - 50), self.center_y -math.cos(math.radians(self.angle_min)) * (self.inner_radius - 50))
+        Line:
+            points: (self.right - math.sin(math.radians(self.angle_max)) * self.outer_radius, self.center_y -math.cos(math.radians(self.angle_max)) * self.outer_radius, self.right - math.sin(math.radians(self.angle_max)) * (self.inner_radius - 50), self.center_y -math.cos(math.radians(self.angle_max)) * (self.inner_radius - 50))
+
+    BoxLayout:
+        size_hint: None, None
+        size: (150, 80)
+        pos_hint: {'center_x': 0.5, 'center_y': 0.38}
+        orientation: 'vertical'
+        canvas.before:
+            PushMatrix
+            Translate:
+                xy: root.center_x, root.center_y
+            Rotate:
+                angle: 90
+                axis: 0., 0., 1.
+            Translate:
+                xy: -root.center_x, -root.center_y
+        canvas.after:
+            PopMatrix
+
+        Label:
+			font_name: petita_medium
+            font_size: 16
+            color: color_keyword_hi
+            text: root.text_min
+        Label:
+			font_name: petita_medium
+            font_size: 16
+            color: color_keyword_hi
+            text: root.text_max
+
+<Keyword>:
+	color: (1, 1, 1, 1) if self.selected else (.5, .5, .5, 1) 
+	canvas.before:
+		Color:
+			rgb: 1, 1, 1
+		Rectangle:
+            pos: int(self.center_x - self.texture_size[0] / 2. - 32), int(self.center_y - 10)
+			size: 20, 20
+			source: 'widgets/circle%s.png' % ('_selected' if self.selected else '')
+
+
+
+<SizeSlider>:
+	canvas:
+		Color:
+			rgb: 1, 1, 1
+		Rectangle:
+			pos: self.x - 40, self.y
+			size: (500, 30)
+			source: 'widgets/taille.png'
+        Color:
+            rgb: color_keyword_hi
+		Rectangle:
+			pos: self.x + self.value_min * self.width, self.center_y - 10
+			size: self.width * (self.value_max - self.value_min), 20
