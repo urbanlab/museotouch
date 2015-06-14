@@ -3,6 +3,7 @@ INSTALLATION
 https://docs.google.com/document/d/16XiiIOVHsMI1e4RbTmKDsdmGEER45u2yHAsZ41uEVoA/edit
 
 LICENSE
+
 Museotouch, Logiciel d'exploration de collections pour interface tactile utilisant Kivy                        *
  *  Concept : Département du Rhône, Muchomedia, Trafik *  
  *  Développement : Département du Rhône, Muchomedia, Biin *  
@@ -15,6 +16,7 @@ Vous pouvez l'utiliser, le distribuer et le modifier selon les termes de cette l
 Pour plus de details voir la page de présentation : http://www.erasme.org/tout-savoir-sur-Museotouch *
 
 BRANCHE
+
 Cette branche de travail vise à développer un client museotouch compatible avec les systèmes de gestion de contenu (CMS) organisant les données selon le standard Dublin Core.
 Ces développements conserve l'API mise en place par la branche standard museotouch.
 Les wrappers côté serveur destinés à présenter les données selon le standard de l'API Muséotouch sont publiés dans le dossier server.
