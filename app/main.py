@@ -687,6 +687,9 @@ class MuseotouchApp(App):
                     url='',
                     data_url='')
 
+        #CMS
+        self.force_synchro=config.get('museotouch', 'force_synchro')
+
         # rfid daemon
         self.rfid_daemon = None
         if platform() not in ('ios', 'android'):
@@ -1139,7 +1142,17 @@ class MuseotouchApp(App):
                 items.remove(item)
                 continue
             need_sync = True
-            # print 'check', item['id']
+
+            #Verifications CMS : si le fichier existe en local on passe
+            fichier = item['fichier']
+            filename2, ext = self._sync_convert_filename(fichier)
+            uid = item['id']
+            filename = self._sync_get_local_filename2(uid,ext)
+            
+            #if isfile(filename) and not self.force_synchro:
+            if isfile(filename):
+                items.remove(item)
+
             for fichier in fichiers:
                 fichier = fichier['fichier']
                 if not self._sync_is_filename_of_item(item, fichier):
@@ -1206,6 +1219,12 @@ class MuseotouchApp(App):
             fn = fn[0]
         return join(self.expo_img_dir, self.imgdir, fn)
 
+    #CMS
+    def _sync_get_local_filename2(self, fn, ext):
+        if type(fn) in (list, tuple):
+            fn = fn[0]
+        return join(self.expo_img_dir, self.imgdir, fn+'.'+ext)
+
     def _sync_is_filename_of_item(self, item, fichier):
         uid = fichier.split('/')[-1].rsplit('.', 1)[0]
         return str(uid) == str(item['id'])
@@ -1243,17 +1262,25 @@ class MuseotouchApp(App):
             else:
             '''
 
-        self.backend.download_object(uid, self.imgdir, self.imgtype,
-                self._sync_download_ok, self._sync_error, self._sync_progress)
+        #CMS
+        #self.backend.download_object(uid, self.imgdir, self.imgtype,self._sync_download_ok, self._sync_error, self._sync_progress)
+        fichier = self._sync_result[self._sync_index]['fichier']
+        self.backend.download_object2(uid, self.imgdir, self.imgtype,self._sync_download_ok, self._sync_error, self._sync_progress,fichier)
 
     def _sync_download_ok(self, req, result):
         if req.resp_status < 200 or req.resp_status >= 300:
             # look like invalid ? ok.
             self._sync_missing.append(self._sync_index)
         else:
+            # CMS
             # save on disk
-            filename, ext = self._sync_convert_filename(req.url)
-            filename = self._sync_get_local_filename(filename)
+            filename2 = ''
+            filename = ''
+            filename2, ext = self._sync_convert_filename(req.url)
+            #CMS / filename2 et ext : fichier seul / req.url : url complete / filename local calculé
+            uid = self._sync_result[self._sync_index]['id']
+            filename = self._sync_get_local_filename2(uid,ext)
+            #CMS filename = self._sync_get_local_filename(filename)
             with open(filename, 'wb') as fd:
                 fd.write(result)
 

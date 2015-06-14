@@ -68,8 +68,9 @@ class BackendWeb(Backend):
     def get_expos(self, uid=None, on_success=None, on_error=None, on_progress=None):
         url = self.build_url('')
         on_success = partial(self.unquote_json, on_success, on_error)
-        if uid:
-            on_success = partial(self._filter_on_id, uid, on_success, on_error)
+        #CMS
+        #if uid:
+        #    on_success = partial(self._filter_on_id, uid, on_success, on_error)
         Logger.debug('BackendWeb: GET %r' % url)
         self.req = UrlRequest(url, on_success=on_success, on_error=on_error, on_progress=on_progress)
 
