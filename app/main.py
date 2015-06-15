@@ -1143,15 +1143,15 @@ class MuseotouchApp(App):
                 continue
             need_sync = True
 
-            #Verifications CMS : si le fichier existe en local on passe
+            #CMS : si le fichier existe en local on passe
             fichier = item['fichier']
             filename2, ext = self._sync_convert_filename(fichier)
             uid = item['id']
             filename = self._sync_get_local_filename2(uid,ext)
-            
+            #CMS
             #if isfile(filename) and not self.force_synchro:
-            if isfile(filename):
-                items.remove(item)
+            #if isfile(filename):
+            #    items.remove(item)
 
             for fichier in fichiers:
                 fichier = fichier['fichier']
