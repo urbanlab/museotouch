@@ -72,9 +72,11 @@ class ItemMediaBrowser(FloatLayout):
         self.content.add_widget(w)
         self.media = w
     def play_song(self,instance):
-        if self.parent.parent.parent.parent.app.media_playing == False:
+        # if self.parent.parent.parent.parent.app.media_playing == False:
+        if self.parent.imageitem.app.media_playing == False:
             self.song.play()
-            self.parent.parent.parent.parent.app.media_playing = True
+            # self.parent.parent.parent.parent.app.media_playing = True
+            self.parent.imageitem.app.media_playing = True
             self.content.children[0].text='Son en cours de lecture'
             self.content.children[0].disabled=True
     def stop_song(self):
@@ -87,7 +89,8 @@ class ItemMediaBrowser(FloatLayout):
             if isinstance(self.media, Button):
                 self.stop_song()
             self.media = None
-            self.parent.parent.parent.parent.app.media_playing = False
+            #self.parent.parent.parent.parent.app.media_playing = False
+            self.parent.imageitem.app.media_playing = False
 
 class ImageItemContent(FloatLayout):
     item = ObjectProperty(None)
@@ -119,14 +122,15 @@ class ImageItemContent(FloatLayout):
     def get_file_url(self,fi):
         self.get_qr_code(url=fi)
     def get_qr_code(self,edit=False,url=''):
-        if edit == False:
-            self.qr_path = join(join(*self.item['filename'].split('/')[:-3]),'otherfiles','qr_%s.png'%url.split('/')[-1].split('.')[0])
-        else :
-            self.qr_path = join(join(*self.item['filename'].split('/')[:-1]),'qr_%s_edit.png'%self.item['id'])
-        if isfile(self.qr_path) == False :
-            UrlRequest(url='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s'%url,on_success=self.write_qr)
-        else:
-            self.toggle_image()
+        pass
+        # if edit == False:
+        #     self.qr_path = join(join(*self.item['filename'].split('/')[:-3]),'otherfiles','qr_%s.png'%url.split('/')[-1].split('.')[0])
+        # else :
+        #     self.qr_path = join(join(*self.item['filename'].split('/')[:-1]),'qr_%s_edit.png'%self.item['id'])
+        # if isfile(self.qr_path) == False :
+        #     UrlRequest(url='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s'%url,on_success=self.write_qr)
+        # else:
+        #     self.toggle_image()
     def write_qr(self,arg,result):
         with open(self.qr_path, 'wb') as fd:
             fd.write(result)
