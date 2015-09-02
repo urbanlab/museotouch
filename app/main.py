@@ -1113,7 +1113,8 @@ class MuseotouchApp(App):
             else:    ## Show an error ##
                     print("Error: %s file not found while removing" % filepath)
 
-        self.url_requests.remove(req)
+        if(req in self.url_requests):
+            self.url_requests.remove(req)
         if not self.url_requests: # si c'etait le dernier fichier
             if hasattr(self, 'root'):
                 if hasattr(self.root, 'gif'):
@@ -1344,11 +1345,12 @@ class MuseotouchApp(App):
             Window.add_widget(self.build_selector())
 
 import sys, traceback
-if __name__ in ('__main__', '__android__'):
-    # MuseotouchApp().run()
+if __name__ in ('__main__', '__android__'):    
     try:
         MuseotouchApp().run()
     except:
         print "Trigger Exception, traceback info forward to log file."
         traceback.print_exc(file=sys.stdout)
-        sys.exit(1)
+        # Désactive le besoin de taper une touche pour fermer museotouch ce qui bloquait le relancement automatique.
+        # TODO : Placer la trace dans un fichier à chaque crash.
+        #sys.exit(1)
