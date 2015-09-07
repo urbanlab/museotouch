@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.popup import Popup
 from kivy.uix.modalview import ModalView
@@ -78,12 +80,12 @@ class ExpoSelector(FloatLayout):
     app = ObjectProperty(None)
     def __init__(self, **kwargs):
         self._popup = None
-
         #Binding on_touch_up and on_touch_down functions to enable splash screen
         Window.bind(on_touch_down=self.on_touch_down)
         Window.bind(on_touch_up=self.on_touch_up)
 
         super(ExpoSelector, self).__init__(**kwargs)
+        self.app.menu.selector = self
         if self.app.backend:
             self.req = self.app.backend.get_expos(on_success=self.on_success,
                     on_error=self.on_error)
@@ -131,7 +133,7 @@ class ExpoSelector(FloatLayout):
             expo_dir = self.app.get_expo_dir(expo['id'])
             jpg = join(expo_dir, 'thumbnail.jpg')
             png = join(expo_dir, 'thumbnail.png')
-            no_img = abspath(join(dirname(__file__), os.pardir, 'data/quit.png'))
+            no_img = abspath(join(dirname(__file__), os.pardir, 'data/download.png'))
 
             expo['no_img'] = False
             if isfile(jpg):
@@ -208,6 +210,7 @@ class ExpoSelector(FloatLayout):
         # content.add_widget(btn)
         # self.popup(content=content, title='Erreur')
         print 'error'
+        self.app.offline=True
         self.load_offline(None)
 
     def popup(self, content, title, **kwargs):

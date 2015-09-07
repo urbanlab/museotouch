@@ -13,7 +13,7 @@ class CircularSlider(FloatLayout):
     value_range = ReferenceListProperty(value_min, value_max)
     text_min = StringProperty('')
     text_max = StringProperty('')
-
+    name = StringProperty('circularslider')
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return

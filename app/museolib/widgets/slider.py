@@ -1,5 +1,5 @@
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import ReferenceListProperty, NumericProperty
+from kivy.properties import ReferenceListProperty, NumericProperty,StringProperty
 
 
 class SizeSlider(FloatLayout):
@@ -7,6 +7,7 @@ class SizeSlider(FloatLayout):
     value_max = NumericProperty(1.0)
     value_range = ReferenceListProperty(value_min, value_max)
     conditional_value = NumericProperty(1.0)
+    name = StringProperty('sizeslider')
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return

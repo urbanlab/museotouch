@@ -71,7 +71,7 @@ class BackendWeb(Backend):
         if uid:
             on_success = partial(self._filter_on_id, uid, on_success, on_error)
         Logger.debug('BackendWeb: GET %r' % url)
-        self.req = UrlRequest(url, on_success=on_success, on_error=on_error, on_progress=on_progress)
+        self.req = UrlRequest(url, on_success=on_success, on_error=on_error, on_progress=on_progress, timeout=2)
 
     def get_objects(self, on_success=None, on_error=None, on_progress=None):
         assert(self.expo is not None)
