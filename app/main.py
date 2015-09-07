@@ -7,7 +7,6 @@ kivy.require('1.1.1')
 from kivy.config import Config
 Config.set('kivy', 'log_level', 'debug')
 Config.set('graphics','fullscreen','auto')
-# Config.set('graphics','size','1920x1200')
 from random import random, randint
 from os.path import join, dirname, exists, basename,isfile
 from os import makedirs, remove, walk, listdir
@@ -40,19 +39,75 @@ from museolib.widgets.exposelector import ExpoSelector
 from museolib.backend.backendjson import BackendJSON
 from museolib.backend.backendweb import BackendWeb
 from museolib.widgets.quitbutton import QuitButton
+from museolib.widgets.menu import Menu
 from json import dump, dumps
 from imp import load_source
 from math import ceil
 from functools import partial
 
-# from kivy.support import install_twisted_reactor
-# install_twisted_reactor()
-
 from pdb import set_trace as rrr
 import time
 import unicodedata
 
+# from kivy.support import install_twisted_reactor
+# install_twisted_reactor()
+
+# from twisted.internet import reactor
+# from twisted.internet import protocol
+# from twisted.protocols.basic import NetstringReceiver
+# from socket import gethostname
+
+# class EchoProtocol(NetstringReceiver):
+#     def dataReceived(self, data):
+#         response = self.factory.app.handle_message(data)
+#         if response:
+#             if self.factory.app.content_type == "expos":
+#                 for expo in response:
+#                     self.sendString(self.factory.app.content_type+"|"+dumps(expo))
+#             if self.factory.app.content_type in ["get_config","get_widgets"]:
+#                 self.sendString(self.factory.app.content_type+"|"+dumps(response))
+#             if self.factory.app.content_type in ["name"]:
+#                 self.sendString(self.factory.app.content_type+"|"+response)
+
+
+# class EchoFactory(protocol.Factory):
+#     protocol = EchoProtocol
+
+#     def __init__(self, app):
+#         self.app = app
+
 class MuseotouchApp(App):
+
+    # def handle_message(self, msg):
+    #     if msg == 'get_expos' :
+    #         print "Incoming connexion"
+    #         msg = self.selector.get_offline_expos()
+    #         self.content_type='expos'
+    #         return msg
+    #     if msg == "get_name":
+    #         self.content_type='name'
+    #         return gethostname()
+    #     if msg in ["more_info","physics"]:
+    #         boolean = self.config.getboolean('museotouch',msg)
+    #         if boolean == 0 :
+    #             self.config.set('museotouch',msg,1)
+    #         else:
+    #             self.config.set('museotouch',msg,0)       
+    #     if msg == 'get_config':
+    #         config={}
+    #         for boolean in ["more_info","physics"]:
+    #             config[boolean] = self.config.getboolean('museotouch',boolean)
+    #         self.content_type=msg
+    #         return config
+    #     if msg.isdigit()==True:
+    #         self.reset(go_to_menu=False)
+    #         self.show_expo(msg)
+    #     if msg == "get_widgets":
+    #         self.content_type=msg
+    #         return self.widget_list()
+    #     if msg in ["circularslider","sizeslider","imagemap","keywords","dropdown"]:
+    #         self.toggle_widget(self.widgets[msg])
+    #     return None
 
     def delayed_work(self, func, items, delay=0):
         if not items:
@@ -64,7 +119,6 @@ class MuseotouchApp(App):
                 return False
             Clock.schedule_once(_delayed_work, delay)
         Clock.schedule_once(_delayed_work, delay)
-
     @property
     def mode(self):
         if platform() in ('android', 'ios'):
@@ -222,7 +276,13 @@ class MuseotouchApp(App):
             images_pos[source] = {
                 'center': item.center,
                 'rotation': item.rotation}
-
+    def toggle_widget(self,widget):
+        if widget.disabled == True:
+            widget.disabled= False
+            Animation(opacity=1,d=0.5).start(widget)
+        else:
+            widget.disabled=True
+            Animation(opacity=0,d=0.5).start(widget)
     def show_objects(self, objects):
         root = self.root
         if isinstance(self.root_images.x, (int, long)):
@@ -237,9 +297,12 @@ class MuseotouchApp(App):
                     if filename in images:
                         images.remove(filename)
                         continue
-
-                    x = randint(self.root_images.x + 200, self.root_images.right - 200)
-                    y = randint(root.y + 300, root.top - 100)
+                    try:
+                        x = randint(self.root_images.x + 200, self.root_images.right - 200)
+                        y = randint(root.y + 300, root.top - 100)
+                    except:
+                        x = randint(Window.width*0.2,Window.width*0.8)
+                        y = randint(Window.height*0.2,Window.height*0.8)
                     angle = randint(0, 360)
 
                     image = dict(source=filename, rotation=angle + 90,
@@ -454,17 +517,29 @@ class MuseotouchApp(App):
                 # check keywords for current group
                 keywords = [x[1] for x in selected_keywords if x[0] == group]
                 result = []
-
                 # check every items if we got at least one keyword of that group
                 for item in items:
                     #print 'item : ', item.origin_ex
-                    for key in keywords:
-                        # found one group keyword in the 
-                        if key in item.keywords:
+                    is_in = True
+                    if self.keywords.or_and == True :
+                        # OR
+                        for key in keywords:
+                            # found one group keyword in the 
+                            if key in item.keywords:
+                                result.append(item)
+                                if not item in items_result:
+                                    items_result.append(item)
+                                break
+                    else:
+                        # AND
+                        for key in keywords:
+                            if key not in item.keywords:
+                                is_in = False
+                        if is_in == True:
                             result.append(item)
                             if not item in items_result:
                                 items_result.append(item)
-                            break
+
                 # add the result to the group result
                 groups_result[group] = result
 
@@ -509,8 +584,8 @@ class MuseotouchApp(App):
             'expo': '0',
             'demo':'1',
             'more_info':'1',
-            'splashscreen':'60',
-            'splashscreen_interval':'15',
+            'splashscreen':'0',
+            'splashscreen_interval':'60',
             'fast':'1',
             'validation':'1',
             'physics':'1',
@@ -613,28 +688,7 @@ class MuseotouchApp(App):
 
         config = self.config
 
-        #: imagemap widget. If set, it will be used to filter items from
-        #: origin_key
-        self.imagemap = None
-
-        #: date_slider widget. If set, it will be used to filter items from
-        #: a the date range.
-        self.date_slider = None
-
-        #: keywords widget. If set, it will be used to show keywords
-        self.keywords = None
-
-        #: size slider. If set, it will be used to show all sizes
-        self.size_slider = None
-        
-        #: drop down menu. If set, it will be used to show all sizes
-        self.dropdown = None
-
-        #:Image buttons. 
-        self.imageButtons = None
-
-        #: Calendar 
-        self.calendar = None
+        self.init_widgets()
 
         # set the image type from mode
         # TODO : get values from museotouch.ini
@@ -665,6 +719,8 @@ class MuseotouchApp(App):
 
         # Boolean to check if a media is already playing
         self.media_playing = False
+
+        self.offline=BooleanProperty(False)
         # add kv file
         Builder.load_file(join(data_dir, 'global.kv'))
 
@@ -675,10 +731,10 @@ class MuseotouchApp(App):
         # create trigger for updating objects
         self.trigger_objects_filtering = Clock.create_trigger(
             self.update_objects_from_filter, 0)
-
+        self.menu = Menu()
         # web backend
-        disconnected = not self.config.getboolean('museotouch','fast')
-        if disconnected == False :
+        self.disconnected = not self.config.getboolean('museotouch','fast')
+        if self.disconnected == False :
             self.backend = BackendWeb(
                     url=config.get('museotouch', 'url_api'),
                     data_url=config.get('museotouch', 'url_data'))
@@ -705,11 +761,41 @@ class MuseotouchApp(App):
             self.build_for_table()
         else:
             self.build_selector()
+        # Local server
+        # print "STARTING SERVER"
+        # server = EchoFactory(self)
+        # reactor.listenTCP(8000, server)
+        # print "SERVER STARTED"
 
     def on_stop(self):
         if self.rfid_daemon:
             self.rfid_daemon.stop()
         super(MuseotouchApp, self).on_stop()
+
+
+    def init_widgets(self):
+        #: imagemap widget. If set, it will be used to filter items from
+        #: origin_key
+        self.imagemap = None
+
+        #: date_slider widget. If set, it will be used to filter items from
+        #: a the date range.
+        self.date_slider = None
+
+        #: keywords widget. If set, it will be used to show keywords
+        self.keywords = None
+
+        #: size slider. If set, it will be used to show all sizes
+        self.size_slider = None
+        
+        #: drop down menu. If set, it will be used to show all sizes
+        self.dropdown = None
+
+        #:Image buttons. 
+        self.imageButtons = None
+
+        #: Calendar 
+        self.calendar = None
 
     def on_rfid_uid(self, instance, uid):
         Logger.debug('App: Got RFID %r' % uid)
@@ -738,17 +824,10 @@ class MuseotouchApp(App):
         return FloatLayout()
 
     def build_selector(self, *l):
-        
-        return ExpoSelector(app=self)
+        self.selector = ExpoSelector(app=self)
+        return self.selector
 
-    def build_app(self):
-        # try:
-        self._build_app()
-        # except Exception, e:
-        #     self.error(e)
-
-
-    def _build_app(self):
+    def build_app(self,offline=None):
         if '__expo__'+self.expo_id not in sys.modules:
             modexpo = load_source('__expo__'+self.expo_id, join(
                 self.expo_data_dir, '__init__.py'))
@@ -785,6 +864,12 @@ class MuseotouchApp(App):
 
         # construct the app.
         self.root = root = modexpo.build(self)
+        if self.offline == True :
+            self.root.add_widget(Label(text="Pas de connexion au serveur.\nMode offline activé.\nLes fiches ne sont pas mises à jour.",color=(1,0,0,1)))
+        try:
+            self.root.add_widget(self.menu)
+        except:
+            pass
         # type_expo introduced for nuits sonores ("ns")
         if not hasattr(root, 'type_expo'):
             root.type_expo = 'normal'
@@ -842,15 +927,32 @@ class MuseotouchApp(App):
         demo = self.config.getboolean('museotouch', 'demo')
         self.update_error_log()
         if demo==True: 
-            button_inst = QuitButton()
-            from kivy.uix.scatter import Scatter
-            scat = Scatter(size=(1200,1200),pos_hint={'right': 1, 'top': 1}, size_hint=(None, None), scale=.05,do_translation=False,do_rotation=False,do_scale=False)
-            scat.add_widget(button_inst)
-            parent.add_widget(scat)
+            # button_inst = QuitButton()
+            # from kivy.uix.scatter import Scatter
+            # scat = Scatter(size=(1200,1200),pos_hint={'right': 1, 'top': 1}, size_hint=(None, None), scale=.05,do_translation=False,do_rotation=False,do_scale=False)
+            # scat.add_widget(button_inst)
+            # parent.add_widget(scat)
             def restart():
                 self.reset(go_to_menu=True)
-            button_inst.do_action = restart
+            # button_inst.do_action = restart
         return root
+    def widget_list(self):
+        self.widgets = {}
+        widgets = []
+        if self.root :
+            for widget in self.root.children:
+                try:
+                    widgets.append(widget.name)
+                    self.widgets[widget.name]=widget.proxy_ref
+                except :
+                    for child in widget.children:
+                        try :
+                            widgets.append(child.name)
+                            self.widgets[child.name]=widget.proxy_ref
+                        except:
+                            pass
+            return widgets
+
     def update_error_log(self):
         # errors = self.backend.get_errors()
         # logpath = join(self.expo_dir,'error.log')
@@ -962,11 +1064,10 @@ class MuseotouchApp(App):
         # get the initial json
         self.backend.set_expo(expo_id)
 
-        disconnected = not self.config.getboolean('museotouch','fast')
-        if disconnected == True:
+        if self.disconnected == True:
             print 'building fast'
             self._sync_popup.dismiss()
-            self.build_app()
+            self.build_app(offline=True)
         else:
             # get the initial zipfile
             Logger.info('Museotouch: Synchronization starting')
@@ -1113,8 +1214,7 @@ class MuseotouchApp(App):
             else:    ## Show an error ##
                     print("Error: %s file not found while removing" % filepath)
 
-        if(req in self.url_requests):
-            self.url_requests.remove(req)
+        self.url_requests.remove(req)
         if not self.url_requests: # si c'etait le dernier fichier
             if hasattr(self, 'root'):
                 if hasattr(self.root, 'gif'):
@@ -1326,23 +1426,21 @@ class MuseotouchApp(App):
 
     def reset(self, go_to_menu=True, *l ):
         # reset the whole app, restart from scratch.
-        from kivy.core.window import Window
         for child in Window.children[:]:
             Window.remove_widget(child)
-        self.dropdown=None
-        self.size_slider=None
-        self.date_slider=None
+        self.init_widgets()
+        self.menu = Menu()
         Cache.remove('kv.texture')
         # remove everything from the current expo
         if hasattr(self, 'expo_data_dir'):
             resource_remove_path(self.expo_data_dir)
             Builder.unload_file(join(self.expo_data_dir, 'museotouch.kv'))
-            self.expo_dir = self.expo_data_dir = self.expo_img_dir = None  
 
         if go_to_menu == True:
             print 'reset'
             # restart with selector.
             Window.add_widget(self.build_selector())
+
 
 import sys, traceback
 if __name__ in ('__main__', '__android__'):    
