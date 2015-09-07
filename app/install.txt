@@ -1,0 +1,32 @@
+Déploiement Educatouch
+
+Système d'exploitation : Windows 8.1 Pro
+
+Créer trois sessions : 
+	- Admin : protégée par mot de passe privé
+	- Nom de l'établissement : Compte normal protégé par mot de passe public (profs)
+	- Educatouch : Compte kiosque avec configuration spécifique.
+
+Configuration de la session Educatouch : 
+
+	- Installer sourcetree ou git
+	- Cloner le dépôt museotouch d'Erasme en renommant le dossier educatouch
+	- Passer sur la branche education (checkout education)
+	- Créer un raccourci du fichier kiosk.bat présent dans le dossier educatouch/app
+	- Mettre le raccourci au démarrage de la session :
+		- "C:\Users\educatouch\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+	- Sur le raccourci :
+		-> Propriétés
+		-> Executer : Fenêtre réduite
+	- Installer TeamViewer Host avec identifiants biin
+		- Nommer le matériel clairement
+	- Personnaliser les couleurs de Windows :
+		- Sur le bureau : Raccourci clavier Windows + Q
+		- Recherche couleurs arrière plan
+		- Une fois le menu de droite ouvert, choisir le fond unis noir en bas à droite et passer tout en noir.
+
+USAGE : 
+
+La session educatouch sert uniquement à lancer educatouch. Aucun explorateur n'est disponible. Pour atteindre un bureau Windows, il faut quitter la session via le raccourci Ctrl + Alt + Suppr et Cliquer sur Se déconnecter.
+
+Une fenêtre de sélection s'ouvrira et permettra à l'utilisateur de se rendre sur la session du nom de l'établissement.
