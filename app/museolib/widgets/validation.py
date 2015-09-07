@@ -34,23 +34,25 @@ class Valid(Scatter):
             anim.start(self.ids['btn_close'])
             anim.start(self.ids['btn_valid'])
             return True
-    def validation(self,selector):
+    def validation(self,selector,use_keywords=False):
         item_list = self.ids['my_layout'].children
         if len(item_list) > 1:
             field={}
+            keys={}
             for i in item_list:
-                if i.item[selector] not in field :
-                    field[i.item[selector]]=[i]
-                else :
-                    field[i.item[selector]].append(i)
-            if len(field)==1:
+                if i.item[selector]!= u'':
+                    if i.item[selector] not in field :
+                        field[i.item[selector]]=[i]
+                    else :
+                        field[i.item[selector]].append(i)
+                if use_keywords==True:
+                    if str(i.item["keywords"][0]) not in keys :
+                        keys[str(i.item["keywords"][0])]="exists"
+                else:
+                    keys={'void':True}
+            if len(field)==1 and len(keys)==1:
                 self.last_valid.append(field.keys()[0])
                 self.last_valid.sort()
-                if self.app.size_slider :
-                    print float(self.last_valid[-1])
-                    print self.app.taille_max
-                    self.app.size_slider.conditional_value = float(self.last_valid[-1])/self.app.taille_max
-                    print self.app.size_slider.conditional_value
                 return True
             else :
                 return False
