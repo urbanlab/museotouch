@@ -4,28 +4,11 @@
 #:set futura 'FuturaLT.ttf'
 #:set futuraBold 'FuturaLT-Bold.ttf'
 #: import os os
-<QuitButton>:
-	size:1200,1200
-	size_hint: None,None
-	pos_hint:{'right': 1, 'top': 1}
-	scale: .2
-	source: 'quit.png'
-	
-	canvas.before:
-		Color:
-			rgb: (0.224, 0.016, 0.271,1)
-		Rectangle:
-			pos: self.center_x - 300, self.center_y - 300
-			size: 600,600
-	# Image:
-	# 	size_hint: None, None
-	# 	source: 'quit.png'
-	# 	# background_down: 'quit.png'
-	# 	size: 1200, 1200
+
 
 <ExpoItem>:
 	size_hint: None,None
-	height: Window.width/9
+	height: Window.width/8.7
 	width: self.height
 	# orientation: 'vertical'
 	# spacing: 0
