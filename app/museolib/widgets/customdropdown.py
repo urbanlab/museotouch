@@ -6,6 +6,7 @@ from kivy.properties import ListProperty,ObjectProperty,StringProperty
 class CustomDropDown(Scatter):
 	menu = ObjectProperty(DropDown(max_height=100,auto_width=False,width=200))
 	button_text = StringProperty()
+	name = StringProperty('dropdown')
 	def __init__(self, **kwargs):
 		super(CustomDropDown, self).__init__(**kwargs)
 

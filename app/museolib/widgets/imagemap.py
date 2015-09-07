@@ -59,7 +59,7 @@ class ImageMap(FloatLayout):
     sources = ListProperty([])
     active_ids = ListProperty([])
     show_one_cat_only = BooleanProperty(False)
-
+    name = StringProperty('imagemap')
     def __init__(self, **kwargs):
         self._update_images = Clock.create_trigger(self.update_images, -1)
         super(ImageMap, self).__init__(**kwargs)

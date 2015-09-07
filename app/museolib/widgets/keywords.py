@@ -66,6 +66,10 @@ class Keywords(Accordion):
 
     color_file_selected=StringProperty(None)
 
+    or_and = BooleanProperty(True)
+
+    name = StringProperty('keywords')
+
     def __init__(self, **kwargs):
         super(Keywords, self).__init__(**kwargs)
 
