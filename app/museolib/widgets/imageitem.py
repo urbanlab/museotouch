@@ -11,13 +11,15 @@ from kivy.vector import Vector
 from kivy.uix.video import Video
 from kivy.uix.image import Image
 from kivy.uix.label import Label
-from os.path import splitext, join, isfile, basename
+from os.path import splitext, join, isfile, basename,exists
+from os import makedirs
 from kivy.core.window import Window
 from kivy.clock import Clock
 from museolib.widgets.validation import Valid as Valid
 from pdb import set_trace as rrr
 from kivy.network.urlrequest import UrlRequest
 from kivy.vector import Vector
+from kivy.utils import platform
 import time
 
 try:
@@ -63,7 +65,10 @@ class ItemMediaBrowser(FloatLayout):
                 if not isfile(media):
                     w = Label(text="Son en cours de téléchargement")
             elif ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv'):
-                w = Video(source=media, play=True)
+                if not isfile(media):
+                    w = Label(text="Vidéo en cours de téléchargement")
+                else :
+                    w = Video(source=media, play=True)
             else:                
                 w = Image(source=media)
         except:
@@ -79,6 +84,7 @@ class ItemMediaBrowser(FloatLayout):
             self.parent.imageitem.app.media_playing = True
             self.content.children[0].text='Son en cours de lecture'
             self.content.children[0].disabled=True
+
     def stop_song(self):
         self.song.stop()
         self.song.unload()
@@ -122,16 +128,24 @@ class ImageItemContent(FloatLayout):
     def get_file_url(self,fi):
         self.get_qr_code(url=fi)
     def get_qr_code(self,edit=False,url=''):
-        pass
-        # if edit == False:
-        #     self.qr_path = join(join(*self.item['filename'].split('/')[:-3]),'otherfiles','qr_%s.png'%url.split('/')[-1].split('.')[0])
-        # else :
-        #     self.qr_path = join(join(*self.item['filename'].split('/')[:-1]),'qr_%s_edit.png'%self.item['id'])
-        # if isfile(self.qr_path) == False :
-        #     UrlRequest(url='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s'%url,on_success=self.write_qr)
-        # else:
-        #     self.toggle_image()
+        self.slash = self.escape_path()
+        if edit == False:
+            self.qr_path = join(self.item['filename'].rsplit(self.slash,3)[0],'otherfiles','qr_%s.png'%url.split('/')[-1].split('.')[0])
+        else :
+            self.qr_path = join(self.item['filename'].rsplit(self.slash,3)[0],'otherfiles','qr_%s_edit.png'%self.item['id'])
+        if isfile(self.qr_path) == False :
+            UrlRequest(url='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s'%url,on_success=self.write_qr)
+        else:
+            self.toggle_image()
+
+    def escape_path(self):
+        if platform =="win":
+            return '\\'
+        else :
+            return '/'
     def write_qr(self,arg,result):
+        if not exists(self.qr_path.rsplit(self.slash,1)[0]):
+            makedirs(self.qr_path.rsplit(self.slash,1)[0])
         with open(self.qr_path, 'wb') as fd:
             fd.write(result)
         self.toggle_image()
