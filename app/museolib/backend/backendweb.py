@@ -4,6 +4,23 @@ from kivy.network.urlrequest import UrlRequest
 from functools import partial
 from urllib import unquote_plus, urlopen
     
+def safe_unicode(obj, *args):
+    """ return the unicode representation of obj """
+    try:
+        return unicode(obj, *args)
+    except UnicodeDecodeError:
+        # obj is byte string
+        ascii_text = str(obj).encode('string_escape')
+
+        return unicode(ascii_text)
+def safe_str(obj):
+    """ return the byte string representation of obj """
+    try:
+        return str(obj)
+    except UnicodeEncodeError:
+        # obj is unicode
+        return unicode(obj).encode('unicode_escape')
+
 class BackendWeb(Backend):
 
     def __init__(self, **kwargs):
@@ -41,7 +58,7 @@ class BackendWeb(Backend):
             try:
                 ojson = json
                 json = json.encode('latin1')
-                json = json.decode('utf8')
+                json.decode('utf8')
             except Exception, e:
                 print 'error on string %r' % json
                 print 'unable to decode ?', e
@@ -82,28 +99,28 @@ class BackendWeb(Backend):
 
     def get_file(self, filename, on_success=None, on_error=None, on_progress=None):
         Logger.debug('BackendWeb: GET %r' % filename)
-        self.req = UrlRequest(filename, on_success=on_success, on_error=on_error, on_progress=on_progress)
+        self.req = UrlRequest('http://' + filename, on_success=on_success, on_error=on_error, on_progress=on_progress)
 
-    def download_object(self, uid, directory, extension, on_success=None, on_error=None,
+    def download_object(self, url, directory, extension, on_success=None, on_error=None,
             on_progress=None):
         # 2 cases to handle
         # raw images are in objets/raw/*.png
         # compressed images are dispatched in multiple folder like
         # - objets/compressed/dds/*.dds
         # - ...
-        if directory != 'raw':
-            directory = 'compressed/%s' % directory
-        url = self.build_data_url('objets/%(uid)s/%(directory)s/%(uid)s.%(ext)s'
-                % {'uid': uid, 'directory': directory, 'ext': extension})
+        # if directory != 'raw':
+        #     directory = 'compressed/%s' % directory
+        # url = self.build_data_url('objets/%(uid)s/%(directory)s/%(uid)s.%(ext)s'
+        #         % {'uid': uid, 'directory': directory, 'ext': extension})
 
-        resource = urlopen(url)
-        status = resource.getcode()
-        if status == 404 and extension == 'jpg':
-            url = self.build_data_url('objets/%(uid)s/%(directory)s/%(uid)s.%(ext)s'
-                % {'uid': uid, 'directory': directory, 'ext': 'png'})
+        # resource = urlopen(url)
+        # status = resource.getcode()
+        # if status == 404 and extension == 'jpg':
+        #     url = self.build_data_url('objets/%(uid)s/%(directory)s/%(uid)s.%(ext)s'
+        #         % {'uid': uid, 'directory': directory, 'ext': 'png'})
 
-        Logger.debug('BackendWeb: GET %r' % url)
-        self.req = UrlRequest(url, on_success=on_success, on_error=on_error, on_failure=on_error, on_progress=on_progress, timeout=5,
+        Logger.debug('BackendWeb: DOWNLOAD OBJECT %r' % url)
+        self.req = UrlRequest("http://" + url, on_success=on_success, on_error=on_error, on_failure=on_error, on_progress=on_progress, timeout=5,
                     chunk_size=32768)
 
 

@@ -3,32 +3,32 @@ error_log = []
 class BackendItem(dict):
     @property
     def date(self):
-        if 'date_crea' in self:
+        if 'date_crea' in self['fields']:
             try :
-                return int(self['date_crea'])
+                return int(self['fields']['date_crea'])
             except:
                 return self.error_logger('Date')
 
     @property
     def id(self):
-        return int(self['id'])
+        return int(self['itemId'])
 
     @property
     def origin(self):
         if 'orig_geo' !='' or orig_geo != None:
-            if 'orig_geo' in self:
-                return self['orig_geo']
+            if 'orig_geo' in self['fields']:
+                return self['fields']['orig_geo']
         else:
             return self.error_logger('Origine geographique')
 
     @property
     def origin_ex(self):
-        if 'orig_geo_prec' in self:
-            return self['orig_geo_prec']
+        if 'orig_geo_prec' in self['fields']:
+            return self['fields']['orig_geo_prec']
 
     @property
     def title(self):
-        return self['nom']
+        return self['name']
 
     # @property
     # def description(self):
@@ -41,17 +41,17 @@ class BackendItem(dict):
     @property
     def medias(self):
         ret = []
-        for x in self['data']:
-            name = x['fichier'].rsplit('/')[-1].rsplit('.')[0]
+        for x in self['fields']['data']:
+            name = x.rsplit('/')[-1].rsplit('.')[0]
             if name == str(self.id):
                 continue
-            ret.append(x['fichier'])
+            ret.append(x)
         return ret
 
     @property
     def taille(self):
         try:
-            return int(self['taille'])
+            return int(self['fields']['taille'])
         except:
             return self.error_logger('Taille')
 
@@ -59,6 +59,8 @@ class BackendItem(dict):
         """ Si l'attribut n'est pas dans ceux ci dessus, c'est un item du JSON : """
         if nom in self:  # renvoie None sinon
             return self[nom]
+        elif nom in self['fields']:
+            return self['fields'][nom]
         else:
             if nom == 'description':
                 import pdb; pdb.set_trace()

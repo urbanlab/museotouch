@@ -80,7 +80,7 @@ class Keywords(Accordion):
         accgroup = None
         
         for item in value:
-            if item['group'].find('filtre') == -1: # We don't use groups with "filtre" in the name, -> only for imagebuttons
+            if item['fieldId'].find('filtre') == -1: # We don't use groups with "filtre" in the name, -> only for imagebuttons
                 # create new accordion
                 k = {}
                 if self.title_template:
@@ -89,16 +89,16 @@ class Keywords(Accordion):
                     k['background_normal'] = self.color_file
                 if self.color_file_selected :
                     k['background_selected'] = self.color_file_selected
-                accitem = AccordionItem(title=item['group'],**k)
+                accitem = AccordionItem(title=item['label'],**k)
                 self.add_widget(accitem)
                 # create new group
-                accgroup = KeywordsGroup(title=item['group'], accitem=accitem)
+                accgroup = KeywordsGroup(title=item['label'], accitem=accitem)
                 accitem.add_widget(accgroup)
-                children = item['children']
+                children = item['choices']
                 if self.alphabetical_sort:
-                    children.sort(key=lambda x: x['name'])
+                    children.sort(key=lambda x: x['label'])
                 for child in children:
-                    keyword = Keyword(text=textwrap.fill(child['name'],20), text_id=child['id'],
+                    keyword = Keyword(text=textwrap.fill(child['label'],20), text_id=str(child['choiceId']),
                             controler=self, group=accgroup)
                     accgroup.add_widget(keyword)
 
