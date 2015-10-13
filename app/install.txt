@@ -24,6 +24,7 @@ Configuration de la session Educatouch :
 		- Sur le bureau : Raccourci clavier Windows + Q
 		- Recherche couleurs arrière plan
 		- Une fois le menu de droite ouvert, choisir le fond unis noir en bas à droite et passer tout en noir.
+	- Penser à réduire la taille des éléments dans Windows (Résolution d'écran sur le bureau et Paramètres / affichage dans Métro)
 
 USAGE : 
 
