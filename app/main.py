@@ -1071,8 +1071,7 @@ class MuseotouchApp(App):
         else:
             # get the initial zipfile
             Logger.info('Museotouch: Synchronization starting')
-            self.backend.get_expos(
-                    uid=expo_id,
+            self.backend.get_objects(
                     on_success=self._sync_expo_1,
                     on_error=self._sync_error_but_continue,
                     on_progress=self._sync_progress)
@@ -1083,41 +1082,42 @@ class MuseotouchApp(App):
     def _sync_expo_1(self, req, result):
         Logger.info('Museotouch: Synchronization part 1')
         # check result files to found a zip files
-        self._expo_files = files = [x['fichier'] for x in result['data']]
-        zipfiles = [x for x in files if x.rsplit('.', 1)[-1] == 'zip']
-        if len(zipfiles) != 1:
-            self.error(u'Aucun fichier de données attaché '
-                    u'à cette exposition (zip not found)')
-            return
+        Logger.info(result)
+        # self._expo_files = files = [x['fichier'] for x in result['data']]
+        # zipfiles = [x for x in files if x.rsplit('.', 1)[-1] == 'zip']
+        # if len(zipfiles) != 1:
+        #     self.error(u'Aucun fichier de données attaché '
+        #             u'à cette exposition (zip not found)')
+        #     return
 
-        # write the part of the json corresponding to that expo in the dir
-        expojson = join(self.expo_dir, 'expo.json')
-        with open(expojson, 'w') as fd:
-            dump([result], fd)
+        # # write the part of the json corresponding to that expo in the dir
+        # expojson = join(self.expo_dir, 'expo.json')
+        # with open(expojson, 'w') as fd:
+        #     dump([result], fd)
 
-        # if we already downloaded the data, we might have a checksum if
-        # everything is ok.
-        zipchecksum = join(self.expo_dir, 'data.checksum')
-        checksum = ''
-        if exists(zipchecksum):
-            with open(zipchecksum, 'r') as fd:
-                checksum = fd.read()
+        # # if we already downloaded the data, we might have a checksum if
+        # # everything is ok.
+        # zipchecksum = join(self.expo_dir, 'data.checksum')
+        # checksum = ''
+        # if exists(zipchecksum):
+        #     with open(zipchecksum, 'r') as fd:
+        #         checksum = fd.read()
 
-        if checksum == zipfiles[0]:
-            Logger.info('Museolib: expo data dir already downloaded, continue.')
-            # avoid downloading the zip, already got it.
-            self._sync_expo_3()
-            return
+        # if checksum == zipfiles[0]:
+        #     Logger.info('Museolib: expo data dir already downloaded, continue.')
+        #     # avoid downloading the zip, already got it.
+        #     self._sync_expo_3()
+        #     return
 
 
-        # download the zip
-        print ' &&&& the zip is', zipfiles[0]
-        self._sync_popup_text(u'Téléchargement des données')
-        self.backend.get_file(
-            zipfiles[0],
-            on_success=self._sync_expo_2,
-            on_error=self._sync_error_but_continue,
-            on_progress=self._sync_progress)
+        # # download the zip
+        # print ' &&&& the zip is', zipfiles[0]
+        # self._sync_popup_text(u'Téléchargement des données')
+        # self.backend.get_file(
+        #     zipfiles[0],
+        #     on_success=self._sync_expo_2,
+        #     on_error=self._sync_error_but_continue,
+        #     on_progress=self._sync_progress)
 
     def _sync_expo_2(self, req, result):
         Logger.info('Museotouch: Synchronization part 2')
@@ -1451,4 +1451,4 @@ if __name__ in ('__main__', '__android__'):
         traceback.print_exc(file=sys.stdout)
         # Désactive le besoin de taper une touche pour fermer museotouch ce qui bloquait le relancement automatique.
         # TODO : Placer la trace dans un fichier à chaque crash.
-        #sys.exit(1)
+        sys.exit(1)
