@@ -1257,25 +1257,25 @@ class MuseotouchApp(App):
 
 
             # print 'check', item['id']
-            # for fichier in fichiers:                
-            #     if not self._sync_is_filename_of_item(item, fichier):
-            #         # print ' ### The file <{0}> is not downloaded - yet.'.format(fichier)
-            #         from museolib.utils import no_url
-            #         filepath = join(self.expo_dir, 'otherfiles', no_url(fichier))
-            #         # print ' ### It could be downloaded in', filepath
+            for fichier in item['fields']['data'] :                
+                if not self._sync_is_filename_of_item(item, fichier):
+                    # print ' ### The file <{0}> is not downloaded - yet.'.format(fichier)
+                    from museolib.utils import no_url
+                    filepath = join(self.expo_dir, 'otherfiles', no_url(fichier))
+                    # print ' ### It could be downloaded in', filepath
                     
 
-            #         filename = basename(fichier)
-            #         filepath = join(self.expo_dir, 'otherfiles', filename)
+                    filename = basename(fichier)
+                    filepath = join(self.expo_dir, 'otherfiles', filename)
 
-            #         # if not isfile(join(self.expo_dir, 'otherfiles', no_url(fichier))):
-            #         # TEMPORARY Next lines commented out : was preventing "otherfiles" to update if a file with the same name was already here
-            #         # UPDATE : uncommented : was causing other (big) problems
-            #         if not isfile(filepath):
-            #             from kivy.network.urlrequest import UrlRequest
-            #             req = UrlRequest(fichier, on_success=self.aft, on_error=self.aft)
-            #             self.url_requests.append(req)
-            #         continue
+                    # if not isfile(join(self.expo_dir, 'otherfiles', no_url(fichier))):
+                    # TEMPORARY Next lines commented out : was preventing "otherfiles" to update if a file with the same name was already here
+                    # UPDATE : uncommented : was causing other (big) problems
+                    if not isfile(filepath):
+                        from kivy.network.urlrequest import UrlRequest
+                        req = UrlRequest('http://'+fichier, on_success=self.aft, on_error=self.aft)
+                        self.url_requests.append(req)
+                    continue
             item['__item_filename__'] = item['mainMedia']
             filename, ext = self._sync_convert_filename(item['mainMedia'])
             local_filename = self._sync_get_local_filename(filename)
