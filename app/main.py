@@ -1347,7 +1347,6 @@ class MuseotouchApp(App):
             if len(self._sync_missing):
                 text += '\n(%d non disponible)' % len(self._sync_missing)
             self._sync_popup.content.children[-1].text = text
-            self._sync_popup.content.children[-2].text = filename
 
             # check if the file already exist on the disk
             filename = self._sync_get_local_filename(filename)
@@ -1406,10 +1405,7 @@ class MuseotouchApp(App):
         text = self._sync_popup.content.children[-2].text
         
         if text is not None:
-            filename = text.split(' ')[0]
             text = ''
-            if filename:
-                text = '%s - ' % filename
             text = '%s' % format_bytes_to_human(current)
             if total_str is not None:
                 text += '/%s' % total_str
