@@ -737,7 +737,7 @@ class MuseotouchApp(App):
         if self.disconnected == False :
             self.backend = BackendWeb(
                     url=config.get('museotouch', 'url_api'),
-                    data_url=config.get('museotouch', 'url_data'))
+                    interfaces_url=config.get('museotouch', 'client_api'))
         else :
             self.backend=BackendWeb(
                     url='',
@@ -819,12 +819,13 @@ class MuseotouchApp(App):
         if expo is None or int(expo) <= 0:
             # no exposition set in the configuration file.
             # show the selector
-            return self.build_selector()
+            return self.build_selector()        
         self.show_expo(expo)
         return FloatLayout()
 
-    def build_selector(self, *l):
-        self.selector = ExpoSelector(app=self)
+    def build_selector(self, *l):        
+        client = str(self.config.getint('museotouch', 'client_id'))
+        self.selector = ExpoSelector(app=self, client_id=client)
         return self.selector
 
     def build_app(self,offline=None):
@@ -1030,9 +1031,8 @@ class MuseotouchApp(App):
             root_expo = join(dirname(__file__), 'expos')
         try:
             makedirs(root_expo)
-        except OSError, e:
-            print 'ERROR WHILE CREATING INITIAL LAYOUT?'
-            print e
+        except OSError, e:            
+            print 'Le dossier expos existe déjà ', e
         if expo_id is None:
             return root_expo
         return join(root_expo, expo_id)

@@ -43,7 +43,6 @@ class ExpoItem(ButtonBehavior, Widget):
     color = (1,1,1,1)
 
     def __init__(self, **kwargs):
-        print "CREATION EXPO ITEM"
         yellow = (0.894, 0.886, 0.133,1)
         cobalt = (0.172, 0.2, 0.219,1)
         violet = (0.223, 0.015, 0.270,1)
@@ -78,6 +77,8 @@ class ExpoItem(ButtonBehavior, Widget):
 class ExpoSelector(FloatLayout):
 
     app = ObjectProperty(None)
+    client_id = StringProperty(None)
+
     def __init__(self, **kwargs):
         self._popup = None
         #Binding on_touch_up and on_touch_down functions to enable splash screen
@@ -87,7 +88,7 @@ class ExpoSelector(FloatLayout):
         super(ExpoSelector, self).__init__(**kwargs)
         self.app.menu.selector = self
         if self.app.backend:
-            self.req = self.app.backend.get_expos(on_success=self.on_success,
+            self.req = self.app.backend.get_expos(client_id= self.client_id, on_success=self.on_success,
                     on_error=self.on_error)
         else :
             self.load_offline(None)
@@ -104,6 +105,9 @@ class ExpoSelector(FloatLayout):
     def on_success(self, req, result):
         self.show_expos(result)
 
+    def on_error(self, req, result):
+        self.app.offline=True
+        self.load_offline(None)
 
     def show_expos(self, online=None):
         # get offline expo
@@ -121,17 +125,17 @@ class ExpoSelector(FloatLayout):
 
         # Alphabetical sort, case insensitive, and with accents
         result = sorted(result, key=lambda x: x['name'].lower(), cmp=locale.strcoll)
-                
-        for expo in result:
-            # convert to string key, python 2.6.
-            expo = dict([(str(x), y) for x, y in expo.iteritems()])
-            zipfiles = [x['fichier'] for x in expo['data'] if
-                    x['fichier'].rsplit('.', 1)[-1] == 'zip']
-            data = [x['fichier'] for x in expo['data'] if
-                    x['fichier'].rsplit('.', 1)[-1].lower() in ('jpg', 'png')]
-            
-            expo_dir = self.app.get_expo_dir(expo['id'])
-            jpg = join(expo_dir, 'thumbnail.jpg')
+
+        for expojson in result:          
+            expo = dict()
+            zipfiles = ['http://' + expojson['zipContent']]
+            data = ['http://' + expojson['mainMedia']]
+
+            expo['name'] = expojson['name']
+            expo['id'] = str(expojson['id'])
+
+            expo_dir = self.app.get_expo_dir(str(expojson['id']))
+            jpg = join(expo_dir, 'thumbnail.jpeg')
             png = join(expo_dir, 'thumbnail.png')
             no_img = abspath(join(dirname(__file__), os.pardir, 'data/download.png'))
 
@@ -155,6 +159,7 @@ class ExpoSelector(FloatLayout):
             'data', 'data.zip', 'data.checksum', 'expo.json', 'images',
             'thumbnail.checksum', 'thumbnail.jpg')
         expos_dir = self.app.get_expo_dir()
+
         result = []
         for item in listdir(expos_dir):
             Logger.debug('Museotouch: checking if %r is valid' % item)
@@ -199,20 +204,6 @@ class ExpoSelector(FloatLayout):
     def build_selector(self):
         return ExpoSelector(app=self)
 
-    def on_error(self, req, result):
-        # content = BoxLayout(orientation='vertical', padding=20, spacing=20)
-        # content.add_widget(Label(text=
-        #     'Erreur lors du chargement des expositions\n'
-        #     'disponible en ligne.\n\n' +
-        #     str(result)))
-        # btn = Button(text='Continuer', size_hint_y=.25)
-        # btn.bind(on_release=self.load_offline)
-        # content.add_widget(btn)
-        # self.popup(content=content, title='Erreur')
-        print 'error'
-        self.app.offline=True
-        self.load_offline(None)
-
     def popup(self, content, title, **kwargs):
         if not self._popup:
             self._popup = popup = ModalView(
@@ -220,7 +211,6 @@ class ExpoSelector(FloatLayout):
                     size_hint=(None, None),
                     size=(400, 400))
             popup.open()
-
         else:
             popup = self._popup
 

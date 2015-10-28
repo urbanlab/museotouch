@@ -27,7 +27,7 @@ class BackendWeb(Backend):
         super(BackendWeb, self).__init__(**kwargs)
         self.expo = None
         self.url = kwargs.get('url')
-        self.data_url = kwargs.get('data_url')
+        self.interfaces_url = kwargs.get('interfaces_url')
 
     def set_expo(self, uid):
         self.expo = uid
@@ -35,15 +35,16 @@ class BackendWeb(Backend):
     def build_url(self, path):        
         return self.url + path
 
-    def build_data_url(self, path):
-        return self.data_url + path
+    def build_interfaces_url(self, path):
+        return self.interfaces_url + path
 
     def unquote_json(self, on_success, on_error, req, json):
         try:
             json = self._unquote(json)
             on_success(req, json)
         except Exception, e:
-            Logger.exception('error on request %r' % req, json)
+            # Logger.exception('error on request %r' % req, json)
+            print 'UNQUOTEJSON ERROR ', e
             on_error(req, e)
 
     def _unquote(self, json):
@@ -82,11 +83,10 @@ class BackendWeb(Backend):
     # Public
     #
 
-    def get_expos(self, uid=None, on_success=None, on_error=None, on_progress=None):
-        url = self.build_url('')
+    def get_expos(self, client_id=None, on_success=None, on_error=None, on_progress=None):
+        assert(client_id is not None)
+        url = self.build_interfaces_url(client_id)
         on_success = partial(self.unquote_json, on_success, on_error)
-        if uid:
-            on_success = partial(self._filter_on_id, uid, on_success, on_error)
         Logger.debug('BackendWeb: GET %r' % url)
         self.req = UrlRequest(url, on_success=on_success, on_error=on_error, on_progress=on_progress, timeout=2)
 

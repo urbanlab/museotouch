@@ -8,7 +8,6 @@ class BackendJSON(Backend):
         with open(filename, 'r') as fd:
             data = json.loads(fd.read())[0]
 
-        print data
         self.keywords = data['keywords']
         assert(filename is not None)
         for item in data['items']:
