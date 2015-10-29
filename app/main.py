@@ -248,34 +248,33 @@ class MuseotouchApp(App):
                     d=.25)).start(item)
 
     def show_object(self, defs):
-        #rrr()
-        if self.root.type_expo == 'normal':
-            source = defs['source']
-            if source not in self.images_displayed:
-                return
-            current_images = [x.source for x in self.root_images.children]
-            if source in current_images:
-                return
+        source = defs['source']
+        if source not in self.images_displayed:
+            return
+        current_images = [x.source for x in self.root_images.children]
+        if source in current_images:
+            return
 
-            images_pos = self.images_pos
-            if source in images_pos:
-                p = images_pos[source]
-                defs.pop('center', None)
-                defs['center'] = p['center']
-                defs['rotation'] = p['rotation']
-    
-            if self.root.square_items == True:
-                defs['square'] = True
+        images_pos = self.images_pos
+        if source in images_pos:
+            p = images_pos[source]
+            defs.pop('center', None)
+            defs['center'] = p['center']
+            defs['rotation'] = p['rotation']
 
-            center = defs.pop('center')
-            rotation = defs.pop('rotation')
-            item = ImageItem(**defs)
-            self.root_images.add_widget(item, -1)
-            item.rotation = rotation
-            item.center = center
-            images_pos[source] = {
-                'center': item.center,
-                'rotation': item.rotation}
+        if self.root.square_items == True:
+            defs['square'] = True
+
+        center = defs.pop('center')
+        rotation = defs.pop('rotation')
+        item = ImageItem(**defs)
+        self.root_images.add_widget(item, -1)
+        item.rotation = rotation
+        item.center = center
+        images_pos[source] = {
+            'center': item.center,
+            'rotation': item.rotation}
+
     def toggle_widget(self,widget):
         if widget.disabled == True:
             widget.disabled= False
@@ -283,94 +282,44 @@ class MuseotouchApp(App):
         else:
             widget.disabled=True
             Animation(opacity=0,d=0.5).start(widget)
+
     def show_objects(self, objects):
         root = self.root
         if isinstance(self.root_images.x, (int, long)):
-            if root.type_expo == 'normal':
-                images = [x.source for x in self.root_images.children]
+            images = [x.source for x in self.root_images.children]
 
-                images_to_add = []
-                images_displayed = []
-                for item in objects:
-                    # is the current filename is already showed ?
-                    filename = item.filename
-                    if filename in images:
-                        images.remove(filename)
-                        continue
-                    try:
-                        x = randint(self.root_images.x + 200, self.root_images.right - 200)
-                        y = randint(root.y + 300, root.top - 100)
-                    except:
-                        x = randint(Window.width*0.2,Window.width*0.8)
-                        y = randint(Window.height*0.2,Window.height*0.8)
-                    angle = randint(0, 360)
-
-                    image = dict(source=filename, rotation=angle + 90,
-                            center=(x, y), item=item, app=self)
-                    images_to_add.append(image)
-                    images_displayed.append(filename)
-
-                self.images_displayed = images_displayed
-                self.delayed_work(self.show_object, images_to_add)
-
-                # remove all the previous images
-                for child in self.root_images.children[:]:
-                    for filename in images:
-                        if filename == child.source:
-                            self.images_pos[filename] = {
-                                'center': child.center,
-                                'rotation': child.rotation }
-                            self.root_images.remove_widget(child)
-            elif root.type_expo == 'ns':
-                #rrr()
-                images = [x.source for x in root.scroller.layout.children]
-
-                images_to_add = []
-                images_displayed = []
-                for item in objects:
-                    # is the current filename already showed ?
-                    filename = item.filename
-                    if filename in images:
-                        images.remove(filename)
-                        continue
-
-                    image = dict(source=filename, item=item, app=self)
-                    images_to_add.append(image)
-                    images_displayed.append(filename)
-
-                self.images_displayed = images_displayed
-                #delayed_work(self.show_object, images_to_add)
-
-                # remove all the previous images
-                for child in root.scroller.layout.children[:]:
-                    for filename in images:
-                        if filename == child.source:
-                            root.scroller.layout.remove_widget(child)
-                            if child.imgItem is not None:
-                                if hasattr(child.imgItem, 'sound'):
-                                    child.imgItem.sound.stop()
-                                    child.imgItem.sound.unload()
-                                child.imgItem.parent.remove_widget(child.imgItem)
-
-                # show_object is not called because we make the display process here
-                winWidth = Window.width
-                totalHeight = Window.height * 0.8
+            images_to_add = []
+            images_displayed = []
+            for item in objects:
+                # is the current filename is already showed ?
+                filename = item.filename
+                if filename in images:
+                    images.remove(filename)
+                    continue
                 try:
-                    itemWidth = winWidth / len(objects)
-                except ZeroDivisionError:
-                    itemWidth = winWidth
-                
-                if itemWidth < 200:
-                    itemWidth = 200
+                    x = randint(self.root_images.x + 200, self.root_images.right - 200)
+                    y = randint(root.y + 300, root.top - 100)
+                except:
+                    x = randint(Window.width*0.2,Window.width*0.8)
+                    y = randint(Window.height*0.2,Window.height*0.8)
+                angle = randint(0, 360)
 
-                root.scroller.layout.col_default_width = itemWidth
-                root.scroller.layout.bind(minimum_width=root.scroller.layout.setter('width'))
-                
-                for img in images_to_add:
-                    item = ScrollViewItem(source = img['source'], itemWidth = itemWidth, totalHeight = totalHeight, app=self)
-                    item.db_item = img['item']
-                    root.scroller.layout.add_widget(item)
-                root.scroller.updateItemSize()
+                image = dict(source=filename, rotation=angle + 90,
+                        center=(x, y), item=item, app=self)
+                images_to_add.append(image)
+                images_displayed.append(filename)
+
+            self.images_displayed = images_displayed
+            self.delayed_work(self.show_object, images_to_add)
+
+            # remove all the previous images
+            for child in self.root_images.children[:]:
+                for filename in images:
+                    if filename == child.source:
+                        self.images_pos[filename] = {
+                            'center': child.center,
+                            'rotation': child.rotation }
+                        self.root_images.remove_widget(child)            
 
     def update_objects_from_filter(self, *largs):
         '''Update the objects displayed from filters (date range, origin...)
@@ -431,19 +380,18 @@ class MuseotouchApp(App):
         # # filter from size but with dropdown menu
         if self.dropdown:
             if self.dropdown.ids.mainbutton.text.lower() != 'valider un lot' and self.dropdown.ids.mainbutton.text.lower() !='tous les lots':
-                items = [x for x in items if x['taille'].lower()==self.dropdown.ids.mainbutton.text.lower()]
+                items = [x for x in items if x['fields']['taille'].lower()==self.dropdown.ids.mainbutton.text.lower()]
             
 
         # filter from origin
         if self.imagemap:
             origin_ids = self.imagemap.active_ids
-
             # special case. If we got some keywords, but no origin, don't use
             # it.
             if self.keywords and self.keywords.selected_keywords and not origin_ids:
                 pass
             else:
-                items = result = [x for x in items if x.origin_key in origin_ids or x.origin_key==""]
+                items = result =  [x for x in items if x.origin_key in origin_ids or x.origin_key==""]
 
         # filter from keywords but with image buttons, only if there is group of keyword with 'filtre' in the group's name
         if self.imageButtons:
@@ -482,33 +430,13 @@ class MuseotouchApp(App):
 
                 items = result = items_result
 
-            # for group in groups:
-            #     if group.title.find('filtre'):
-            #         print('filtre image trouvé')
-
-            #         if self.keywords and self.keywords.selected_keywords and not keywords_ids:
-            #             pass
-            #         else:
-            #             #items = [x for x in items if x.origin_ex in keywords_ids]
-            #           items_result = []
-            #           items = self.db.items       
-            #           for item in items:
-            #               #print item.keywords
-            #               for key in keywords_ids:
-            #               if key in item.keywords:
-            #                   if not item in items_result:
-            #                   items_result.append(item)                           
-            #           items = items_result        
-        #print "image buttons filter"       
-        # items
-
         # filter with keywords
         # AND between group
         # OR inside group
         if self.keywords and self.keywords.selected_keywords:
             selected_keywords = self.keywords.selected_keywords
             
-            groups = list(set([x[0] for x in selected_keywords]))
+            groups = list(set([x[0] for x in selected_keywords]))            
             groups_result = {}
             items_result = []
 
@@ -516,16 +444,16 @@ class MuseotouchApp(App):
             for group in groups:
                 # check keywords for current group
                 keywords = [x[1] for x in selected_keywords if x[0] == group]
+
                 result = []
                 # check every items if we got at least one keyword of that group
                 for item in items:
-                    #print 'item : ', item.origin_ex
                     is_in = True
                     if self.keywords.or_and == True :
                         # OR
                         for key in keywords:
                             # found one group keyword in the 
-                            if key in item.keywords:
+                            if int(key) in item['fields'][group.fieldId]:
                                 result.append(item)
                                 if not item in items_result:
                                     items_result.append(item)
@@ -533,7 +461,7 @@ class MuseotouchApp(App):
                     else:
                         # AND
                         for key in keywords:
-                            if key not in item.keywords:
+                            if int(key) not in item['fields'][group.fieldId]:
                                 is_in = False
                         if is_in == True:
                             result.append(item)
@@ -542,9 +470,6 @@ class MuseotouchApp(App):
 
                 # add the result to the group result
                 groups_result[group] = result
-
-
-
 
             # on all the avialable item, ensure they are all in the selected
             # group
@@ -557,9 +482,7 @@ class MuseotouchApp(App):
 
             # now set the result as the new set of items
             items = result = items_result
-
-
-
+  
         if self.calendar:
             calfield = 'cal'
             if len(items) > 0:
@@ -567,11 +490,9 @@ class MuseotouchApp(App):
                     calfield = 'calannee'
                 items = result = [x for x in items if self.calendar.accepts(x[calfield])]
 
-
         # show only the first 10 objects
         if not self.should_display_images_by_default:
             items = result
-
 
         self.show_objects(items)
 
@@ -748,15 +669,15 @@ class MuseotouchApp(App):
 
         # rfid daemon
         self.rfid_daemon = None
-        if platform() not in ('ios', 'android'):
-            try:
-                from museolib.rfid import RfidDaemon
-                self.rfid_daemon = RfidDaemon()
-                self.rfid_daemon.bind(on_uid=self.on_rfid_uid)
-                self.rfid_daemon.start()
-            except Exception:
-                Logger.critical('Unable to import RfidDaemon, pynfc missing ?')
-                Logger.exception('')
+        # if platform() not in ('ios', 'android'):
+        #     try:
+        #         from museolib.rfid import RfidDaemon
+        #         self.rfid_daemon = RfidDaemon()
+        #         self.rfid_daemon.bind(on_uid=self.on_rfid_uid)
+        #         self.rfid_daemon.start()
+        #     except Exception:
+        #         Logger.critical('Unable to import RfidDaemon, pynfc missing ?')
+        #         Logger.exception('')
 
         # if we are on android, always start on selector
         # otherwise, check configuration
@@ -876,9 +797,6 @@ class MuseotouchApp(App):
             self.root.add_widget(self.menu)
         except:
             pass
-        # type_expo introduced for nuits sonores ("ns")
-        if not hasattr(root, 'type_expo'):
-            root.type_expo = 'normal'
 
         #resize dds file in items for an item without black margins
         if not hasattr(root, 'square_items'):
@@ -1107,7 +1025,7 @@ class MuseotouchApp(App):
         expojson = join(self.expo_dir, 'expo.json')
         with open(expojson, 'w') as fd:
             dump([result], fd)
-
+    
         # if we already downloaded the data, we might have a checksum if
         # everything is ok.
         zipchecksum = join(self.expo_dir, 'data.checksum')
@@ -1424,6 +1342,7 @@ class MuseotouchApp(App):
             self.error('Erreur lors de la synchro : '+ str(result))
 
     def _sync_error_but_continue(self, req, result):
+        print 'error : ', result
         self._sync_popup.dismiss()
         self.build_app()
 

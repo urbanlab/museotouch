@@ -99,28 +99,16 @@ class BackendWeb(Backend):
 
     def get_file(self, filename, on_success=None, on_error=None, on_progress=None):
         Logger.debug('BackendWeb: GET %r' % filename)
-        self.req = UrlRequest('http://' + filename, on_success=on_success, on_error=on_error, on_progress=on_progress)
+        if (not 'http://' in filename):
+            filename = 'http://' + filename
+        self.req = UrlRequest(filename, on_success=on_success, on_error=on_error, on_progress=on_progress)
 
     def download_object(self, url, directory, extension, on_success=None, on_error=None,
             on_progress=None):
-        # 2 cases to handle
-        # raw images are in objets/raw/*.png
-        # compressed images are dispatched in multiple folder like
-        # - objets/compressed/dds/*.dds
-        # - ...
-        # if directory != 'raw':
-        #     directory = 'compressed/%s' % directory
-        # url = self.build_data_url('objets/%(uid)s/%(directory)s/%(uid)s.%(ext)s'
-        #         % {'uid': uid, 'directory': directory, 'ext': extension})
-
-        # resource = urlopen(url)
-        # status = resource.getcode()
-        # if status == 404 and extension == 'jpg':
-        #     url = self.build_data_url('objets/%(uid)s/%(directory)s/%(uid)s.%(ext)s'
-        #         % {'uid': uid, 'directory': directory, 'ext': 'png'})
-
+        if (not 'http://' in url):
+            url = 'http://' + url
         Logger.debug('BackendWeb: DOWNLOAD OBJECT %r' % url)
-        self.req = UrlRequest("http://" + url, on_success=on_success, on_error=on_error, on_failure=on_error, on_progress=on_progress, timeout=5,
+        self.req = UrlRequest("http://" + url, on_success=on_success, on_error=on_error, on_failure=on_error, on_progress=on_progress,
                     chunk_size=32768)
 
 

@@ -40,6 +40,8 @@ class KeywordsGroup(GridLayout):
 
     title = StringProperty('')
 
+    fieldId = StringProperty('')
+
     accitem = ObjectProperty(None)
 
     count_selected = NumericProperty(0)
@@ -92,7 +94,7 @@ class Keywords(Accordion):
                 accitem = AccordionItem(title=item['label'],**k)
                 self.add_widget(accitem)
                 # create new group
-                accgroup = KeywordsGroup(title=item['label'], accitem=accitem)
+                accgroup = KeywordsGroup(title=item['label'], fieldId = item['fieldId'], accitem=accitem)
                 accitem.add_widget(accgroup)
                 children = item['choices']
                 if self.alphabetical_sort:

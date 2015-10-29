@@ -48,12 +48,12 @@ class BackendItem(dict):
             ret.append(x)
         return ret
 
-    @property
-    def taille(self):
-        try:
-            return int(self['fields']['taille'])
-        except:
-            return self.error_logger('Taille')
+    # @property
+    # def taille(self):
+    #     try:
+    #         return int(self['fields']['taille'])
+    #     except:
+    #         return self.error_logger('Taille')
 
     def __getattr__(self, nom):
         """ Si l'attribut n'est pas dans ceux ci dessus, c'est un item du JSON : """
