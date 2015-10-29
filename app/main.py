@@ -577,12 +577,15 @@ class MuseotouchApp(App):
 
 
     def build_config(self, config):
-        config.setdefaults('museotouch', {            
+        config.setdefaults('museotouch', {
+            'url': 'http://www.educatouch.fr',
             'url_api': 'http://www.educatouch.fr/api/interface/',  
             'client_api': 'http://www.educatouch.fr/api/interfaces/',          
             'expo': '0',
             'demo':'1',
             'client_id': '4',
+            'expo': '0',
+            'demo':'1',
             'more_info':'1',
             'splashscreen':'0',
             'splashscreen_interval':'60',
