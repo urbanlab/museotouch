@@ -97,18 +97,28 @@ class BackendWeb(Backend):
         Logger.debug('BackendWeb: GET %r' % url)
         self.req = UrlRequest(url, on_success=on_success, on_error=on_error, on_progress=on_progress)
 
-    def get_file(self, filename, on_success=None, on_error=None, on_progress=None):
-        Logger.debug('BackendWeb: GET %r' % filename)
+    def get_file(self, filename, on_success=None, on_error=None, on_progress=None):        
         if (not 'http://' in filename):
             filename = 'http://' + filename
-        self.req = UrlRequest(filename, on_success=on_success, on_error=on_error, on_progress=on_progress)
+        self.req = UrlRequest(filename, 
+                        on_success=on_success, 
+                        on_error=on_error, 
+                        on_failure = on_error, 
+                        on_progress=on_progress)
+        Logger.debug('BackendWeb: GET %r' % filename)
 
-    def download_object(self, url, directory, extension, on_success=None, on_error=None,
-            on_progress=None):
+    def download_object(self, url, on_success=None, on_error=None, on_progress=None):
         if (not 'http://' in url):
             url = 'http://' + url
+        self.req = UrlRequest(
+                                "http://" + url, 
+                                on_success = on_success, 
+                                on_error = on_error, 
+                                on_failure = on_error, 
+                                on_progress = on_progress,
+                                timeout = 5,
+                                chunk_size = 32768)
+
         Logger.debug('BackendWeb: DOWNLOAD OBJECT %r' % url)
-        self.req = UrlRequest("http://" + url, on_success=on_success, on_error=on_error, on_failure=on_error, on_progress=on_progress,
-                    chunk_size=32768)
 
 
