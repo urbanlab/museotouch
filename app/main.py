@@ -577,12 +577,12 @@ class MuseotouchApp(App):
 
 
     def build_config(self, config):
-        config.setdefaults('museotouch', {
-            'url': 'http://www.crdp-lyon.fr/educatouch/',
-            'url_api': 'http://www.crdp-lyon.fr/educatouch/api/',
-            'url_data': 'http://www.crdp-lyon.fr/educatouch/uploads/',
+        config.setdefaults('museotouch', {            
+            'url_api': 'http://www.educatouch.fr/api/interface/',  
+            'client_api': 'http://www.educatouch.fr/api/interfaces/',          
             'expo': '0',
             'demo':'1',
+            'client_id': '4',
             'more_info':'1',
             'splashscreen':'0',
             'splashscreen_interval':'60',
