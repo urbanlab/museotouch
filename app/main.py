@@ -910,6 +910,7 @@ class MuseotouchApp(App):
         if self.dropdown:
             batch_list=[]
             for i in items:
+                i = i['fields']
                 if i['taille'].capitalize() not in batch_list:
                     batch_list.append(i['taille'].capitalize())
             self.dropdown.populate_drop_down(batch_list)
@@ -1111,6 +1112,8 @@ class MuseotouchApp(App):
         if exists(zipchecksum):
             with open(zipchecksum, 'r') as fd:
                 checksum = fd.read()
+
+        zipfile = 'http://' + zipfile
 
         if checksum == zipfile:
             Logger.info('Museolib: expo data dir already downloaded, continue.')
