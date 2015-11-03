@@ -124,7 +124,7 @@ class ImageItemContent(FloatLayout):
         if self.mediacontent:
             self.mediacontent.stop()
     def get_edit_url(self):
-        self.get_qr_code(edit=True,url='http://www.crdp-lyon.fr/educatouch/expo.php?act=aitems%%26expo=%s%%26edit=%s%%26lang=1'%(self.imageitem.app.expo_id,self.item['id']))
+        self.get_qr_code(edit=True,url='http://www.educatouch.fr/interface/%s/edit'%(self.imageitem.app.expo_id))
     def get_file_url(self,fi):
         self.get_qr_code(url=fi)
     def get_qr_code(self,edit=False,url=''):
@@ -132,7 +132,7 @@ class ImageItemContent(FloatLayout):
         if edit == False:
             self.qr_path = join(self.item['filename'].rsplit(self.slash,3)[0],'otherfiles','qr_%s.png'%url.split('/')[-1].split('.')[0])
         else :
-            self.qr_path = join(self.item['filename'].rsplit(self.slash,3)[0],'otherfiles','qr_%s_edit.png'%self.item['id'])
+            self.qr_path = join(self.item['filename'].rsplit(self.slash,3)[0],'otherfiles','qr_%s_edit.png'%self.item["itemId"])
         if isfile(self.qr_path) == False :
             UrlRequest(url='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=%s'%url,on_success=self.write_qr)
         else:
