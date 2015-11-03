@@ -540,12 +540,6 @@ class MuseotouchApp(App):
                 "section": "museotouch",
                 "key": "url_api"
             }, {
-                "type": "string",
-                "title": "URL Data",
-                "desc": "Url vers les datas (scenarios et objets)",
-                "section": "museotouch",
-                "key": "url_data"
-            }, {
                 "type": "bool",
                 "title": "Physics",
                 "desc": "Activer ou désactiver l'inertie des fiches",
@@ -1137,7 +1131,6 @@ class MuseotouchApp(App):
             makedirs(join(self.expo_dir, 'otherfiles'))
         # filepath = join(self.expo_dir, 'otherfiles', no_url(req.url))
         filepath = join(self.expo_dir, 'otherfiles', basename(req.url))
-        
         try:
             output = open(filepath, 'wb')
             output.write(result) # fichier sauvegarde
