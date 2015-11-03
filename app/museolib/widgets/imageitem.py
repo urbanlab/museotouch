@@ -124,7 +124,7 @@ class ImageItemContent(FloatLayout):
         if self.mediacontent:
             self.mediacontent.stop()
     def get_edit_url(self):
-        self.get_qr_code(edit=True,url='http://www.educatouch.fr/interface/%s/edit'%(self.imageitem.app.expo_id))
+        self.get_qr_code(edit=True,url='http://www.educatouch.fr/interface/%s/item/%s/edit'%(self.imageitem.app.expo_id,self.item["itemId"]))
     def get_file_url(self,fi):
         self.get_qr_code(url=fi)
     def get_qr_code(self,edit=False,url=''):
