@@ -40,11 +40,11 @@ class Valid(Scatter):
             field={}
             keys={}
             for i in item_list:
-                if i.item[selector]!= u'':
-                    if i.item[selector] not in field :
-                        field[i.item[selector]]=[i]
+                if i.item['fields'][selector]!= u'':
+                    if i.item['fields'][selector] not in field :
+                        field[i.item['fields'][selector]]=[i]
                     else :
-                        field[i.item[selector]].append(i)
+                        field[i.item['fields'][selector]].append(i)
                 if use_keywords==True:
                     if str(i.item["keywords"][0]) not in keys :
                         keys[str(i.item["keywords"][0])]="exists"
