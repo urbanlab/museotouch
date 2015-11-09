@@ -785,7 +785,7 @@ class MuseotouchApp(App):
 
         # construct the app.
         self.root = root = modexpo.build(self)
-        if self.offline == True :
+        if offline == True :
             self.root.add_widget(Label(text="Pas de connexion au serveur.\nMode offline activé.\nLes fiches ne sont pas mises à jour.",color=(1,0,0,1)))
         try:
             self.root.add_widget(self.menu)
