@@ -82,8 +82,10 @@ class Backend(object):
         for item in self.load_items():
             self.add_item(item)
         self.items = sorted(self.items, key=lambda x: x.date)
+        
     def get_errors(self):
         return error_log
+
     def add_item(self, item):
         assert(isinstance(item, BackendItem))
         self.items.append(item)

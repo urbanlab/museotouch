@@ -87,7 +87,7 @@ class ExpoSelector(FloatLayout):
 
         super(ExpoSelector, self).__init__(**kwargs)
         self.app.menu.selector = self
-        if self.app.backend:
+        if self.app.backend.interfaces_url:
             self.req = self.app.backend.get_expos(client_id= self.client_id, on_success=self.on_success,
                     on_error=self.on_error)
         else :
