@@ -7,18 +7,34 @@ from kivy.core.window import Window
 from kivy.app import App
 from museolib.widgets.splashscreen import SplashScreen
 from os.path import join
+from kivy.properties import BooleanProperty
 
 class Menu(FloatLayout):
+	is_open = BooleanProperty(False)
+	
 	def __init__(self):
 		super(Menu,self).__init__()
 		self.app = App.get_running_app()
-		self.button = Button(background_normal="menu.png",background_down="menu_down.png",size_hint=(None,None),\
-						size=(Window.width*0.032,Window.width*0.032),pos_hint={'top':1,'right':1},on_press=self.show_menu,on_release=self.clear_menu)
+
+		self.button = Button(
+			background_normal="menu.png",
+			background_down="menu_down.png",
+			size_hint=(None,None),\
+			size=(Window.width*0.032,Window.width*0.032),
+			pos_hint={'top':1,'right':1},			
+			on_release=self.toggle_menu)
 		self.add_widget(self.button)
+
 		self.menu_items={'help':[[Window.width*0.064,0],'help.png','help_down.png',self.help],\
 						'credits':[[Window.width*0.048,Window.width*0.048],'credits.png','credits_down.png',self.credits],\
 						'exit':[[0,Window.width*0.064],'quit.png','quit_down.png',self.exit]}
 	
+	def toggle_menu(self, instance):
+		if self.is_open:
+			self.clear_menu(instance)
+		else:
+			self.show_menu(instance)
+
 	def show_menu(self,instance):
 		# ensures that the menu is always on top
 		parent = self.parent
@@ -32,10 +48,12 @@ class Menu(FloatLayout):
 			b.opacity=0
 			self.add_widget(b)
 			Animation(pos=[self.button.x-item[0][0],self.button.y-item[0][1]],opacity=1,d=0.5,t='out_bounce').start(b)
+		self.is_open = True
 	def clear_menu(self,instance):
 		for child in self.children[:-1]:
-			Animation(pos=self.button.pos,d=0.3,t='out_quad').start(child)
+			Animation(pos=self.button.pos,opacity = 0, d=0.3,t='out_quad').start(child)
 			self.remove_widget(child)
+		self.is_open = False;
 	def help(self,instance):
 		self.selector.screen_saver(None)
 
