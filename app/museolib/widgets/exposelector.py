@@ -112,8 +112,8 @@ class ExpoSelector(FloatLayout):
     def show_expos(self, online=None):
         # get offline expo
         offline = self.get_offline_expos()
-        disconnected = not self.app.config.getboolean('museotouch','fast')
-        if online and disconnected == False and type(offline) in (list, tuple):
+        fast = self.app.config.getboolean('museotouch','fast')
+        if online and fast == False and type(offline) in (list, tuple):
             # mix with online expo
             result = self.mix_expos(offline, online)
         else:

@@ -651,8 +651,8 @@ class MuseotouchApp(App):
             self.update_objects_from_filter, 0)
         self.menu = Menu()
         # web backend
-        self.disconnected = not self.config.getboolean('museotouch','fast')
-        if self.disconnected == False :
+        self.fast = self.config.getboolean('museotouch','fast')
+        if self.fast == False :
             self.backend = BackendWeb(
                     url=config.get('museotouch', 'url_api'),
                     interfaces_url=config.get('museotouch', 'client_api'))
@@ -675,6 +675,7 @@ class MuseotouchApp(App):
 
         # if we are on android, always start on selector
         # otherwise, check configuration
+
         if self.mode == 'table':
             self.build_for_table()
         else:
@@ -689,7 +690,6 @@ class MuseotouchApp(App):
         if self.rfid_daemon:
             self.rfid_daemon.stop()
         super(MuseotouchApp, self).on_stop()
-
 
     def init_widgets(self):
         #: imagemap widget. If set, it will be used to filter items from
@@ -982,7 +982,7 @@ class MuseotouchApp(App):
         # get the initial json
         self.backend.set_expo(expo_id)
 
-        if self.disconnected == True:
+        if self.fast == True:
             print 'building fast'
             self._sync_popup.dismiss()
             self.build_app(offline=True)
