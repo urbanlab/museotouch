@@ -64,7 +64,7 @@ class ItemMediaBrowser(FloatLayout):
                     w = Label(text="Un autre son est déjà en cours de lecture.")
                 if not isfile(media):
                     w = Label(text="Son en cours de téléchargement")
-            elif ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv'):
+            elif ext in ('avi', 'mkv', 'mp4', 'ogv', 'mpg', 'mpeg', 'dv','ogx'):
                 if not isfile(media):
                     w = Label(text="Vidéo en cours de téléchargement")
                 else :
