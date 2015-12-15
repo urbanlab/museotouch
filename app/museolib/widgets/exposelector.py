@@ -115,7 +115,8 @@ class ExpoSelector(FloatLayout):
         fast = self.app.config.getboolean('museotouch','fast')
         if online and fast == False and type(offline) in (list, tuple):
             # mix with online expo
-            result = self.mix_expos(offline, online)
+            # result = self.mix_expos(offline, online)
+            result = online
         else:
             result = offline
         # show them.
@@ -197,7 +198,7 @@ class ExpoSelector(FloatLayout):
 
     def mix_expos(self, offline, online):
         result = {}
-        for item in offline + online:
+        for item in offline + online:            
             result[item['id']] = item
         return result.values()
 

@@ -144,22 +144,23 @@ class MuseotouchApp(App):
         self._display_ordering_as_group(children, origs, index_for_child)
 
     def do_ordering_keywords(self, *largs):
+        pass
         # ordering only on the current selected group
-        if not self.keywords:
-            return
-        # get current active group
-        children = self.root_images.children
-        active = [x for x in self.keywords.children if not x.collapse]
-        groups = [uid for g, uid in self.keywords.selected_keywords if g.accitem
-                in active]
-        if not groups:
-            return
-        def index_for_child(groups, child):
-            for index, key in enumerate(groups):
-                if key in child.item.keywords:
-                    return index
-            return -1
-        self._display_ordering_as_group(children, groups, index_for_child)
+        # if not self.keywords:
+        #     return
+        # # get current active group
+        # children = self.root_images.children
+        # active = [x for x in self.keywords.children if not x.collapse]
+        # groups = [uid for g, uid in self.keywords.selected_keywords if g.accitem
+        #         in active]
+        # if not groups:
+        #     return
+        # def index_for_child(groups, child):
+        #     for index, key in enumerate(groups):
+        #         # if key in child.item.keywords:
+        #         #     return index
+        #     return -1
+        # self._display_ordering_as_group(children, groups, index_for_child)
 
     def do_ordering_size(self, *largs):
         children = self.root_images.children[:]
@@ -983,7 +984,6 @@ class MuseotouchApp(App):
         self.backend.set_expo(expo_id)
 
         if self.fast == True:
-            print 'building fast'
             self._sync_popup.dismiss()
             self.build_app(offline=True)
         else:
