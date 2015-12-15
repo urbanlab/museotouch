@@ -1142,7 +1142,8 @@ class MuseotouchApp(App):
             else:    ## Show an error ##
                     print("Error: %s file not found while removing" % filepath)
 
-        self.url_requests.remove(req)
+        if req in self.url_requests:
+            self.url_requests.remove(req)
         if not self.url_requests: # si c'etait le dernier fichier
             if hasattr(self, 'root'):
                 if hasattr(self.root, 'gif'):
