@@ -74,7 +74,6 @@ class Valid(Scatter):
     def close(self):
         item_list = list(self.ids['my_layout'].children)
         if item_list == []and self.parent != None:
-            self.parent.exists=False
             self.parent.remove_widget(self)
             return
         color = (0,0,1,0.9)

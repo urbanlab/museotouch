@@ -6,8 +6,9 @@ from kivy.graphics import Line
 from kivy.gesture import Gesture, GestureDatabase
 from kivy.vector import Vector
 from kivy.properties import NumericProperty,BooleanProperty
-from museolib.my_gestures import squares
+from museolib.my_gestures import gestures
 from museolib.widgets.validation import Valid
+from museolib.widgets.timeline import TimeLine
 
 def simplegesture(name, point_list):
     """
@@ -29,13 +30,15 @@ class GestureBoard(FloatLayout):
     def __init__(self, *args, **kwargs):
         super(GestureBoard, self).__init__()
         self.gdb = GestureDatabase()
+        self.first_touch=[]
         # add pre-recorded gestures to database
-        for square in squares:
-            self.gdb.add_gesture(square)
+        for gest in gestures:
+            self.gdb.add_gesture(gest)
     def on_touch_down(self, touch):
         super(GestureBoard,self).on_touch_down(touch)
         if self.collide_point(*touch.pos):
-            if App.get_running_app().config.getboolean('museotouch','validation') == True:  
+            if App.get_running_app().config.getboolean('museotouch','validation') == True:
+                self.first_touch=touch.pos  
                 # start collecting points in touch.ud
                 # create a line to display the points
                 userdata = touch.ud
@@ -61,6 +64,8 @@ class GestureBoard(FloatLayout):
                     '',
                     list(zip(touch.ud['line'].points[::2], touch.ud['line'].points[1::2]))
                     )
+            # Next line prints the string corresponding to the gesture made
+            # print self.gdb.gesture_to_str(g)
             self.edge_size = (self.stroke_length(list(zip(touch.ud['line'].points[::2], touch.ud['line'].points[1::2]))))/4 
             if self.edge_size < 150:
                 self.edge_size=150               
@@ -71,21 +76,36 @@ class GestureBoard(FloatLayout):
         # use database to find the more alike gesture, if any
         g2 = self.gdb.find(g, minscore=0.9)
         if g2:
-            for index,square in enumerate(squares) :
-                if (g2[1] == square):
+            for index,gest in enumerate(gestures) :
+                if (g2[1] == gest):
+                    widget_type="validation"
                     if index in [0,1]:
-                        square_pos=[touch.x,touch.y-self.edge_size]
+                        gest_pos=[touch.x,touch.y-self.edge_size]
                     elif index in [2,3]:
-                        square_pos=[touch.x-self.edge_size,touch.y-self.edge_size]
+                        gest_pos=[touch.x-self.edge_size,touch.y-self.edge_size]
                     elif index in [4,5]:
-                        square_pos=[touch.x-self.edge_size,touch.y]
+                        gest_pos=[touch.x-self.edge_size,touch.y]
                     elif index in [6,7]:
-                        square_pos=[touch.x,touch.y]
-                    valid = Valid(pos=(0,0),size=[self.edge_size,self.edge_size],rotation=180,scale_min=0.5)
-                    self.add_widget(valid)
-                    Animation(pos=square_pos,d=.3,rotation=0,transition='out_sine').start(valid)
-                    self.exists=True
+                        gest_pos=[touch.x,touch.y]
+                    elif index in [7,8]:
+                        gest_pos=[touch.x,touch.y]
+                        widget_type="timeline"
+                    self.create_and_add_widget(widget_type,gest_pos)
                     break
+    def create_and_add_widget(self,widget_type,gest_pos):
+        if widget_type =="validation":
+            widget = Valid(pos=(0,0),size=[self.edge_size,self.edge_size],rotation=180,scale_min=0.5)
+            anim=Animation(pos=gest_pos,d=.3,rotation=0,transition='out_sine')
+        elif widget_type =="timeline" and self.exists == False:
+            self.exists=True
+            widget = TimeLine()
+            widget.pos=(0,self.first_touch[1]-widget.height*0.5)
+            anim=Animation(pos=(self.first_touch[0],self.first_touch[1]-widget.height*0.5),d=.3,transition='out_sine')
+            pass
+        else:
+            return
+        self.add_widget(widget)
+        anim.start(widget)            
     def stroke_length(self,l):
         distance = 0
         for index, point in enumerate(l) :

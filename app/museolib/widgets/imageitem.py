@@ -16,6 +16,7 @@ from os import makedirs
 from kivy.core.window import Window
 from kivy.clock import Clock
 from museolib.widgets.validation import Valid as Valid
+from museolib.widgets.timeline import TimeLine,TimelineComponent
 from pdb import set_trace as rrr
 from kivy.network.urlrequest import UrlRequest
 from kivy.vector import Vector
@@ -439,18 +440,28 @@ class ImageItem(Scatter):
                     Animation(color=(0,0,1,0.9),d=0.3).start(wid)
                     available_pos = self.check_availability(wid)
                     if available_pos != None :
-                        temp = self
-                        temp.do_scale=False
-                        temp.do_translation = False
-                        temp.do_rotation=False
-                        temp.vector=Vector(0,0)
-                        temp.pos=(0,0)
-                        self.parent.remove_widget(self)
-                        wid.ids['my_layout'].add_widget(temp)
-                        anim=Animation(pos=wid.children_pos[str(available_pos)]['pos'], rotation=0,d=0.2,scale=wid.width*0.00095)
-                        anim.start(self)
-                        if self.item.id not in self.app.valid_list:
-                            self.app.valid_list.append(self.item.id)
+                        self.add_item_to_valid(wid.ids['my_layout'], wid.children_pos[str(available_pos)]['pos'], wid.width*0.00095, self.app.valid_list)
+                elif isinstance(wid,TimeLine) and wid.collide_point(*touch):
+                    for child in wid.children :
+                        if isinstance(child,TimelineComponent) and Vector(wid.to_window(child.center_x,child.center_y,False)).distance(touch)<child.width*0.5:
+                            child.has_image=True
+                            child.anim_color()
+                            self.add_item_to_valid(child.layout,(8,8),0.36, self.app.valid_order_list)
+    def add_item_to_valid(self,layout,new_pos,new_scale,added_list):
+        temp = self
+        temp.do_scale=False
+        temp.do_translation = False
+        temp.do_rotation=False
+        temp.vector=Vector(0,0)
+        temp.pos=(0,0)
+        self.parent.remove_widget(self)
+        layout.add_widget(temp)
+        anim=Animation(pos=new_pos, rotation=0,d=0.2,scale=new_scale)
+        anim.start(self)
+        if self.item.id not in added_list:
+            added_list.append(self.item.id)
+        return
+
     def check_availability(self,validation_widget):
         for pos in range(0,4):
             if validation_widget.children_pos[str(pos)]['available'] == True:

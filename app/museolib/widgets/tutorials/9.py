@@ -47,7 +47,7 @@ class TutoWidget(Widget):
 				c=Color()
 				c.rgba=self.colors[str(rand)]
 				Rectangle(size=t.size)
-			t.item['taille']=rand
+			t.item['fields']={'taille':rand}
 			self.add_widget(t)
 	def update_text(self,instance,exists):
 		self.parent.parent.text='Bravo !\nMaintenant, rassemblez quelques carrés\nde la même couleur puis essayez de valider'
