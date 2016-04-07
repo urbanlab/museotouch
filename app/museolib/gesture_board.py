@@ -68,7 +68,9 @@ class GestureBoard(FloatLayout):
             # print self.gdb.gesture_to_str(g)
             self.edge_size = (self.stroke_length(list(zip(touch.ud['line'].points[::2], touch.ud['line'].points[1::2]))))/4 
             if self.edge_size < 150:
-                self.edge_size=150               
+                self.edge_size=150
+            if self.edge_size > 400:
+                self.edge_size = 400               
         # gestures to my_gestures.py
         except :
             return

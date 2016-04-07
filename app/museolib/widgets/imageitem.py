@@ -225,7 +225,9 @@ class ImageItem(Scatter):
         super(ImageItem, self).__init__(**kwargs)
         self.on_start()
         if square:
-            self.squarize_img()    
+            self.squarize_img()
+        if basename(self.source)==".jpg":
+            self.source="no_img.png"
     
     def on_start(self):
         #Replace this function in init.py to personnalize dynamically an image item 

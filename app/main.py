@@ -48,6 +48,7 @@ from functools import partial
 from pdb import set_trace as rrr
 import time
 import unicodedata
+import logging
 
 # from kivy.support import install_twisted_reactor
 # install_twisted_reactor()
@@ -143,24 +144,26 @@ class MuseotouchApp(App):
             return groups.index(child.item.origin_key)
         self._display_ordering_as_group(children, origs, index_for_child)
 
-    def do_ordering_keywords(self, *largs):
-        pass
+    def do_ordering_keywords(self, keywords_name = u"Mots-cles", *largs):
         # ordering only on the current selected group
-        # if not self.keywords:
-        #     return
-        # # get current active group
-        # children = self.root_images.children
-        # active = [x for x in self.keywords.children if not x.collapse]
-        # groups = [uid for g, uid in self.keywords.selected_keywords if g.accitem
-        #         in active]
-        # if not groups:
-        #     return
-        # def index_for_child(groups, child):
-        #     for index, key in enumerate(groups):
-        #         # if key in child.item.keywords:
-        #         #     return index
-        #     return -1
-        # self._display_ordering_as_group(children, groups, index_for_child)
+        if not self.keywords:
+            return
+        # get current active group
+        children = self.root_images.children
+        active = [x for x in self.keywords.children if not x.collapse]
+        groups = [uid for g, uid in self.keywords.selected_keywords if g.accitem
+                in active]
+        if not groups:
+            return
+        def index_for_child(groups, child):
+            for index, key in enumerate(groups):
+                try :
+                    if int(key) in child.item["fields"][keywords_name]:
+                        return index
+                except KeyError:
+                    logging.exception("")
+            return -1
+        self._display_ordering_as_group(children, groups, index_for_child)
 
     def do_ordering_size(self, *largs):
         children = self.root_images.children[:]
@@ -198,6 +201,8 @@ class MuseotouchApp(App):
 
         for i, item in enumerate(reversed(children)):
             mi = index_for_child(groups, item)
+            if mi ==-1:
+                return
             ix = x + (mi % mx) * m * dx
             iy = y + (mi // mx) * m * dy
             '''

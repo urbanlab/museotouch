@@ -15,6 +15,7 @@ class Valid(Scatter):
         self.children_pos={"2":{'pos':[2,2],'available':True},"3":{'pos':[self.width/2,2],'available':True},\
         "0":{'pos':[2,self.width/2],'available':True},"1":{'pos':[self.width/2,self.width/2],'available':True}}
         self.app = App.get_running_app()
+        self.scale_max=4
     def on_touch_down(self,touch):
     	super(Valid,self).on_touch_down(touch)
     	if self.collide_point(*touch.pos):
