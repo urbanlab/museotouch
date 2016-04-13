@@ -511,11 +511,10 @@ class MuseotouchApp(App):
             'demo':'1',
             'client_id': '4',
             'expo': '0',
-            'demo':'1',
             'more_info':'1',
             'splashscreen':'0',
             'splashscreen_interval':'60',
-            'fast':'1',
+            'fast':'0',
             'validation':'1',
             'physics':'1',
             'email_send' : 'True',
@@ -550,12 +549,6 @@ class MuseotouchApp(App):
                 "desc": "Activer ou désactiver l'inertie des fiches",
                 "section": "museotouch",
                 "key": "physics"
-            }, {
-                "type": "bool",
-                "title": "Connexion au back-office",
-                "desc": "Activer ou désactiver la synchronisation avec le backoffice",
-                "section": "museotouch",
-                "key": "fast"
             }, {
                 "type": "bool",
                 "title": "Widget validation",
