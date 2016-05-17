@@ -1026,7 +1026,7 @@ class MuseotouchApp(App):
             with open(zipchecksum, 'r') as fd:
                 checksum = fd.read()
 
-        zipfile = 'http://' + zipfile
+        zipfile = zipfile
 
         if checksum == zipfile:
             Logger.info('Museolib: expo data dir already downloaded, continue.')
@@ -1136,7 +1136,11 @@ class MuseotouchApp(App):
         except TypeError, e:
             print e
             if isfile(filepath):
+                try:
                     remove(filepath)
+                except WindowsError as we:
+                    print "Error while removing file : ", we
+
             else:    ## Show an error ##
                     print("Error: %s file not found while removing" % filepath)
 
@@ -1185,7 +1189,7 @@ class MuseotouchApp(App):
                     # UPDATE : uncommented : was causing other (big) problems
                     if not isfile(filepath):
                         from kivy.network.urlrequest import UrlRequest
-                        req = UrlRequest('http://'+fichier, on_success=self.aft, on_error=self.aft)
+                        req = UrlRequest(fichier, on_success=self.aft, on_error=self.aft)
                         self.url_requests.append(req)
                     continue
             item['__item_filename__'] = item['mainMedia']

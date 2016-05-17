@@ -9,6 +9,7 @@ Kivy.egg-info
 *.kpf
 *.dds
 *.checksum
+*.idea
 app/expos/*
 app/expos/*/data.zip
 app/expos/*/data.checksum

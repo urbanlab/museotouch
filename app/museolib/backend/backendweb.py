@@ -87,8 +87,9 @@ class BackendWeb(Backend):
         assert(client_id is not None)
         url = self.build_interfaces_url(client_id)
         on_success = partial(self.unquote_json, on_success, on_error)
+        self.req = UrlRequest(url, on_success=on_success, on_error=on_error, on_failure=on_error,
+                              on_progress=on_progress)
         Logger.debug('BackendWeb: GET %r' % url)
-        self.req = UrlRequest(url, on_success=on_success, on_error=on_error, on_progress=on_progress, timeout=2)
 
     def get_objects(self, on_success=None, on_error=None, on_progress=None):
         assert(self.expo is not None)
@@ -99,7 +100,7 @@ class BackendWeb(Backend):
 
     def get_file(self, filename, on_success=None, on_error=None, on_progress=None):        
         if (not 'http://' in filename):
-            filename = 'http://' + filename
+            filename = 'https://' + filename
         self.req = UrlRequest(filename, 
                         on_success=on_success, 
                         on_error=on_error, 
@@ -109,7 +110,7 @@ class BackendWeb(Backend):
 
     def download_object(self, url, on_success=None, on_error=None, on_progress=None):
         if (not 'http://' in url):
-            url = 'http://' + url
+            url = 'https://' + url
         self.req = UrlRequest(
                                 "http://" + url, 
                                 on_success = on_success, 

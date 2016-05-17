@@ -88,9 +88,9 @@ class ExpoSelector(FloatLayout):
         super(ExpoSelector, self).__init__(**kwargs)
         self.app.menu.selector = self
         if self.app.backend.interfaces_url:
-            self.req = self.app.backend.get_expos(client_id= self.client_id, on_success=self.on_success,
-                    on_error=self.on_error)
-        else :
+            self.req = self.app.backend.get_expos(client_id=self.client_id, on_success=self.on_success,
+                                                  on_error=self.on_error)
+        else:
             self.load_offline(None)
         # self.load()
         # self.load_offline(None)
@@ -108,6 +108,7 @@ class ExpoSelector(FloatLayout):
     def on_error(self, req, result):
         self.app.offline=True
         self.load_offline(None)
+
 
     def show_expos(self, online=None):
         # get offline expo
