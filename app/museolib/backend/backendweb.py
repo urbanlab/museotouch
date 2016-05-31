@@ -100,7 +100,7 @@ class BackendWeb(Backend):
 
     def get_file(self, filename, on_success=None, on_error=None, on_progress=None):        
         if (not 'http://' in filename):
-            filename = 'https://' + filename
+            filename = 'http://' + filename
         self.req = UrlRequest(filename, 
                         on_success=on_success, 
                         on_error=on_error, 
@@ -110,7 +110,7 @@ class BackendWeb(Backend):
 
     def download_object(self, url, on_success=None, on_error=None, on_progress=None):
         if (not 'http://' in url):
-            url = 'https://' + url
+            url = 'http://' + url
         self.req = UrlRequest(
                                 "http://" + url, 
                                 on_success = on_success, 

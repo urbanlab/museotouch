@@ -166,8 +166,6 @@ class ImageItemContent(FloatLayout):
         self.parent.remove_widget(self.qr_image)
         self.qr=False
 
-
-
 class ImageItem(Scatter):
     #: Reference of the application
     app = ObjectProperty(None)

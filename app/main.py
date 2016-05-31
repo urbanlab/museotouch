@@ -335,7 +335,7 @@ class MuseotouchApp(App):
         result = []
         # avoid bad interactions with validation widgets
         for item in items[:] :
-            if item.id in self.valid_list  or item.id in self.valid_order_list:
+            if item.id in self.valid_list or item.id in self.valid_order_list:
                 items.remove(item)
         # update date range from slider value
         if self.date_slider:
@@ -396,7 +396,7 @@ class MuseotouchApp(App):
             if self.keywords and self.keywords.selected_keywords and not origin_ids:
                 pass
             else:
-                items = result =  [x for x in items if x.origin_key in origin_ids or x.origin_key==""]
+                items = result = [x for x in items if x.origin_key in origin_ids or x.origin_key == ""]
 
         # filter from keywords but with image buttons, only if there is group of keyword with 'filtre' in the group's name
         if self.imageButtons:
@@ -787,7 +787,8 @@ class MuseotouchApp(App):
         if offline == True :
             self.root.add_widget(Label(text="Pas de connexion au serveur.\nMode offline activé.\nLes fiches ne sont pas mises à jour.",color=(1,0,0,1)))
         try:
-            self.root.add_widget(self.menu)
+            if self.config.getboolean('museotouch', 'demo') == True:
+                self.root.add_widget(self.menu)
         except:
             pass
 
@@ -825,8 +826,9 @@ class MuseotouchApp(App):
             batch_list=[]
             for i in items:
                 i = i['fields']
-                if i['taille'].capitalize() not in batch_list:
-                    batch_list.append(i['taille'].capitalize())
+                if 'taille' in i['fields']:
+                    if i['taille'].capitalize() not in batch_list:
+                        batch_list.append(i['taille'].capitalize())
             self.dropdown.populate_drop_down(batch_list)
             self.dropdown.bind(button_text=self.trigger_objects_filtering)
         
@@ -1026,7 +1028,7 @@ class MuseotouchApp(App):
             with open(zipchecksum, 'r') as fd:
                 checksum = fd.read()
 
-        zipfile = zipfile
+        zipfile = 'http://' + zipfile
 
         if checksum == zipfile:
             Logger.info('Museolib: expo data dir already downloaded, continue.')
@@ -1173,25 +1175,26 @@ class MuseotouchApp(App):
             need_sync = True
 
             # print 'check', item['id']
-            for fichier in item['fields']['data'] :                
-                if not self._sync_is_filename_of_item(item, fichier):
-                    # print ' ### The file <{0}> is not downloaded - yet.'.format(fichier)
-                    from museolib.utils import no_url
-                    filepath = join(self.expo_dir, 'otherfiles', no_url(fichier))
-                    # print ' ### It could be downloaded in', filepath
-                    
+            if 'data' in item['fields']:
+                for fichier in item['fields']['data']:
+                    if not self._sync_is_filename_of_item(item, fichier):
+                        # print ' ### The file <{0}> is not downloaded - yet.'.format(fichier)
+                        from museolib.utils import no_url
+                        filepath = join(self.expo_dir, 'otherfiles', no_url(fichier))
+                        # print ' ### It could be downloaded in', filepath
 
-                    filename = basename(fichier)
-                    filepath = join(self.expo_dir, 'otherfiles', filename)
 
-                    # if not isfile(join(self.expo_dir, 'otherfiles', no_url(fichier))):
-                    # TEMPORARY Next lines commented out : was preventing "otherfiles" to update if a file with the same name was already here
-                    # UPDATE : uncommented : was causing other (big) problems
-                    if not isfile(filepath):
-                        from kivy.network.urlrequest import UrlRequest
-                        req = UrlRequest(fichier, on_success=self.aft, on_error=self.aft)
-                        self.url_requests.append(req)
-                    continue
+                        filename = basename(fichier)
+                        filepath = join(self.expo_dir, 'otherfiles', filename)
+
+                        # if not isfile(join(self.expo_dir, 'otherfiles', no_url(fichier))):
+                        # TEMPORARY Next lines commented out : was preventing "otherfiles" to update if a file with the same name was already here
+                        # UPDATE : uncommented : was causing other (big) problems
+                        if not isfile(filepath):
+                            from kivy.network.urlrequest import UrlRequest
+                            req = UrlRequest(fichier, on_success=self.aft, on_error=self.aft)
+                            self.url_requests.append(req)
+                        continue
             item['__item_filename__'] = item['mainMedia']
             filename, ext = self._sync_convert_filename(item['mainMedia'])
             local_filename = self._sync_get_local_filename(filename)
