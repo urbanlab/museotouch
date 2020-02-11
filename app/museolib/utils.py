@@ -1,5 +1,5 @@
 import unicodedata
-from ConfigParser import ConfigParser
+import configparser
 from kivy.network.urlrequest import UrlRequest
 import json
 
@@ -14,8 +14,8 @@ def remove_accents(str):
     nkfd_form = unicodedata.normalize('NFKD', unicode(str))
     return u''.join([c for c in nkfd_form if not unicodedata.combining(c)])
 
-ascii_table = map(chr, range(ord('a'), ord('z')+1) + range(ord('A'), ord('Z')+1)
-        + range(ord('0'), ord('9') + 1) + [ord('_'), ord('-')])
+hexa_table = list(range(ord('a'), ord('z')+1)) + list(range(ord('A'), ord('Z')+1)) + list(range(ord('0'), ord('9') + 1)) + [ord('_'), ord('-')]
+ascii_table = map(chr, hexa_table)
 
 def convert_to_key(name):
     name = remove_accents(name.lower())
@@ -59,10 +59,10 @@ class send_mail:  # s'utilise comme une fonction
         self.rep = UrlRequest(url_mail, self.on_success, self.on_error)
 
     def on_success(self, *args, **kwargs):
-        print '<success SendMail>'
+        print('<success SendMail>')
 
     def on_error(self, *args, **kwargs):
-        print '<error SendMail>'
+        print('<error SendMail>')
 
 
 

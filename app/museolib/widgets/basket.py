@@ -24,7 +24,7 @@ from os.path import join, split, abspath, splitext#, dirname, exists
 from os import listdir 
 from json import loads
 from random import random
-import urllib2, urllib
+import urllib.request, urllib.error, urllib.parse, urllib.request, urllib.parse, urllib.error
 
 from kivy.uix.gridlayout import GridLayout
 
@@ -69,7 +69,7 @@ class Basket(Button):
 
     def __init__(self, **kwargs):
         super(Basket,self).__init__(**kwargs)
-        self.opener = urllib2.build_opener()
+        self.opener = urllib.request.build_opener()
         #counter label
         self.text = '       '+str(self.counter)+'\n  '
         #link action on press
@@ -107,7 +107,7 @@ class Basket(Button):
         self.objects_detailed[str(id)] = item
         self.update_counter_label()
         self.url_send_item(id, item)
-        print 'basket : add item '+str(id), imgItem.source
+        print(('basket : add item '+str(id), imgItem.source))
         # Add image from imgItem.source in self.itemsLayout + item.title
         img = Image(source = imgItem.source, size = (100,100))
         self.itemsLayout.add_widget(img)
@@ -162,7 +162,7 @@ class Basket(Button):
         self.api_add_objects(self.objects, id_basket)
 
     def api_create_basket_error(self, req):
-        print '[ERROR  ] Basket : Backend URL is unreachable: check either url configuration or connectivity' 
+        print('[ERROR  ] Basket : Backend URL is unreachable: check either url configuration or connectivity')
 
     def api_add_objects(self, objects, id_basket):
         #add objects to the basket into the backend
@@ -247,7 +247,7 @@ class Basket(Button):
         url = self.url+self.api_url
         urlc2 = url + suffix[0] + id_basket + suffix[1] + email_add
         answerc = UrlRequest(urlc2)
-        print 'basket : basket number '+ id_basket+' deleted from backend'
+        print(('basket : basket number '+ id_basket+' deleted from backend'))
 
     def api_email_send3(self):
         email_add = self.email 
@@ -258,9 +258,9 @@ class Basket(Button):
         urlc = url + suffix[0] + id_basket + suffix[1] + email_add 
         #send to api
         answerc = UrlRequest(urlc)
-        print 'basket : email sent to '+ email_add
+        print(('basket : email sent to '+ email_add))
         self.reset()
-        print 'basket : reset'
+        print('basket : reset')
 
     def url_send_item(self,id_item, item):
         #send the detailed content of the item to the specidied url
@@ -268,14 +268,14 @@ class Basket(Button):
             item = self.objects_detailed[str(id_item)]
             #build url suffix
             item_urlencoded = {}
-            for key,detail in item.iteritems():
+            for key,detail in item.items():
                 key = key.encode("utf-8")
                 if key not in ['keywords','data'] :
                     detail = detail.encode("utf-8")
                     item_urlencoded[key] = detail
-            item_urlencoded = urllib.urlencode(item_urlencoded)
+            item_urlencoded = urllib.parse.urlencode(item_urlencoded)
             urle = self.url_send_url + '?%s' % item_urlencoded
-            print 'basket : added item '+ urle
+            print(('basket : added item '+ urle))
             #send
             answere = UrlRequest(urle, self.url_send_item2, self.url_send_item_error)
             
@@ -283,8 +283,8 @@ class Basket(Button):
         pass
 
     def url_send_item_error(self, req, err):
-        print err 
-        print '[ERROR  ] Basket : Url defined as url_send_url in __init__.py file is unreachable: check either url or connectivity' 
+        print(err)
+        print('[ERROR  ] Basket : Url defined as url_send_url in __init__.py file is unreachable: check either url or connectivity')
 
     def api_url_send(self,id_basket,url_code):
         #ask the backend to send the basket to the specidied url
@@ -292,7 +292,7 @@ class Basket(Button):
             suffix = self.api_url_commands['retrieve_basket_as_json']
             urld = suffix[0] + str(id_basket) + suffix[1] + str(url_code)
             urle = self.url_send_url + '?json='+self.url+self.api_url+urld
-            print 'basket : json '+ urle
+            print(('basket : json '+ urle))
             answere = UrlRequest(urle, self.url_send_item2, self.url_send_item_error)
             
             if not self.email_send :

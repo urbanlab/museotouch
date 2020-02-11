@@ -2,7 +2,8 @@ from museolib.backend import Backend
 from kivy.logger import Logger
 from kivy.network.urlrequest import UrlRequest
 from functools import partial
-from urllib import unquote_plus, urlopen
+from urllib.parse import unquote_plus
+from urllib.request import urlopen
     
 class BackendWeb(Backend):
 
@@ -25,7 +26,7 @@ class BackendWeb(Backend):
         try:
             json = self._unquote(json)
             on_success(req, json)
-        except Exception, e:
+        except Exception as e:
             Logger.exception('error on request %r' % req, json)
             on_error(req, e)
 
@@ -35,16 +36,16 @@ class BackendWeb(Backend):
         if tp in (list, tuple):
             return tp([unquote(x) for x in json])
         elif tp is dict:
-            return dict((x, unquote(y)) for x, y in json.iteritems())
-        elif tp in (str, unicode):
+            return dict((x, unquote(y)) for x, y in json.items())
+        elif tp in (str, str):
             json = unquote_plus(json)
             try:
                 ojson = json
                 json = json.encode('latin1')
                 json = json.decode('utf8')
-            except Exception, e:
-                print 'error on string %r' % json
-                print 'unable to decode ?', e
+            except Exception as e:
+                print(( 'error on string %r' % json))
+                print(('unable to decode ?', e))
                 json = ojson
         return json
 
@@ -57,7 +58,7 @@ class BackendWeb(Backend):
             if data:
                 data = data[0]
             on_success(req, data)
-        except Exception, e:
+        except Exception as e:
             Logger.exception('error on request %r' % req)
             on_error(req, e)
 

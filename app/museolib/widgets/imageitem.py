@@ -54,7 +54,7 @@ class ItemMediaBrowser(FloatLayout):
         # from museolib.utils import no_url
         media = join(self.parent.parent.parent.parent.app.expo_dir, 'otherfiles', basename(media))
         if not isfile(media):
-            print " ### Oops, this media is not downloaded !"
+            print(" ### Oops, this media is not downloaded !")
         try:
             if ext in ('mp3', 'ogg', 'flac', 'wav'):
                 self.song = SoundLoader.load(media)

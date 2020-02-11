@@ -51,7 +51,7 @@ class SplashScreen(FloatLayout):
 					board = child.children[0].children[0].board
 				except:
 					pass
-		print Window.children
+		print(Window.children)
 		# Stop video if active
 		if self.vid:
 			self.vid.play=False

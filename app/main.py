@@ -121,7 +121,7 @@ class MuseotouchApp(App):
         Clock.schedule_once(_delayed_work, delay)
     @property
     def mode(self):
-        if platform() in ('android', 'ios'):
+        if platform in ('android', 'ios'):
             return 'mobile'
         return 'table'
     
@@ -285,7 +285,7 @@ class MuseotouchApp(App):
             Animation(opacity=0,d=0.5).start(widget)
     def show_objects(self, objects):
         root = self.root
-        if isinstance(self.root_images.x, (int, long)):
+        if isinstance(self.root_images.x, int):
             if root.type_expo == 'normal':
                 images = [x.source for x in self.root_images.children]
 
@@ -460,7 +460,7 @@ class MuseotouchApp(App):
 
             def remove_accents(input_str):
                 nkfd_form = unicodedata.normalize('NFKD', input_str)
-                return u"".join([c for c in nkfd_form if not unicodedata.combining(c)])
+                return "".join([c for c in nkfd_form if not unicodedata.combining(c)])
 
             if (keywords_all):
                 for name in keywords_names:
@@ -551,7 +551,7 @@ class MuseotouchApp(App):
             if not hasattr(self.keywords, 'multiple_groups'):
                 # if multiple_groups:
                 for item in items_result[:]:
-                    valid = all([item in x for x in groups_result.itervalues()])
+                    valid = all([item in x for x in groups_result.values()])
                     if not valid:
                         items_result.remove(item)
 
@@ -594,7 +594,8 @@ class MuseotouchApp(App):
             'url_send' : 'True',
             'url_send_detailed_item' : 'True'
         })
-        if platform() not in ('ios', 'android'):
+        #print(platform())
+        if platform not in ('ios', 'android'):
             config.setdefaults('rfid', {
                 'uid_restart': '',
                 'uid_mainscreen': '',
@@ -745,7 +746,7 @@ class MuseotouchApp(App):
 
         # rfid daemon
         self.rfid_daemon = None
-        if platform() not in ('ios', 'android'):
+        if platform not in ('ios', 'android'):
             try:
                 from museolib.rfid import RfidDaemon
                 self.rfid_daemon = RfidDaemon()
@@ -858,7 +859,7 @@ class MuseotouchApp(App):
             #rrr()
             item.filename = filename
 
-        print ">>>>>>>>>>>>>>>>>>>>>>>> n items", len(items)
+        print((">>>>>>>>>>>>>>>>>>>>>>>> n items", len(items)))
         db.items = items
         Logger.info('Museotouch: %d items usable' % len(db.items))
 
@@ -1028,9 +1029,9 @@ class MuseotouchApp(App):
             root_expo = join(dirname(__file__), 'expos')
         try:
             makedirs(root_expo)
-        except OSError, e:
-            print 'ERROR WHILE CREATING INITIAL LAYOUT?'
-            print e
+        except OSError as e:
+            print('ERROR WHILE CREATING INITIAL LAYOUT?')
+            print(e)
         if expo_id is None:
             return root_expo
         return join(root_expo, expo_id)
@@ -1049,7 +1050,7 @@ class MuseotouchApp(App):
         layout.add_widget(ProgressBar())
         self._sync_popup.content = layout
 
-        self._sync_popup_text(u'Téléchargement de la description')
+        self._sync_popup_text('Téléchargement de la description')
 
         # create layout for exhibition
         for directory in (
@@ -1065,7 +1066,7 @@ class MuseotouchApp(App):
         self.backend.set_expo(expo_id)
 
         if self.disconnected == True:
-            print 'building fast'
+            print('building fast')
             self._sync_popup.dismiss()
             self.build_app(offline=True)
         else:
@@ -1086,8 +1087,8 @@ class MuseotouchApp(App):
         self._expo_files = files = [x['fichier'] for x in result['data']]
         zipfiles = [x for x in files if x.rsplit('.', 1)[-1] == 'zip']
         if len(zipfiles) != 1:
-            self.error(u'Aucun fichier de données attaché '
-                    u'à cette exposition (zip not found)')
+            self.error('Aucun fichier de données attaché '
+                    'à cette exposition (zip not found)')
             return
 
         # write the part of the json corresponding to that expo in the dir
@@ -1111,8 +1112,8 @@ class MuseotouchApp(App):
 
 
         # download the zip
-        print ' &&&& the zip is', zipfiles[0]
-        self._sync_popup_text(u'Téléchargement des données')
+        print((' &&&& the zip is', zipfiles[0]))
+        self._sync_popup_text('Téléchargement des données')
         self.backend.get_file(
             zipfiles[0],
             on_success=self._sync_expo_2,
@@ -1166,7 +1167,7 @@ class MuseotouchApp(App):
             return
 
         # download the first one as a thumbnail
-        self._sync_popup_text(u'Téléchargement de la miniature')
+        self._sync_popup_text('Téléchargement de la miniature')
         self.backend.get_file(
             images[0],
             on_success=self._sync_expo_4,
@@ -1190,7 +1191,7 @@ class MuseotouchApp(App):
     def _sync_expo_5(self):
         Logger.info('Museotouch: Synchronization part 5')
         # get objects now.
-        self._sync_popup_text(u'Téléchargement des objets')
+        self._sync_popup_text('Téléchargement des objets')
         self.backend.get_objects(
                 on_success=self._sync_expo_6,
                 on_error=self._sync_error_but_continue,
@@ -1207,26 +1208,26 @@ class MuseotouchApp(App):
             output = open(filepath, 'wb')
             output.write(result) # fichier sauvegarde
             output.close()
-        except TypeError, e:
-            print e
+        except TypeError as e:
+            print(e)
             if isfile(filepath):
                     remove(filepath)
             else:    ## Show an error ##
-                    print("Error: %s file not found while removing" % filepath)
+                    print(("Error: %s file not found while removing" % filepath))
 
         self.url_requests.remove(req)
         if not self.url_requests: # si c'etait le dernier fichier
             if hasattr(self, 'root'):
                 if hasattr(self.root, 'gif'):
                     self.root.remove_widget(self.root.gif) # on supprime le gif de chargement
-        print " ###", req.url, '--> download finished !'
+        print((" ###", req.url, '--> download finished !'))
 
     def _sync_expo_6(self, req, result):
         Logger.info('Museotouch: Synchronization part 6')
         # self._sync_popup_text(u'Téléchargement des ...')
         self.url_requests = []
 
-        filename = join(self.expo_dir, u'objects.json')
+        filename = join(self.expo_dir, 'objects.json')
         with open(filename, 'wb') as fd:
             s = dumps(result)
             fd.write(s)
@@ -1236,7 +1237,7 @@ class MuseotouchApp(App):
         for item in result['items']:
             fichiers = item['data']
             if not item['fichier']:
-                print '===> remove item %r, no data attached' % item['id']
+                print(('===> remove item %r, no data attached' % item['id']))
                 items.remove(item)
                 continue
             need_sync = True
@@ -1276,14 +1277,14 @@ class MuseotouchApp(App):
                 if not exists(md5_local_filename):
                     if not md5:
                         need_sync = False
-                    print '3', need_sync, repr(md5)
+                    print(('3', need_sync, repr(md5)))
                     continue
                 # ok, is the md5 is the same ?
                 with open(md5_local_filename, 'r') as fd:
                     md5_local = fd.read()
                 # different md5, redownload.
                 if md5 != md5_local:
-                    print '4', repr(md5)
+                    print(('4', repr(md5)))
                     continue
                 need_sync = False
             if not need_sync:
@@ -1411,7 +1412,7 @@ class MuseotouchApp(App):
         self.build_app()
 
     def error(self, error):
-        if type(error) not in (str, unicode):
+        if type(error) not in (str, str):
             error = str(error)
         content = BoxLayout(orientation='vertical')
         label = Label(text=error, valign='middle')
@@ -1437,7 +1438,7 @@ class MuseotouchApp(App):
             Builder.unload_file(join(self.expo_data_dir, 'museotouch.kv'))
 
         if go_to_menu == True:
-            print 'reset'
+            print('reset')
             # restart with selector.
             Window.add_widget(self.build_selector())
 
@@ -1447,7 +1448,7 @@ if __name__ in ('__main__', '__android__'):
     try:
         MuseotouchApp().run()
     except:
-        print "Trigger Exception, traceback info forward to log file."
+        print("Trigger Exception, traceback info forward to log file.")
         traceback.print_exc(file=sys.stdout)
         # Désactive le besoin de taper une touche pour fermer museotouch ce qui bloquait le relancement automatique.
         # TODO : Placer la trace dans un fichier à chaque crash.

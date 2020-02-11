@@ -16,7 +16,7 @@ MAX_FRAME_LEN = 264
 (NC_PN531, NC_PN532, NC_PN533) = (0x10, 0x20, 0x30)
 
 _byte_t = ctypes.c_ubyte
-if sys.maxint > 2**32:
+if sys.maxsize > 2**32:
     _size_t = ctypes.c_uint64
 else:
     _size_t = ctypes.c_uint32
@@ -230,7 +230,7 @@ _lib.nfc_target_send_bytes.restype = ctypes.c_bool
 
 def get_version():
     res = _lib.nfc_version()
-    print res
+    print(res)
 
 def list_devices():
     max_device_length = 16

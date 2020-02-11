@@ -43,7 +43,7 @@ class ExpoItem(ButtonBehavior, Widget):
     color = (1,1,1,1)
 
     def __init__(self, **kwargs):
-        print "CREATION EXPO ITEM"
+        print("CREATION EXPO ITEM")
         yellow = (0.894, 0.886, 0.133,1)
         cobalt = (0.172, 0.2, 0.219,1)
         violet = (0.223, 0.015, 0.270,1)
@@ -115,7 +115,7 @@ class ExpoSelector(FloatLayout):
         else:
             result = offline
         # show them.
-        print "IL Y A %s EXPOS"%(len(result))
+        print("IL Y A %s EXPOS"%(len(result)))
         layout = ExpoPopupChoice()
         layout.list_expos.bind(minimum_height=layout.list_expos.setter('height'))
 
@@ -209,7 +209,7 @@ class ExpoSelector(FloatLayout):
         # btn.bind(on_release=self.load_offline)
         # content.add_widget(btn)
         # self.popup(content=content, title='Erreur')
-        print 'error'
+        print('error')
         self.app.offline=True
         self.load_offline(None)
 

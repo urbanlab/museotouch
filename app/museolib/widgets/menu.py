@@ -39,7 +39,7 @@ class Menu(FloatLayout):
 		self.selector.screen_saver(None)
 
 	def credits(self,instance):
-		print "credits"
+		print("credits")
 
 	def exit(self,instance):
 		try:
