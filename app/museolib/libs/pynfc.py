@@ -137,6 +137,11 @@ class _Device(ctypes.Structure):
                 ("support_byte", _byte_t)
                 ]
 
+
+"""
+    DÉSACTIVATION DU CODE NFC CI-DESSOUS (ne fonctionne plus de toutes façons)
+"""
+"""
 _lib.nfc_version.restype = ctypes.c_char_p
 
 _lib.nfc_list_devices.argtypes = (ctypes.POINTER(DeviceDescription),
@@ -228,8 +233,10 @@ _lib.nfc_target_send_bytes.argtypes = (ctypes.POINTER(_Device),
                                        _size_t)
 _lib.nfc_target_send_bytes.restype = ctypes.c_bool
 
+"""
+
 def get_version():
-    res = _lib.nfc_version()
+    res = _lib.nfc_version
     print(res)
 
 def list_devices():
